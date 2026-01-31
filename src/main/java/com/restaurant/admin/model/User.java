@@ -1,9 +1,8 @@
 package com.restaurant.admin.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -22,8 +21,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "app_user")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
@@ -33,6 +31,7 @@ public class User {
     private Long id;
 
     @NotBlank(message = "Username cannot be blank")
+    @Column(unique = true)
     private String username;
 
     @NotBlank(message = "Email cannot be blank")
@@ -47,7 +46,7 @@ public class User {
     private String role;
 
     @NotNull(message = "Active status cannot be null")
-    private boolean isActive = true;
+    private boolean active = true;
 
     @CreationTimestamp
     @Column(updatable = false)

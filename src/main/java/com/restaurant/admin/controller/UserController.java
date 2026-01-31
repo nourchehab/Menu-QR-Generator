@@ -1,5 +1,7 @@
 package com.restaurant.admin.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,19 +16,29 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
-
 public class UserController {
 
+    @Autowired
     private UserService userService;
-    
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
+        try {
+            User savedUser = userService.registerUser(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping
-    public User createUser(@Valid @RequestBody User user){
-        return userService.createUser(user);
+    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
+        // For backward compatibility
+        return registerUser(user);
     }
 
     @GetMapping
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
-
 }
