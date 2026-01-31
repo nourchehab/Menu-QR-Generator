@@ -1,4 +1,4 @@
-package com.MohdKat.backend_servicex;
+package com.restaurant.admin;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
