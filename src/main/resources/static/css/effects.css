@@ -1,0 +1,61 @@
+/* =========================
+   PREMIUM MICRO-INTERACTIONS
+   ========================= */
+
+/* BUTTON HOVER – GRADIENT SHIFT */
+.btn {
+    transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease,
+        transform 0.25s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f97316, #fb923c);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #fb923c, #f97316);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 14px 35px rgba(249,115,22,0.35);
+}
+
+/* SECONDARY BUTTON */
+.btn-secondary:hover {
+    background: rgba(249,115,22,0.08);
+    transform: translateY(-2px);
+}
+
+/* CARD HOVER – LIFT & DEPTH */
+.card,
+.feature-card {
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+.card:hover,
+.feature-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* INPUT FOCUS – PREMIUM FEEL */
+input:focus {
+    transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+/* SIDEBAR STICKY (DASHBOARD) */
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+/* NAVBAR SOFT SHADOW ON SCROLL */
+.navbar.scrolled {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
