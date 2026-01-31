@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.restaurant.admin.dto.LoginRequest;
 import com.restaurant.admin.model.User;
 import com.restaurant.admin.repository.UserRepository;
 
@@ -66,5 +67,23 @@ public class UserService {
             return passwordEncoder.matches(rawPassword, user.getPassword());
         }
         return false;
+    }
+
+    public String loginUser(LoginRequest loginRequest) {
+        // 1. Find user by username or email
+        User user = userRepository.findByUsername(loginRequest.getEmail())
+                .orElseGet(() -> userRepository.findByEmail(loginRequest.getEmail()).orElse(null));
+
+        if (user == null) {
+            return "User not found!";
+        }
+
+        // 2. Check if password matches the hash
+        // passwordEncoder.matches(rawPassword, encodedPassword)
+        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            return "Login successful! Welcome " + user.getUsername();
+        } else {
+            return "Invalid password!";
+        }
     }
 }

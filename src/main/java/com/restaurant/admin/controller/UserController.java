@@ -1,6 +1,7 @@
 package com.restaurant.admin.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +36,17 @@ public class UserController {
     public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
         // For backward compatibility
         return registerUser(user);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@Valid @RequestBody com.restaurant.admin.dto.LoginRequest loginRequest) {
+        String result  = userService.loginUser(loginRequest);
+
+        if (result.contains("successful")){
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+        }
     }
 
     @GetMapping
