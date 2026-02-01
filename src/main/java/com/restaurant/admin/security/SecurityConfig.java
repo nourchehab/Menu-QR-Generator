@@ -16,13 +16,17 @@ public class SecurityConfig {
         http
             // 1. Allow everyone to access the H2 console path
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/users/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
             // 2. H2 Console uses iframes; Spring Security blocks them by default
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             // 3. Disable CSRF protection for the console (it doesn't work with H2)
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/users/**")
+                .ignoringRequestMatchers("/h2-console/**")
+            )
             // 4. Keep the standard login for everything else
             .formLogin(Customizer.withDefaults());
 

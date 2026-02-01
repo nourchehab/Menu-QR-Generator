@@ -53,4 +53,9 @@ public class UserController {
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
+
+    @GetMapping("/test")
+    public String test() {
+        return "Backend is running! Database connection OK.";
+    }
 }
