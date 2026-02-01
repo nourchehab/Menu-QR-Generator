@@ -10,13 +10,25 @@
 
 <div class="auth-container">
     <div class="auth-card">
-        <h2>Welcome Back</h2>
+        <h2>Welcome Back!</h2>
         <p>Log in to manage your restaurant</p>
 
-        <input type="email" placeholder="Email">
-        <input type="password" placeholder="Password">
+        <form method="post" action="/login" class="auth-form">
 
-        <button class="btn btn-primary">Log In</button>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <div class="remember-me">
+            <label class="remember-me__label">
+                <input type="checkbox" name="rememberMe" class="remember-me__checkbox">
+                <span class="remember-me__text">Remember me</span>
+            </label>
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+
 
         <span>Don’t have an account? <a href="/signup">Sign up</a></span>
     </div>
