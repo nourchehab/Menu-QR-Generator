@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.restaurant.admin.model.User;
 import com.restaurant.admin.service.UserService;
+import com.restaurant.admin.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 
@@ -26,9 +27,11 @@ public class UserController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
         try {
             User savedUser = userService.registerUser(user);
-            return ResponseEntity.ok(savedUser);
+            ApiResponse<User> response = new ApiResponse<>(true, "User registered successfully", savedUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            ApiResponse<?> response = new ApiResponse<>(false, e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
@@ -43,9 +46,11 @@ public class UserController {
         String result  = userService.loginUser(loginRequest);
 
         if (result.contains("successful")){
-            return ResponseEntity.ok(result);
+            ApiResponse<String> response = new ApiResponse<>(true, "Login successful", result);
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+            ApiResponse<?> response = new ApiResponse<>(false, result);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 

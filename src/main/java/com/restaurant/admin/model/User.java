@@ -15,7 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -42,11 +41,10 @@ public class User {
     @NotBlank(message = "Password cannot be blank")
     private String password;
 
-    @NotNull(message = "Role cannot be null")
-    private String role;
+    private String role = "USER";
 
-    @NotNull(message = "Active status cannot be null")
-    private boolean active = true;
+    @Column(name = "is_active", nullable = false)
+    private Boolean active = true;    
 
     @CreationTimestamp
     @Column(updatable = false)

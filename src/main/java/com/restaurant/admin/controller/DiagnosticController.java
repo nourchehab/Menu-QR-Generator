@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.sql.DataSource;
@@ -103,7 +102,7 @@ public class DiagnosticController {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as user_count FROM users");
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as user_count FROM app_user");
             Map<String, Object> response = new HashMap<>();
             
             if (rs.next()) {
@@ -150,7 +149,7 @@ public class DiagnosticController {
             
             // 3. User count
             try (Statement stmt = conn.createStatement()) {
-                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as user_count FROM users");
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as user_count FROM app_user");
                 if (rs.next()) {
                     response.put("userCount", rs.getInt("user_count"));
                 }
