@@ -43,7 +43,7 @@ public class User {
 
     private String role = "USER";
 
-    @Column(name = "is_active", nullable = false)
+    @Column(nullable = false)
     private Boolean active = true;    
 
     @CreationTimestamp
