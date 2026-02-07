@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login – FlavorFrame</title>
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/auth.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .auth-card {
+            background: white;
+            padding: 40px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: #1a73e8;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .google-btn:hover {
+            background: #f7f7f7;
+        }
+
+        .auth-footer {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="auth-card">
+    <h2>Welcome Back!</h2>
+    <p>Log in to manage your restaurant</p>
+
+    <!-- GOOGLE LOGIN BUTTON -->
+    <a class="google-btn" href="/oauth2/authorization/google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+        Continue with Google
+    </a>
+
+    <form method="post" action="/login">
+        <input type="email" name="username" placeholder="Email">
+        <input type="password" name="password" placeholder="Password">
+
+        <button class="btn" type="submit">Log In</button>
+    </form>
+
+    <div class="auth-footer">
+        Don’t have an account? <a href="/signup">Sign up</a>
+    </div>
+</div>
+
+</body>
+</html>
