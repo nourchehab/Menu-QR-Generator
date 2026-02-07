@@ -90,9 +90,9 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "Backend is running! Database connection OK.";
+    @GetMapping("/health")
+    public ResponseEntity<?> health() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Backend is running!", null));
     }
 
     // =========================
@@ -105,5 +105,5 @@ public class UserController {
     @GetMapping("/dashboard")
     public String dashboard() {
         return "dashboard";
-    }
+}
 }
