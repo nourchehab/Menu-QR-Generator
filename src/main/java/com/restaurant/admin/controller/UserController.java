@@ -1,61 +1,54 @@
 package com.restaurant.admin.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import com.restaurant.admin.model.User;
 import com.restaurant.admin.service.UserService;
 
-import jakarta.validation.Valid;
-
-@RestController
-@RequestMapping("/users")
+@Controller
+@RequestMapping("/auth")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
-        try {
-            User savedUser = userService.registerUser(user);
-            return ResponseEntity.ok(savedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    // =========================
+    // SHOW SIGNUP PAGE
+    // =========================
+    @GetMapping("/signup")
+    public String signupPage() {
+        return "signup";
+    }
+
+    // =========================
+    // HANDLE SIGNUP
+    // =========================
+    @PostMapping("/signup")
+    public String signup(
+            @RequestParam String email,
+            @RequestParam String password,
+            Model model) {
+
+        boolean success = userService.registerUser(email, password);
+
+        if (success) {
+            return "redirect:/login";
         }
+
+        model.addAttribute("error", "Email already exists");
+        return "signup";
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
-        // For backward compatibility
-        return registerUser(user);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody com.restaurant.admin.dto.LoginRequest loginRequest) {
-        String result  = userService.loginUser(loginRequest);
-
-        if (result.contains("successful")){
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
-        }
-    }
-
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        return "Backend is running! Database connection OK.";
+    // =========================
+    // SHOW LOGIN PAGE
+    // =========================
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
     }
 }

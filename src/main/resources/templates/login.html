@@ -1,40 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="/css/effects.css">
-    <title>Login – FlavorFrame</title>
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Welcome Back!</h2>
-        <p>Log in to manage your restaurant</p>
-
-        <form method="post" action="/login" class="auth-form">
-
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-
-            <div class="remember-me">
-            <label class="remember-me__label">
-                <input type="checkbox" name="rememberMe" class="remember-me__checkbox">
-                <span class="remember-me__text">Remember me</span>
-            </label>
+    <div class="form-container">
+        <h2>Login</h2>
+        <form action="/auth/login" method="POST">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
             </div>
-
-
-            <button type="submit" class="btn btn-primary">Log In</button>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+            <p>Don't have an account? <a href="/signup">Sign Up</a></p>
         </form>
-
-
-        <span class="auth-footer">
-            Don’t have an account? <a href="/signup">Sign up</a>
-        </span>
+        <p th:if="${error != null}" th:text="${error}"></p> <!-- Display error message -->
     </div>
-</div>
-
 </body>
 </html>

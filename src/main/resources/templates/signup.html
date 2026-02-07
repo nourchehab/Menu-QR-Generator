@@ -1,30 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="/css/effects.css">
-    <title>Sign Up – FlavorFrame</title>
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Create Account</h2>
-        <p>Start managing your restaurant today</p>
-
-        <div class="auth-form">
-            <input type="email" placeholder="Email">
-            <input type="password" placeholder="Password">
-            <input type="password" placeholder="Confirm Password">
-
-            <button class="btn btn-primary">Create Account</button>
-
-            <span class="auth-footer">
-                Already have an account? <a href="/login">Log in</a>
-            </span>
-        </div>
+    <div class="form-container">
+        <h2>Create an Account</h2>
+        <form action="/auth/signup" method="POST">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+            <p>Already have an account? <a href="/login">Log in</a></p>
+        </form>
+        <p th:if="${error != null}" th:text="${error}"></p> <!-- Display error message -->
     </div>
-</div>
-
 </body>
 </html>
