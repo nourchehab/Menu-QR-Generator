@@ -102,4 +102,8 @@ public class UserController {
     public String loginPage() {
         return "login";
     }
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "dashboard";
+    }
 }
