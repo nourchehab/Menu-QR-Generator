@@ -1,6 +1,5 @@
 package com.restaurant.admin.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,8 @@ import com.restaurant.admin.dto.LoginRequest;
 import com.restaurant.admin.model.User;
 import com.restaurant.admin.repository.UserRepository;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -20,70 +21,58 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User registerUser(User user) {
-        // Check for duplicate email
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists: " + user.getEmail());
+    // =========================
+    // REGISTER
+    // =========================
+    public boolean registerUser(String email, String rawPassword) {
+
+        if (userRepository.existsByEmail(email)) {
+            return false;
         }
 
-        // Check for duplicate username
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists: " + user.getUsername());
-        }
-
-        // Hash the password
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
-
-        // Set default values
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole("USER");
-        user.setActive(true);
+        user.setActive(true); // IMPORTANT (fixes DB error)
 
-        // Save and return
-        return userRepository.save(user);
+        userRepository.save(user);
+        return true;
+    }
+    // =========================
+    // LOGIN/AUTHENTICATE
+    // =========================
+    public String loginUser(LoginRequest loginRequest) {
+        boolean isAuthenticated = authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+    
+        if (isAuthenticated) {
+            return "Login successful";
+        } else {
+            return "Invalid email or password";
+        }
     }
 
-    public User createUser(User user) {
-        // For backward compatibility, but should use registerUser instead
-        return registerUser(user);
-    }
-
+    // =========================
+    // GET ALL USERS
+    // =========================
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
+    // =========================
+    // AUTHENTICATE
+    // =========================
     public boolean authenticateUser(String email, String rawPassword) {
+
         Optional<User> userOpt = userRepository.findByEmail(email);
+
         if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            return passwordEncoder.matches(rawPassword, user.getPassword());
+            return passwordEncoder.matches(
+                    rawPassword,
+                    userOpt.get().getPassword()
+            );
         }
+
         return false;
-    }
-
-    public String loginUser(LoginRequest loginRequest) {
-        // 1. Find user by username or email
-        User user = userRepository.findByUsername(loginRequest.getEmail())
-                .orElseGet(() -> userRepository.findByEmail(loginRequest.getEmail()).orElse(null));
-
-        if (user == null) {
-            return "User not found!";
-        }
-
-        // 2. Check if password matches the hash
-        // passwordEncoder.matches(rawPassword, encodedPassword)
-        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return "Login successful! Welcome " + user.getUsername();
-        } else {
-            return "Invalid password!";
-        }
     }
 }
