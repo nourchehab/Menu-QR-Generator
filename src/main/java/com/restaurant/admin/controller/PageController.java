@@ -5,16 +5,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.restaurant.admin.service.UserService;
-
 import org.springframework.ui.Model;
+
+import com.restaurant.admin.service.SimpleUserService;
 
 @Controller
 public class PageController {
 
     @Autowired
-    private UserService userService;
+    private SimpleUserService userService;
 
     @GetMapping("/")
     public String landing() {
@@ -31,8 +30,9 @@ public class PageController {
         @RequestParam String email,
         @RequestParam String password,
         Model model) {
+
         boolean isAuthenticated = userService.authenticateUser(email, password);
-            
+
         if (isAuthenticated) {
             return "redirect:/dashboard";
         } else {

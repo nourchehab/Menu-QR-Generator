@@ -46,15 +46,10 @@
 }
 
 .auth-footer {
-<<<<<<< HEAD
-=======
-    /* margin-top: 18px; */
->>>>>>> origin/nour
     font-size: 14px;
     color: var(--text-muted);
 }
 
-<<<<<<< HEAD
 .auth-footer a {
     color: #4a6fa5;
     text-decoration: underline;
@@ -62,8 +57,6 @@
 }
 
 
-=======
->>>>>>> origin/nour
 .auth-form input {
     width: 100%;
 }

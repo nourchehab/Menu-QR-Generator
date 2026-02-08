@@ -26,6 +26,7 @@ public class SecurityConfig {
                         "/auth/**",
                         "/css/**",
                         "/js/**",
+                        "/otp.html", "/reset-password.html",
                         "/images/**"
                 ).permitAll()
                 // Everything else requires login
@@ -47,8 +48,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }
