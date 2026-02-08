@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <script src="/js/effects.js" defer></script>
-    <script src="/js/effects.js"></script>
 </head>
 <body>
 
@@ -18,7 +17,10 @@
             <a href="/dashboard">Dashboard</a>
             <a href="/menus">Menus</a>
             <a href="/settings">Settings</a>
-            <a href="/">Logout</a>
+            <form action="/logout" method="post" class="logout-form">
+                <button type="submit" class="link-btn">Logout</button>
+            </form>
+
         </nav>
     </aside>
 

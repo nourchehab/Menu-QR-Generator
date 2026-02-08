@@ -21,6 +21,25 @@
     color: var(--text-muted);
 }
 
+.sidebar nav form {
+    display: block;
+    margin-bottom: 16px;
+}
+
+.sidebar nav .link-btn {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: inherit;
+    line-height: inherit;
+    background: none;
+    border: none;
+}
+
+.sidebar nav .link-btn:hover {
+    color: var(--orange);
+    cursor: pointer;
+}
+
 .sidebar nav a:hover {
     color: var(--orange);
 }
