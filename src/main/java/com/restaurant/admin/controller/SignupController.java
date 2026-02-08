@@ -2,6 +2,7 @@ package com.restaurant.admin.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -31,6 +32,14 @@ public class SignupController {
             return "redirect:/signup?error=email";
         }
 
-        return "redirect:/login";
+        return "redirect:/choose-option";
+    }
+      @GetMapping("/choose-option")
+    public String chooseOption() {
+        return "choose-option"; // Serves choose-option.html
+    }
+    @GetMapping("/details")
+    public String restaurantDetails(@RequestParam String option) {
+        return "restaurant-details"; // Serves restaurant-details.html from templates folder
     }
 }

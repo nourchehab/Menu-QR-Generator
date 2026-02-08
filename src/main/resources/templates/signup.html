@@ -37,14 +37,40 @@
 <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
             <div class="password-rules">
     <ul>
-        <li id="rule-length">❌ At least 8 characters</li>
-        <li id="rule-upper">❌ One uppercase letter</li>
-        <li id="rule-lower">❌ One lowercase letter</li>
-        <li id="rule-number">❌ One number</li>
-        <li id="rule-symbol">❌ One special character</li>
+        <li id="rule-length">At least 8 characters</li>
+        <li id="rule-upper">One uppercase letter</li>
+        <li id="rule-lower">One lowercase letter</li>
+        <li id="rule-number">One number</li>
+        <li id="rule-symbol">One special character</li>
     </ul>
 </div>
+<style>
+.password-rules {
+    margin-bottom: 12px;
+    text-align: left;
+}
 
+.password-rules ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.password-rules li {
+    font-size: 13px;
+    color: #e74c3c;
+    margin: 4px 0;
+    transition: color 0.3s ease;
+}
+
+.password-rules li.valid {
+    color: #2ecc71;
+}
+
+.password-rules li.invalid {
+    color: #e74c3c;
+}
+</style>
 <div class="password-strength">
     <div class="strength-bar">
         <div id="strength-fill"></div>
@@ -173,11 +199,9 @@ function validatePassword() {
 
     for (let key in checks) {
         if (checks[key]) {
-            rules[key].textContent = "✔️ " + rules[key].textContent.slice(2);
             rules[key].className = "valid";
             strength++;
         } else {
-            rules[key].textContent = "❌ " + rules[key].textContent.slice(2);
             rules[key].className = "invalid";
         }
     }
