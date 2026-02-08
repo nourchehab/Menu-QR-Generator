@@ -55,8 +55,10 @@
     <div class="auth-card">
         <h2>Welcome Back!</h2>
         <p>Log in to manage your restaurant</p>
-
-        <form method="post" action="/login" class="auth-form">
+<div th:if="${error}" style="background: #fdecea; color: #e74c3c; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center; font-size: 14px;">
+    <span th:text="${error}"></span>
+</div>
+        <form th:action="@{/login}" method="post" class="auth-form">
 
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>

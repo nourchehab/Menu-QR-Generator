@@ -11,6 +11,25 @@
     <div class="auth-card">
         <h2>Create Account</h2>
         <p>Start managing your restaurant today</p>
+<div class="error-message" th:if="${param.error}">
+    <span th:if="${param.error[0] == 'email'}">
+        Account already exists. Please log in.
+    </span>
+    <span th:if="${param.error[0] == 'password'}">
+        Passwords do not match.
+    </span>
+</div>
+<style>
+.error-message {
+    background: #fdecea;
+    color: #e74c3c;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-align: center;
+}
+</style>
 
         <form method="post" action="/signup" class="auth-form">
             <input type="email" name="email" placeholder="Email" required>
@@ -176,7 +195,7 @@ function validatePassword() {
     } else {
         strengthFill.style.width = "100%";
         strengthFill.classList.add("strong");
-        strengthText.textContent = "Strong password 💪";
+        strengthText.textContent = "Strong password";
     }
 
     if (val.length === 0) {

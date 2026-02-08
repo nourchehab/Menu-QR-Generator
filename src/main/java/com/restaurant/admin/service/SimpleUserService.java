@@ -31,13 +31,23 @@ public class SimpleUserService {
     }
 
     // Authenticate login
-    public boolean authenticateUser(String email, String rawPassword) {
-        Optional<SimpleUser> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isPresent()) {
-            return passwordEncoder.matches(rawPassword, userOpt.get().getPassword());
-        }
-        return false;
+    public LoginResult authenticateUser(String email, String rawPassword) {
+
+    Optional<SimpleUser> userOpt = userRepository.findByEmail(email);
+
+    if (userOpt.isEmpty()) {
+        return LoginResult.EMAIL_NOT_FOUND;
     }
+
+    SimpleUser user = userOpt.get();
+
+    if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+        return LoginResult.WRONG_PASSWORD;
+    }
+
+    return LoginResult.SUCCESS;
+}
+
 
     // Get all users
     public List<SimpleUser> getAllUsers() {

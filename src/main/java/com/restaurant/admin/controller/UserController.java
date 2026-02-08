@@ -49,10 +49,10 @@ public class UserController {
         }
     }
 
-    @GetMapping("/login")
+    /*@GetMapping("/login")
     public String loginPage() {
         return "login";
-    }
+    }*/
 
     @GetMapping("/dashboard")
     public String dashboard() {

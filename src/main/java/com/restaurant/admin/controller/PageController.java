@@ -21,25 +21,23 @@ public class PageController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm() {
+    public String showLoginForm(
+            @RequestParam(required = false) String error,
+            @RequestParam(required = false) String logout,
+            Model model) {
+        
+        if (error != null) {
+            model.addAttribute("error", "Invalid email or password");
+        }
+        
+        if (logout != null) {
+            model.addAttribute("message", "You have been logged out successfully");
+        }
+        
         return "login";
     }
 
-    @PostMapping("/login")
-    public String login(
-        @RequestParam String email,
-        @RequestParam String password,
-        Model model) {
-
-        boolean isAuthenticated = userService.authenticateUser(email, password);
-
-        if (isAuthenticated) {
-            return "redirect:/dashboard";
-        } else {
-            model.addAttribute("error", "Invalid email or password");
-            return "login";
-        }
-    }
+    // REMOVE the @PostMapping("/login") method - Spring Security handles it now
 
     @GetMapping("/signup")
     public String signup() {
