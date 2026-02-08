@@ -23,17 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        if (!otp.matches("\\d{6}")) {
-            return ResponseEntity.badRequest().body("Invalid OTP format");
-        }
-        boolean verified = OtpStore.verifyOtp(email, otp);
-        if (verified) {
-            return ResponseEntity.ok("OTP verified");
-        } else {
-            return ResponseEntity.badRequest().body("Invalid OTP");
-        }
+public boolean verifyOtp(@RequestParam String email, @RequestParam String otp) {
+    if (!otp.matches("\\d{6}")) {
+        return false;
     }
+    return OtpStore.verifyOtp(email, otp);
+}
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
