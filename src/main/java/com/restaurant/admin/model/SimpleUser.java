@@ -21,6 +21,9 @@ public class SimpleUser {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean restaurantSetupComplete = false;
+
     // ===== Getters & Setters =====
     public Long getId() {
         return id;
@@ -41,4 +44,13 @@ public class SimpleUser {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public boolean isRestaurantSetupComplete() {
+        return restaurantSetupComplete;
+    }
+
+    public void setRestaurantSetupComplete(boolean restaurantSetupComplete) {
+        this.restaurantSetupComplete = restaurantSetupComplete;
+    }
 }
+
