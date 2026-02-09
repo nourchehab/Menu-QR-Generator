@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/css/effects.css">
+    <title>Sign Up – FlavorFrame</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        <p>Start managing your restaurant today</p>
+<div class="error-message" th:if="${param.error}">
+    <span th:if="${param.error[0] == 'email'}">
+        Account already exists. Please log in.
+    </span>
+    <span th:if="${param.error[0] == 'password'}">
+        Passwords do not match.
+    </span>
+</div>
+<style>
+.error-message {
+    background: #fdecea;
+    color: #e74c3c;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-align: center;
+}
+</style>
+
+        <form method="post" action="/signup" class="auth-form">
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+            <div class="password-rules">
+    <ul>
+        <li id="rule-length">At least 8 characters</li>
+        <li id="rule-upper">One uppercase letter</li>
+        <li id="rule-lower">One lowercase letter</li>
+        <li id="rule-number">One number</li>
+        <li id="rule-symbol">One special character</li>
+    </ul>
+</div>
+<style>
+.password-rules {
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.password-rules ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.password-rules li {
+    font-size: 13px;
+    color: #e74c3c;
+    margin: 4px 0;
+    transition: color 0.3s ease;
+}
+
+.password-rules li.valid {
+    color: #2ecc71;
+}
+
+.password-rules li.invalid {
+    color: #e74c3c;
+}
+</style>
+<div class="password-strength">
+    <div class="strength-bar">
+        <div id="strength-fill"></div>
+    </div>
+    <small id="strength-text"></small>
+</div>
+
+<small id="match-text"></small>
+
+<style>
+.password-strength {
+    margin-bottom: 12px;
+}
+
+.strength-bar {
+    width: 100%;
+    height: 6px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#strength-fill {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.weak {
+    background: #e74c3c;
+}
+
+.medium {
+    background: #f1c40f;
+}
+
+.strong {
+    background: #2ecc71;
+}
+
+#strength-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+}
+</style>
+
+
+
+            
+<button type="button" class="google-btn">
+    <img
+        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        alt="Google logo"
+    >
+    Continue with Google
+</button>
+<style>
+.google-btn {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .google-btn img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .google-btn:hover {
+        background: #f7f7f7;
+    }
+    </style>
+            <button
+    type="submit"
+    id="submitBtn"
+    class="btn btn-primary"
+    disabled
+>
+    Create Account
+</button>
+
+            <span class="auth-footer">
+                Already have an account? <a href="/login">Log in</a>
+            </span>
+        </form>
+    </div>
+</div>
+<script>
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
+const submitBtn = document.getElementById("submitBtn");
+
+const strengthFill = document.getElementById("strength-fill");
+const strengthText = document.getElementById("strength-text");
+const matchText = document.getElementById("match-text");
+
+const rules = {
+    length: document.getElementById("rule-length"),
+    upper: document.getElementById("rule-upper"),
+    lower: document.getElementById("rule-lower"),
+    number: document.getElementById("rule-number"),
+    symbol: document.getElementById("rule-symbol")
+};
+
+function validatePassword() {
+    const val = password.value;
+
+    const checks = {
+        length: val.length >= 8,
+        upper: /[A-Z]/.test(val),
+        lower: /[a-z]/.test(val),
+        number: /[0-9]/.test(val),
+        symbol: /[^A-Za-z0-9]/.test(val)
+    };
+
+    let strength = 0;
+
+    for (let key in checks) {
+        if (checks[key]) {
+            rules[key].className = "valid";
+            strength++;
+        } else {
+            rules[key].className = "invalid";
+        }
+    }
+
+    strengthFill.className = "";
+
+    if (strength <= 2) {
+        strengthFill.style.width = "33%";
+        strengthFill.classList.add("weak");
+        strengthText.textContent = "Weak password";
+    } else if (strength <= 4) {
+        strengthFill.style.width = "66%";
+        strengthFill.classList.add("medium");
+        strengthText.textContent = "Medium strength password";
+    } else {
+        strengthFill.style.width = "100%";
+        strengthFill.classList.add("strong");
+        strengthText.textContent = "Strong password";
+    }
+
+    if (val.length === 0) {
+        strengthFill.style.width = "0";
+        strengthText.textContent = "";
+    }
+
+    validateForm(strength === 5);
+}
+
+function validateForm(isStrong) {
+    if (confirmPassword.value.length === 0) {
+        matchText.textContent = "";
+        submitBtn.disabled = true;
+        return;
+    }
+
+    if (password.value === confirmPassword.value) {
+        matchText.textContent = "✔️ Passwords match";
+        matchText.style.color = "#2ecc71";
+        submitBtn.disabled = !isStrong;
+    } else {
+        matchText.textContent = "❌ Passwords do not match";
+        matchText.style.color = "#e74c3c";
+        submitBtn.disabled = true;
+    }
+}
+password.addEventListener("input", validatePassword);
+confirmPassword.addEventListener("input", () => {
+    validateForm(
+        password.value.length >= 8 &&
+        /[A-Z]/.test(password.value) &&
+        /[a-z]/.test(password.value) &&
+        /[0-9]/.test(password.value) &&
+        /[^A-Za-z0-9]/.test(password.value)
+    );
+});
+
+</script>
+</body>
+</html>

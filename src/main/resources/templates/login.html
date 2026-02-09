@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/css/effects.css">
+    <title>Login – FlavorFrame</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/auth.css">
+
+    <style>
+    .remember-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 0 20px;
+        font-size: 14px;
+    }
+
+    .forgot-password {
+        text-decoration: none;
+        color: #1a73e8; /* Google-style blue */
+        font-weight: 500;
+    }
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+    .google-btn {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .google-btn img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .google-btn:hover {
+        background: #f7f7f7;
+    }
+</style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back!</h2>
+        <p>Log in to manage your restaurant</p>
+<div th:if="${error}" style="background: #fdecea; color: #e74c3c; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center; font-size: 14px;">
+    <span th:text="${error}"></span>
+</div>
+        <form th:action="@{/login}" method="post" class="auth-form">
+
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <!-- Remember me + Forgot password -->
+            <div class="remember-row">
+                <label class="remember-me__label">
+                    <input type="checkbox" name="remember-me" class="remember-me__checkbox">
+                    <span class="remember-me__text">Remember me</span>
+                </label>
+
+                <a href="/otp.html" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <a href="/oauth2/authorization/google" class="google-btn" style="text-decoration:none;">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+    Continue with Google
+</a>
+
+            <button type="submit" class="btn btn-primary">
+                Log In
+            </button>
+        </form>
+
+        <span class="auth-footer">
+            Don’t have an account? <a href="/signup">Sign up</a>
+        </span>
+    </div>
+</div>
+
+</body>
+</html>
