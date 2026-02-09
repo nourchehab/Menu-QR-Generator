@@ -1,14 +1,19 @@
 package com.restaurant.admin.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.ui.Model;
 
-import java.security.Principal;
+import com.restaurant.admin.service.SimpleUserService;
 
 @Controller
 public class PageController {
+
+    @Autowired
+    private SimpleUserService userService;
 
     @GetMapping("/")
     public String landing() {
@@ -37,6 +42,8 @@ public class PageController {
         return "login";
     }
 
+    // REMOVE the @PostMapping("/login") method - Spring Security handles it now
+
     @GetMapping("/signup")
     public String signup() {
         return "signup";
@@ -45,23 +52,5 @@ public class PageController {
     @GetMapping("/dashboard")
     public String dashboard() {
         return "dashboard";
-    }
-
-    @GetMapping("/enteritems")
-    public String enterItems() {
-        return "enteritems";
-    }
-
-    @GetMapping("/menu/preview")
-    public String menuPreview(Principal principal, Model model) {
-        if (principal == null) return "redirect:/login";
-        model.addAttribute("publicMode", false);
-        return "menu-preview";
-    }
-
-    @GetMapping("/menu/theme")
-    public String menuTheme(Principal principal) {
-        if (principal == null) return "redirect:/login";
-        return "menu-theme";
     }
 }

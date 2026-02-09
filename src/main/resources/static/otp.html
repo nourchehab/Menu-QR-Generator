@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>OTP Verification</title>
   <style>
@@ -18,7 +19,7 @@
       width: 360px;
       text-align: center;
       border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
@@ -27,11 +28,11 @@
 
     input {
       width: 90%;
-      padding: 8px;      
+      padding: 8px;
       margin-bottom: 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 13px;  
+      font-size: 13px;
     }
 
     input:focus {
@@ -56,76 +57,76 @@
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <h2>Forgot Password</h2>
+  <div class="container">
+    <h2>Forgot Password</h2>
 
-  <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="email" id="email" placeholder="Enter your email" required>
 
-  <button id="sendCodeBtn" onclick="sendCode()">Send Code</button>
-<p id="statusMsg" style="display:none; color: #555; font-size: 13px; margin-top: 10px;">
-  If email exists, code was sent
-</p>
-  <div id="otpSection" style="display:none;">
-    <input type="text" id="otp" placeholder="Enter 6-digit code">
-    <button onclick="verifyOtp()">Submit</button>
+    <button id="sendCodeBtn" onclick="sendCode()">Send Code</button>
+    <p id="statusMsg" style="display:none; color: #555; font-size: 13px; margin-top: 10px;">
+      If email exists, code was sent
+    </p>
+    <div id="otpSection" style="display:none;">
+      <input type="text" id="otp" placeholder="Enter 6-digit code">
+      <button onclick="verifyOtp()">Submit</button>
+    </div>
   </div>
-</div>
 
-<script>
-function sendCode() {
-  const email = document.getElementById("email").value;
+  <script>
+    function sendCode() {
+      const email = document.getElementById("email").value;
 
-  if (!email) {
-    alert("Please enter your email");
-    return;
-  }
-
-  fetch(`/auth/request-otp?email=${email}`, { method: "POST" })
-    .then(res => {
-      if (!res.ok) {
-        return res.text().then(msg => { throw new Error(msg); });
+      if (!email) {
+        alert("Please enter your email");
+        return;
       }
-      return res.text();
-    })
-    .then(msg => {
-      // Hide the send code button
-      document.getElementById("sendCodeBtn").style.display = "none";
 
-      // Show OTP section
-      document.getElementById("otpSection").style.display = "block";
-      document.getElementById("statusMsg").style.display = "block";
-    })
-    .catch(err => {
-      alert(err.message); // show "Email does not exist"
-    });
-}
+      fetch(`/auth/request-otp?email=${email}`, { method: "POST" })
+        .then(res => {
+          if (!res.ok) {
+            return res.text().then(msg => { throw new Error(msg); });
+          }
+          return res.text();
+        })
+        .then(msg => {
+          // Hide the send code button
+          document.getElementById("sendCodeBtn").style.display = "none";
 
-
-function verifyOtp() {
-  const email = document.getElementById("email").value;
-  const otp = document.getElementById("otp").value;
-
-  // Frontend validation
-  if (!/^\d{6}$/.test(otp)) {
-    alert("OTP must be exactly 6 digits");
-    return;
-  }
-
-  fetch(`/auth/verify-otp?email=${email}&otp=${otp}`, {
-    method: "POST"
-  })
-  .then(res => res.json())
-  .then(isValid => {
-    if (isValid === true) {
-      window.location.href = `reset-password.html?email=${email}`;
-    } else {
-      alert("Invalid or expired code");
+          // Show OTP section
+          document.getElementById("otpSection").style.display = "block";
+          document.getElementById("statusMsg").style.display = "block";
+        })
+        .catch(err => {
+          alert(err.message); // show "Email does not exist"
+        });
     }
-  });
-}
-</script>
+    function verifyOtp() {
+      const email = document.getElementById("email").value;
+      const otp = document.getElementById("otp").value;
+
+      // Frontend validation
+      if (!/^\d{6}$/.test(otp)) {
+        alert("OTP must be exactly 6 digits");
+        return;
+      }
+
+      fetch(`/auth/verify-otp?email=${email}&otp=${otp}`, {
+        method: "POST"
+      })
+        .then(res => res.json())
+        .then(isValid => {
+          if (isValid === true) {
+            window.location.href = `reset-password.html?email=${email}`;
+          } else {
+            alert("Invalid or expired code");
+          }
+        });
+    }
+  </script>
 
 </body>
+
 </html>
