@@ -1,14 +1,9 @@
 package com.restaurant.admin.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "simple_user1") // separate table for simplicity
+@Table(name = "simple_user1") // keep your table name as-is
 public class SimpleUser {
 
     @Id
@@ -21,18 +16,19 @@ public class SimpleUser {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "restaurant_setup_complete")
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean restaurantSetupComplete = false;
 
-    // ===== Getters & Setters =====
-    public boolean isRestaurantSetupComplete() {
-        return restaurantSetupComplete;
-    }
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean passwordSet = true;
 
-    public void setRestaurantSetupComplete(boolean restaurantSetupComplete) {
-        this.restaurantSetupComplete = restaurantSetupComplete;
-    }
+    @Column(unique = true)
+    private String googleSub;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean googleLinked = false;
+
+    // ===== getters / setters =====
     public Long getId() {
         return id;
     }
@@ -53,6 +49,35 @@ public class SimpleUser {
         this.password = password;
     }
 
-}
+    public boolean isRestaurantSetupComplete() {
+        return restaurantSetupComplete;
+    }
 
-    
+    public void setRestaurantSetupComplete(boolean restaurantSetupComplete) {
+        this.restaurantSetupComplete = restaurantSetupComplete;
+    }
+
+    public boolean isPasswordSet() {
+        return passwordSet;
+    }
+
+    public void setPasswordSet(boolean passwordSet) {
+        this.passwordSet = passwordSet;
+    }
+
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
+    }
+
+    public boolean isGoogleLinked() {
+        return googleLinked;
+    }
+
+    public void setGoogleLinked(boolean googleLinked) {
+        this.googleLinked = googleLinked;
+    }
+}

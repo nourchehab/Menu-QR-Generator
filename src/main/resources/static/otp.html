@@ -76,49 +76,46 @@
   </div>
 
   <script>
-    function sendCode() {
-      const email = document.getElementById("email").value;
+        function sendCode(      {
+      const email = document.getElementById("email").      lue;
 
-      if (!email) {
-        alert("Please enter your email");
-        return;
+      if        mail) {
+        alert("Please ente        ur email      ;
+            return;
       }
 
-      fetch(`/auth/request-otp?email=${email}`, { method: "POST" })
-        .then(res => {
+      fetch(`/auth/request-otp?email=${e        }`, { method: "          })
+        .the             {
           if (!res.ok) {
-            return res.text().then(msg => { throw new Error(msg); });
-          }
-          return res.text();
+            return res.text().          sg          throw new Error(msg        );
+              }
+                 urn res.text();
         })
-        .then(msg => {
+            .then(msg => {
           // Hide the send code button
-          document.getElementById("sendCodeBtn").style.display = "none";
+                    nt.getElementById("s          eBtn").style.display = "none";
 
           // Show OTP section
-          document.getElementById("otpSection").style.display = "block";
-          document.getElementById("statusMsg").style.display = "block";
-        })
-        .catch(err => {
-          alert(err.message); // show "Email does not exist"
-        });
+              document.getElementById("otpSection").style.display = "bloc                      document.getE          ById("statusMsg").style.display = "block";
+                               .catch(err => {
+              alert(err.message); // show "Email does not exist"
+            });
     }
     function verifyOtp() {
-      const email = document.getElementById("email").value;
-      const otp = document.getElementById("otp").value;
+      con       email = document.getEl      entById("email").value;
+            nst otp = document.getElementById("otp"        lue;
 
-      // Frontend validation
+          /      Frontend validation
       if (!/^\d{6}$/.test(otp)) {
-        alert("OTP must be exactly 6 digits");
-        return;
+            alert("OTP       st          exactly 6 digits");
+              return;
       }
 
-      fetch(`/auth/verify-otp?email=${email}&otp=${otp}`, {
+            fetch(`/auth/verify-ot            l=${email}&otp=${otp}`, {
         method: "POST"
       })
-        .then(res => res.json())
-        .then(isValid => {
-          if (isValid === true) {
+              .then(re            es.json())
+        .then(isValid =                              if ( === true) {
             window.location.href = `reset-password.html?email=${email}`;
           } else {
             alert("Invalid or expired code");
