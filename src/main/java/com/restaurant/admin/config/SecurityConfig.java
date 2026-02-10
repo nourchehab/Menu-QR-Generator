@@ -2,6 +2,8 @@ package com.restaurant.admin.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,17 +21,28 @@ public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     private final OAuth2LoginSuccessHandler successHandler;
     private final OAuth2LoginFailureHandler failureHandler;
+    private final CustomAuthenticationProvider customAuthenticationProvider;
 
     public SecurityConfig(
             CustomOAuth2UserService customOAuth2UserService,
             CustomOidcUserService customOidcUserService,
             OAuth2LoginSuccessHandler successHandler,
-            OAuth2LoginFailureHandler failureHandler
+            OAuth2LoginFailureHandler failureHandler,
+            CustomAuthenticationProvider customAuthenticationProvider
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
+        this.customAuthenticationProvider = customAuthenticationProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = 
+            http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
+        return authenticationManagerBuilder.build();
     }
 
     @Bean
@@ -47,6 +60,7 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
+                .defaultSuccessUrl("/dashboard", true)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -68,3 +82,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
