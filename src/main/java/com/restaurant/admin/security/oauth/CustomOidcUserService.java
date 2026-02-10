@@ -38,6 +38,7 @@ public class CustomOidcUserService extends OidcUserService {
 
                 // store a valid hashed password (user won't use it)
                 u.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                u.setRestaurantSetupComplete(false);  // New OAuth users need setup
 
                 simpleUserRepository.save(u);
             }

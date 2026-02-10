@@ -49,6 +49,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
             // Random password: user won't use it, but we store a valid hashed value
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            user.setRestaurantSetupComplete(false);  // New OAuth users need setup
             userRepository.save(user);
         }
 
