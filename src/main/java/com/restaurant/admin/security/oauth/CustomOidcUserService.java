@@ -11,16 +11,17 @@ import org.springframework.stereotype.Service;
 
 import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.SimpleUserRepository;
+import static com.restaurant.admin.util.EmailUtil.normalize;
 
 @Service
 public class CustomOidcUserService extends OidcUserService {
 
-    private final SimpleUserRepository simpleUserRepository;
+    private final SimpleUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public CustomOidcUserService(SimpleUserRepository simpleUserRepository,
+    public CustomOidcUserService(SimpleUserRepository userRepository,
                                  PasswordEncoder passwordEncoder) {
-        this.simpleUserRepository = simpleUserRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -28,19 +29,35 @@ public class CustomOidcUserService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) {
         OidcUser oidcUser = super.loadUser(userRequest);
 
-        String email = oidcUser.getEmail();
-        if (email != null && !email.isBlank()) {
-            Optional<SimpleUser> existing = simpleUserRepository.findByEmail(email);
+        String email = normalize(oidcUser.getEmail());
+        String sub = oidcUser.getSubject();
 
-            if (existing.isEmpty()) {
+        if (email != null && !email.isBlank()) {
+            Optional<SimpleUser> existingOpt = userRepository.findByEmail(email);
+
+            if (existingOpt.isEmpty()) {
                 SimpleUser u = new SimpleUser();
                 u.setEmail(email);
 
-                // store a valid hashed password (user won't use it)
+                // random password hash; user hasn't set a local password yet
                 u.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-                u.setRestaurantSetupComplete(false);  // New OAuth users need setup
+                u.setPasswordSet(false);
 
-                simpleUserRepository.save(u);
+                u.setGoogleLinked(true);
+                u.setGoogleSub(sub);
+
+                u.setRestaurantSetupComplete(false);
+                userRepository.save(u);
+
+            } else {
+                SimpleUser u = existingOpt.get();
+                u.setGoogleLinked(true);
+
+                if (u.getGoogleSub() == null || u.getGoogleSub().isBlank()) {
+                    u.setGoogleSub(sub);
+                }
+
+                userRepository.save(u);
             }
         }
 
