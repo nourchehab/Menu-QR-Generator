@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.SimpleUserRepository;
+import static com.restaurant.admin.util.EmailUtil.normalize;
 
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -40,21 +41,51 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             throw new OAuth2AuthenticationException("Email not provided by Google");
         }
 
-        Optional<SimpleUser> optionalUser = userRepository.findByEmail(email);
+        // Normalize email for consistent lookups (same behavior as OIDC path)
+        String normalizedEmail = normalize(email);
+
+        // Try to obtain a provider subject/id (Google OIDC uses "sub", some OAuth2 providers use "id")
+        String providerId = null;
+        Object subAttr = oauthUser.getAttribute("sub");
+        if (subAttr != null) providerId = subAttr.toString();
+        else {
+            Object idAttr = oauthUser.getAttribute("id");
+            if (idAttr != null) providerId = idAttr.toString();
+        }
+
+        Optional<SimpleUser> optionalUser = userRepository.findByEmail(normalizedEmail);
 
         if (optionalUser.isEmpty()) {
             // Auto-create account for new Google users
             SimpleUser user = new SimpleUser();
-            user.setEmail(email);
+            user.setEmail(normalizedEmail);
 
             // Random password: user won't use it, but we store a valid hashed value
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            user.setPasswordSet(false);
+
+            // If provider id is available, link it immediately
+            if (providerId != null && !providerId.isBlank()) {
+                user.setGoogleLinked(true);
+                user.setGoogleSub(providerId);
+            }
+
             user.setRestaurantSetupComplete(false);  // New OAuth users need setup
             userRepository.save(user);
+        } else {
+            // Existing local account found by email: link provider id if present
+            SimpleUser user = optionalUser.get();
+            if (providerId != null && !providerId.isBlank()) {
+                user.setGoogleLinked(true);
+                if (user.getGoogleSub() == null || user.getGoogleSub().isBlank()) {
+                    user.setGoogleSub(providerId);
+                }
+                userRepository.save(user);
+            }
         }
 
         Map<String, Object> attributes = new HashMap<>(oauthUser.getAttributes());
-        attributes.put("email", email);
+        attributes.put("email", normalizedEmail);
 
         return new DefaultOAuth2User(
                 Collections.singleton(() -> "ROLE_USER"),
