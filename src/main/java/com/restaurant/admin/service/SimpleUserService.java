@@ -44,13 +44,9 @@ public class SimpleUserService {
         SimpleUser user = new SimpleUser();
         user.setEmail(normEmail);
         user.setPassword(passwordEncoder.encode(rawPassword));
-<<<<<<< HEAD
-        user.setRestaurantSetupComplete(false);  // New users need to complete setup
-=======
         user.setPasswordSet(true);
         user.setRestaurantSetupComplete(false);
 
->>>>>>> e331ce1a48b6a8ddcd2a06366ed2a3cd0fe1ed39
         userRepository.save(user);
         return true;
     }
