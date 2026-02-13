@@ -22,19 +22,22 @@ public class SecurityConfig {
     private final OAuth2LoginSuccessHandler successHandler;
     private final OAuth2LoginFailureHandler failureHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
+private final CustomLoginSuccessHandler formLoginSuccessHandler;
 
     public SecurityConfig(
             CustomOAuth2UserService customOAuth2UserService,
             CustomOidcUserService customOidcUserService,
             OAuth2LoginSuccessHandler successHandler,
             OAuth2LoginFailureHandler failureHandler,
-            CustomAuthenticationProvider customAuthenticationProvider
+            CustomAuthenticationProvider customAuthenticationProvider,
+            CustomLoginSuccessHandler formLoginSuccessHandler
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.customAuthenticationProvider = customAuthenticationProvider;
+        this.formLoginSuccessHandler = formLoginSuccessHandler;
     }
 
     @Bean
@@ -50,19 +53,20 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll()
                 .requestMatchers(
                     "/", "/login", "/signup",
                     "/css/**", "/js/**", "/images/**",
-                    "/oauth2/**", "/login/oauth2/**",
+                    "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
                     "/auth/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .permitAll()
-            )
+    .loginPage("/login")
+    .successHandler(formLoginSuccessHandler)
+    .permitAll()
+)
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")

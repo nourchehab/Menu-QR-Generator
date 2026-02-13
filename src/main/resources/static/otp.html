@@ -82,15 +82,26 @@ function sendCode() {
     return;
   }
 
-  // Hide the send code button
-  document.getElementById("sendCodeBtn").style.display = "none";
+  fetch(`/auth/request-otp?email=${email}`, { method: "POST" })
+    .then(res => {
+      if (!res.ok) {
+        return res.text().then(msg => { throw new Error(msg); });
+      }
+      return res.text();
+    })
+    .then(msg => {
+      // Hide the send code button
+      document.getElementById("sendCodeBtn").style.display = "none";
 
-  // Show OTP section
-  document.getElementById("otpSection").style.display = "block";
-document.getElementById("statusMsg").style.display = "block";
-  // Send the OTP request
-  fetch(`/auth/request-otp?email=${email}`, { method: "POST" });
+      // Show OTP section
+      document.getElementById("otpSection").style.display = "block";
+      document.getElementById("statusMsg").style.display = "block";
+    })
+    .catch(err => {
+      alert(err.message); // show "Email does not exist"
+    });
 }
+
 
 function verifyOtp() {
   const email = document.getElementById("email").value;

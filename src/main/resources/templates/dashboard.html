@@ -6,37 +6,252 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <script src="/js/effects.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: drift 60s linear infinite;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            padding: 3.5rem;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: fadeSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-text {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #1a1a2e;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            animation: fadeIn 1s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            animation: fadeIn 1s ease-out backwards;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .action-btn:nth-child(1) { animation-delay: 0.3s; }
+        .action-btn:nth-child(2) { animation-delay: 0.4s; }
+        .action-btn:nth-child(3) { animation-delay: 0.5s; }
+        .action-btn:nth-child(4) { animation-delay: 0.6s; }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+        }
+
+        .action-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #ff6b35 0%, #d84315 100%);
+            box-shadow: 0 4px 15px rgba(216, 67, 21, 0.4);
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(216, 67, 21, 0.5);
+        }
+
+        .action-btn.disabled {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: not-allowed;
+        }
+
+        .action-btn.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn.disabled::before {
+            display: none;
+        }
+
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            animation: fadeIn 1s ease-out 0.7s backwards;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            border: 2px solid #1a1a2e;
+            border-radius: 12px;
+            padding: 0.875rem 1.75rem;
+            color: #1a1a2e;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-btn:hover {
+            background: #1a1a2e;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
+        }
+
+        .secondary-btn:active {
+            transform: translateY(0);
+        }
+
+        .secondary-btn.outline {
+            border-color: #ff6b35;
+            color: #ff6b35;
+        }
+
+        .secondary-btn.outline:hover {
+            background: #ff6b35;
+            color: white;
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-container {
+                padding: 2rem;
+            }
+
+            .welcome-text {
+                font-size: 2rem;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div class="layout">
+<div class="dashboard-container">
+    <h1 class="welcome-text">Hello, what would you like to do today?</h1>
+    
+    <div class="action-grid">
+        <a href="/enteritems" class="action-btn primary">Enter Items</a>
+        <button class="action-btn disabled">Delete/Edit Items</button>
+        <button class="action-btn disabled">Preview Menu</button>
+        <button class="action-btn disabled">View QR</button>
+    </div>
 
-    <aside class="sidebar">
-        <h3>FlavorFrame</h3>
-        <nav>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/menus">Menus</a>
-            <a href="/settings">Settings</a>
-            <form action="/logout" method="post" class="logout-form">
-                <button type="submit" class="link-btn">Logout</button>
-            </form>
-
-        </nav>
-    </aside>
-
-    <main>
-        <header class="topbar">
-            <span>Admin Dashboard</span>
-            <div class="profile">👤 Admin</div>
-        </header>
-
-        <section class="cards">
-            <div class="card">Active Menus</div>
-            <div class="card">Menu Items</div>
-            <div class="card">QR Scans</div>
-        </section>
-    </main>
-
+    <div class="bottom-actions">
+        <form action="/logout" method="post" class="logout-form">
+            <button type="submit" class="secondary-btn">Logout</button>
+        </form>
+        <button class="secondary-btn outline">Restaurant List</button>
+    </div>
 </div>
 
 </body>

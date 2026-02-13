@@ -27,37 +27,31 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private static final Logger log = LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class);
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
-        
-        // Get the OAuth2 user
-        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
-        String email = oauthUser.getAttribute("email");
+public void onAuthenticationSuccess(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    Authentication authentication) throws IOException {
 
-        // Debug log: show incoming principal email
-        log.info("OAuth2 login for email='{}' principalName='{}'", email, authentication.getName());
+    OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+    String email = oauthUser.getAttribute("email");
 
-        // Check if user has completed restaurant setup
-        if (email != null) {
-            Optional<SimpleUser> user = userRepository.findByEmail(email);
+    log.info("OAuth2 login for email='{}'", email);
 
-            if (user.isPresent()) {
-                SimpleUser u = user.get();
-                log.info("Found user id={} email={} googleLinked={} googleSub={} restaurantSetupComplete={}",
-                        u.getId(), u.getEmail(), u.isGoogleLinked(), u.getGoogleSub(), u.isRestaurantSetupComplete());
+    if (email != null) {
+        Optional<SimpleUser> optionalUser = userRepository.findByEmail(email);
 
-                if (!u.isRestaurantSetupComplete()) {
-                    // New OAuth user: redirect to restaurant setup
-                    response.sendRedirect("/choose-option");
-                    return;
-                }
+        if (optionalUser.isPresent()) {
+            SimpleUser user = optionalUser.get();
+
+            if (user.isRestaurantSetupComplete()) {
+                response.sendRedirect("/dashboard");
             } else {
-                log.info("No user found for email='{}'. Will redirect to default dashboard.", email);
+                response.sendRedirect("/choose-option");
             }
+            return;
         }
-        
-        // Existing user or setup complete: redirect to dashboard
-        response.sendRedirect("/dashboard");
     }
+
+    // fallback (very unlikely case)
+    response.sendRedirect("/choose-option");
+}
 }

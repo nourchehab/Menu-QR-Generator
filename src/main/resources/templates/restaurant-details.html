@@ -326,13 +326,15 @@ select:focus {
 
 <h1 class="title">Enter Restaurant Details</h1>
 
-<form class="details-form" id="restaurantForm">
+<!-- ✅ UPDATED: Added enctype and proper name attribute -->
+<form id="restaurantForm" class="details-form" method="post" action="/restaurant/setup" enctype="multipart/form-data">
 
     <label>Restaurant Name</label>
-    <input type="text" id="restaurantName" placeholder="Enter restaurant name" required>
+    <input type="text" id="restaurantName" name="restaurantName" placeholder="Enter restaurant name" required>
 
     <label>Upload Logo</label>
-    <input type="file" id="logoUpload" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" required>
+    <!-- ✅ UPDATED: Added name="logoUpload" -->
+    <input type="file" id="logoUpload" name="logoUpload" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" required>
     <div class="error-message" id="fileError">Please upload an image file (PNG, JPEG, GIF, or WebP)</div>
     
     <!-- Preview Box -->
@@ -342,7 +344,7 @@ select:focus {
     </div>
 
     <label>Restaurant Type</label>
-    <select id="restaurantType" required>
+    <select id="restaurantType" name="restaurantType" required>
         <option value="">Select a type</option>
         <option value="cafe">Cafe</option>
         <option value="buffet">Buffet</option>
@@ -392,20 +394,6 @@ select:focus {
         }
     });
     
-    // Form submission handler
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Check if all required fields are filled
-        const restaurantName = document.getElementById('restaurantName').value;
-        const restaurantType = document.getElementById('restaurantType').value;
-        const logoFile = logoUpload.files[0];
-        
-        if (restaurantName && restaurantType && logoFile) {
-            // Replace page content with white background and "home works!" message
-            document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: white; margin: 0; font-family: \'Inter\', sans-serif; font-size: 24px; color: #333;">home works!</div>';
-        }
-    });
 </script>
 
 </body>
