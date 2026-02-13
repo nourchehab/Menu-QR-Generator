@@ -20,11 +20,6 @@ public class Restaurant {
     
     @Column
     private String logoPath; // path to stored logo file
-
-    // Menu theme
-    // Stored as a hex color like "#F9F5EF".
-    @Column(length = 7)
-    private String menuBackgroundColor;
     
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
@@ -73,14 +68,6 @@ public class Restaurant {
     
     public void setLogoPath(String logoPath) {
         this.logoPath = logoPath;
-    }
-
-    public String getMenuBackgroundColor() {
-        return menuBackgroundColor;
-    }
-
-    public void setMenuBackgroundColor(String menuBackgroundColor) {
-        this.menuBackgroundColor = menuBackgroundColor;
     }
     
     public SimpleUser getUser() {

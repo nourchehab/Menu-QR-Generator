@@ -49,6 +49,13 @@ public class SimpleUserService {
         userRepository.save(user);
         return true;
     }
+public SimpleUser findByEmail(String email) {
+    return userRepository.findByEmail(email).orElse(null);
+}
+
+public void save(SimpleUser user) {
+    userRepository.save(user);
+}
 
     public LoginResult authenticateUser(String email, String rawPassword) {
         String normEmail = normalize(email);
@@ -67,7 +74,9 @@ public class SimpleUserService {
 
         return LoginResult.SUCCESS;
     }
-
+public boolean emailExists(String email) {
+    // If you're using a repository pattern:
+    return userRepository.existsByEmail(email);}
     public List<SimpleUser> getAllUsers() {
         return userRepository.findAll();
     }

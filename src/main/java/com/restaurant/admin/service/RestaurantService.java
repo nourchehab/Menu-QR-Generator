@@ -18,8 +18,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.restaurant.admin.util.ColorContrastUtil;
-
 @Service
 public class RestaurantService {
     
@@ -101,26 +99,6 @@ public class RestaurantService {
      */
     public Optional<Restaurant> getRestaurantByUser(SimpleUser user) {
         return restaurantRepository.findByUser(user);
-    }
-
-    /**
-     * Public lookup by restaurant id (used by QR/public menu pages).
-     */
-    public Optional<Restaurant> getRestaurantById(Long restaurantId) {
-        return restaurantRepository.findById(restaurantId);
-    }
-
-    /**
-     * Update the menu background color for the current user's restaurant.
-     */
-    @Transactional
-    public Restaurant updateMenuBackgroundColor(SimpleUser user, String hexColor) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found. Please complete setup first."));
-
-        String normalized = ColorContrastUtil.normalizeHex(hexColor);
-        restaurant.setMenuBackgroundColor(normalized);
-        return restaurantRepository.save(restaurant);
     }
     
     /**
