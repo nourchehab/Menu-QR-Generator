@@ -34,3 +34,6 @@ build/
 ### Local Configuration (Credentials) ###
 src/main/resources/application-local.properties
 .env
+
+### Uploaded User Content ###
+uploads/
