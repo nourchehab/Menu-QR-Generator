@@ -19,7 +19,7 @@ public class PageController {
             @RequestParam(required = false) String oauthError,
             @RequestParam(required = false) String logout,
             Model model) {
-        
+
         if (error != null) {
             model.addAttribute("error", "Invalid email or password");
         }
@@ -27,11 +27,11 @@ public class PageController {
         if (oauthError != null) {
             model.addAttribute("error", "Google login failed or was canceled. Please try again.");
         }
-        
+
         if (logout != null) {
             model.addAttribute("message", "You have been logged out successfully");
         }
-        
+
         return "login";
     }
 
@@ -46,8 +46,14 @@ public class PageController {
     public String dashboard() {
         return "dashboard";
     }
+
     @GetMapping("/enteritems")
     public String enterItems() {
         return "enteritems";
+    }
+
+    @GetMapping("/manageitems")
+    public String manageItems() {
+        return "manageitems";
     }
 }
