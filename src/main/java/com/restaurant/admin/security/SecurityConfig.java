@@ -35,7 +35,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/auth/signup", "/auth/**", "/choose-option", "/details", "/otp.html", "/reset-password.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+                .requestMatchers("/", "/login", "/signup", "/auth/signup", "/auth/**", "/choose-option", "/details", "/otp.html", "/reset-password.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**", "/menu/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

@@ -57,4 +57,9 @@ public class PageController {
         if (principal == null) return "redirect:/login";
         return "menu-preview";
     }
+
+    @GetMapping("/qr-page")
+        public String qrPage() {
+        return "qr-page";
+    }
 }
