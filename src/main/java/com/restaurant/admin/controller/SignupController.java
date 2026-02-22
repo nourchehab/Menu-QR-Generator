@@ -36,11 +36,11 @@ public class SignupController {
 
     @Autowired
     private EmailVerificationService emailVerificationService;
-@Autowired
-private RestaurantService restaurantService;
+    @Autowired
+    private RestaurantService restaurantService;
+
     /**
-     * Step 1: User submits email and password
-     * Send verification code to email
+     * Step 1: User submits email and password Send verification code to email
      */
     @PostMapping("/signup")
     public String signup(
@@ -81,18 +81,18 @@ private RestaurantService restaurantService;
     @GetMapping("/signup/verify")
     public String showVerificationPage(HttpSession session, Model model) {
         String email = (String) session.getAttribute("signupEmail");
-        
+
         if (email == null || email.trim().isEmpty()) {
             return "redirect:/signup";
         }
-        
+
         model.addAttribute("userEmail", email);
         return "signup-verify";
     }
 
     /**
-     * Step 3: Verify the code and complete signup
-     * Then redirect to choose-option page
+     * Step 3: Verify the code and complete signup Then redirect to
+     * choose-option page
      */
     @PostMapping("/signup/verify")
     public String verifyAndCompleteSignup(
@@ -117,26 +117,26 @@ private RestaurantService restaurantService;
         // Code is valid, register the user using your existing service
         boolean success = userService.registerUser(email, password);
 
-if (!success) {
-    return "redirect:/signup?error=system";
-}
+        if (!success) {
+            return "redirect:/signup?error=system";
+        }
 
 // 🔥 AUTO LOGIN THE USER
-UsernamePasswordAuthenticationToken authToken =
-        new UsernamePasswordAuthenticationToken(
-                email,
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+        UsernamePasswordAuthenticationToken authToken
+                = new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                );
 
-SecurityContextHolder.getContext().setAuthentication(authToken);
+        SecurityContextHolder.getContext().setAuthentication(authToken);
 
 // Clear session data
-session.removeAttribute("signupEmail");
-session.removeAttribute("signupPassword");
+        session.removeAttribute("signupEmail");
+        session.removeAttribute("signupPassword");
 
 // Now they are authenticated
-return "redirect:/choose-option";
+        return "redirect:/choose-option";
     }
 
     /**
@@ -145,11 +145,11 @@ return "redirect:/choose-option";
     @PostMapping("/signup/verify/resend")
     public String resendVerificationCode(HttpSession session, Model model) {
         String email = (String) session.getAttribute("signupEmail");
-        
+
         if (email == null) {
             return "redirect:/signup";
         }
-        
+
         try {
             emailVerificationService.resendVerificationCode(email);
             model.addAttribute("userEmail", email);
@@ -171,43 +171,43 @@ return "redirect:/choose-option";
     public String restaurantDetails(@RequestParam String option) {
         return "restaurant-details"; // Serves restaurant-details.html from templates folder
     }
-    @PostMapping("/restaurant/setup")
-public String completeRestaurantSetup(
-        @RequestParam String restaurantName,
-        @RequestParam String restaurantType,
-        @RequestParam(value = "logoUpload", required = false) MultipartFile logoFile,
-        HttpSession session,
-        Principal principal) {
 
-    if (principal == null) {
-        return "redirect:/login";
-    }
+    public String completeRestaurantSetup(
+            @RequestParam String restaurantName,
+            @RequestParam String restaurantType,
+            @RequestParam(value = "logoUpload", required = false) MultipartFile logoFile,
+            HttpSession session,
+            Principal principal) {
 
-    String email = principal.getName();
+        if (principal == null) {
+            return "redirect:/login";
+        }
 
-    SimpleUser user = userService.findByEmail(email);
+        String email = principal.getName();
 
-    if (user == null) {
-        return "redirect:/login";
-    }
-try {
+        SimpleUser user = userService.findByEmail(email);
+
+        if (user == null) {
+            return "redirect:/login";
+        }
+        try {
             // ✅ Save restaurant to database with logo upload
             Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(), 
-                    restaurantName, 
-                    restaurantType, 
+                    user.getId(),
+                    restaurantName,
+                    restaurantType,
                     logoFile
             );
         } catch (Exception e) {
             e.printStackTrace();
-            
+
         }
-    // ✅ Set boolean to true
-    user.setRestaurantSetupComplete(true);
+        // ✅ Set boolean to true
+        user.setRestaurantSetupComplete(true);
 
-    userService.save(user);
+        userService.save(user);
 
-    return "redirect:/dashboard";
-}
+        return "redirect:/dashboard";
+    }
 
 }
