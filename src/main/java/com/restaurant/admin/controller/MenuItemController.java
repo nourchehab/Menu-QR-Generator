@@ -22,16 +22,16 @@ import java.util.Map;
 
 @Controller
 public class MenuItemController {
-    
+
     @Autowired
     private MenuItemService menuItemService;
-    
+
     @Autowired
     private RestaurantService restaurantService;
-    
+
     @Autowired
     private SimpleUserService userService;
-    
+
     /**
      * Show add menu item form
      */
@@ -40,27 +40,27 @@ public class MenuItemController {
         if (principal == null) {
             return "redirect:/login";
         }
-        
+
         // Get user from principal
         String email = principal.getName();
         SimpleUser currentUser = userService.findByEmail(email);
-        
+
         if (currentUser == null) {
             return "redirect:/login";
         }
-        
+
         // Check if user has a restaurant
         Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser)
                 .orElse(null);
-        
+
         if (restaurant == null) {
             return "redirect:/restaurant/setup";
         }
-        
+
         model.addAttribute("restaurant", restaurant);
         return "add-menu-item"; // This maps to your HTML file
     }
-    
+
     /**
      * ✅ UPDATED: API endpoint to add menu item (uses Principal instead of session)
      */
@@ -72,66 +72,65 @@ public class MenuItemController {
             @RequestParam("itemDescription") String itemDescription,
             @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile,
             Principal principal) {
-        
+
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not authenticated"));
         }
-        
+
         try {
             // ✅ Get user from Principal (email)
             String email = principal.getName();
             SimpleUser currentUser = userService.findByEmail(email);
-            
+
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "User not found"));
             }
-            
+
             // Get user's restaurant
             Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser)
                     .orElseThrow(() -> new RuntimeException("Restaurant not found. Please complete setup first."));
-            
+
             // Validate inputs
             if (itemName == null || itemName.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Item name is required"));
             }
-            
+
             if (itemPrice == null || itemPrice.compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Valid price is required"));
             }
-            
+
             if (itemDescription == null || itemDescription.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Item description is required"));
             }
-            
+
             // Add menu item
             MenuItem menuItem = menuItemService.addMenuItem(
                     restaurant.getId(),
                     itemName,
                     itemPrice,
                     itemDescription,
-                    photoFile
-            );
-            
+                    photoFile);
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Menu item added successfully");
             response.put("itemId", menuItem.getId());
             response.put("itemName", menuItem.getItemName());
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error adding menu item: " + e.getMessage()));
         }
     }
-    
+
     /**
      * Get all menu items for current user's restaurant
      */
@@ -142,29 +141,29 @@ public class MenuItemController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not authenticated"));
         }
-        
+
         try {
             String email = principal.getName();
             SimpleUser currentUser = userService.findByEmail(email);
-            
+
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "User not found"));
             }
-            
+
             Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser)
                     .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-            
+
             List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurant.getId());
-            
+
             return ResponseEntity.ok(menuItems);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
     }
-    
+
     /**
      * Delete menu item
      */
@@ -175,14 +174,37 @@ public class MenuItemController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not authenticated"));
         }
-        
+
         try {
             menuItemService.deleteMenuItem(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Item deleted successfully"));
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+    @PutMapping("/api/items/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updateMenuItem(@PathVariable Long id,
+            @RequestParam("itemName") String itemName,
+            @RequestParam("itemPrice") BigDecimal itemPrice,
+            @RequestParam("itemDescription") String itemDescription,
+        @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile, Principal  principal){
+        // Logic Here:
+        if(principal == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not authenticated"));
+        }
+        try{
+            //Get user from principal(email)
+            String email = principal.getName();
+            SimpleUser currentUser = userService.findByEmail(email);
+            if(currentUser == null){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
+            }
+            //Get user's restaurant
+            Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser).orElseThrow(() -> new RuntimeException("Restaurant not found. Please complete setup first."));
+        }catch
     }
 }
