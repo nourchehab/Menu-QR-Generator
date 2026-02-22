@@ -187,9 +187,9 @@ public class MenuItemController {
     @PutMapping("/api/items/{id}")
     @ResponseBody
     public ResponseEntity<?> updateMenuItem(@PathVariable Long id,
-            @RequestParam("itemName") String itemName,
-            @RequestParam("itemPrice") BigDecimal itemPrice,
-            @RequestParam("itemDescription") String itemDescription,
+        @RequestParam("itemName") String itemName,
+        @RequestParam("itemPrice") BigDecimal itemPrice,
+        @RequestParam("itemDescription") String itemDescription,
         @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile, Principal  principal){
         // Logic Here:
         if(principal == null){
@@ -205,6 +205,33 @@ public class MenuItemController {
             }
             //Get user's restaurant
             Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser).orElseThrow(() -> new RuntimeException("Restaurant not found. Please complete setup first."));
-        }catch
+            // Verification for security issues(Different Restaurants messing with foreign manu items and Menus)
+            MenuItem existingItem = menuItemService.getMenuItemById(id);
+            if(!existingItem.getRestaurant().getId().equals(restaurant.getId())){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Not authorized to edit this item"));
+            }
+            //Validate inputs
+            if (itemName == null || itemName.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Item name is required"));
+            }
+            if (itemPrice == null || itemPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Valid price is required"));
+            }
+            if (itemDescription == null || itemDescription.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Item description is required"));
+            }
+            //Update item via the service
+            MenuItem updatedItem = menuItemService.updateMenuItem(id, itemName, itemPrice, itemDescription, photoFile);
+            //Create reponse map
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Item updated successfully");
+            response.put("itemId", updatedItem.getId());
+            response.put("itemName", updatedItem.getItemName());
+            return ResponseEntity.ok(response);
+        }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error updating menu item: " + e.getMessage()));
+        }
     }
 }
