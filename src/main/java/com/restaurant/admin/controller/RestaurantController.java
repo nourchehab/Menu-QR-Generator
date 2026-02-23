@@ -15,7 +15,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
 
 @Controller
 public class RestaurantController {
@@ -27,63 +30,49 @@ public class RestaurantController {
     private SimpleUserService userService;
 
     /**
-     * Returns the user's email for BOTH:
-     * - Form login (auth.getName() is usually email)
-     * - Google OAuth2/OIDC (email is inside principal attributes)
+     * Resolve email from Authentication (handles OIDC/OAuth2 and form login)
      */
     private String resolveEmail(Authentication auth) {
         if (auth == null) return null;
 
         Object principal = auth.getPrincipal();
 
-        // OIDC (Google OpenID Connect)
         if (principal instanceof OidcUser oidcUser) {
             String email = oidcUser.getEmail();
             return (email != null && !email.isBlank()) ? email : null;
         }
 
-        // OAuth2User fallback
         if (principal instanceof OAuth2User oauth2User) {
             Object email = oauth2User.getAttributes().get("email");
             return email != null ? email.toString() : null;
         }
 
-        // Form login fallback
         String name = auth.getName();
         return (name != null && !name.isBlank()) ? name : null;
     }
 
-    // ---------------------------------------------------------------
-    // GET /restaurant/setup  →  show the setup form page
-    // ---------------------------------------------------------------
+    // GET /restaurant/setup → show setup form
     @GetMapping("/restaurant/setup")
-    public String setupPage(Authentication auth) {
-        String email = resolveEmail(auth);
-        if (email == null) {
-            return "redirect:/login";
-        }
-        return "restaurant-setup"; // your Thymeleaf template
+    public String setupPage(Principal principal) {
+        if (principal == null) return "redirect:/login";
+        return "restaurant-setup";
     }
 
-    // ---------------------------------------------------------------
-    // POST /api/restaurant/setup  →  handle form submission (JSON/API)
-    // Changed from /restaurant/setup to avoid conflict with form POST handler
-    // ---------------------------------------------------------------
-    @PostMapping("/api/restaurant/setup")
+    // POST /restaurant/setup → handle form submission
+    @PostMapping("/restaurant/setup")
     @ResponseBody
     public ResponseEntity<?> handleSetup(
             @RequestParam("restaurantName") String restaurantName,
             @RequestParam("restaurantType") String restaurantType,
             @RequestParam(value = "logo", required = false) MultipartFile logo,
-            Authentication auth) {
+            Principal principal) {
 
-        String email = resolveEmail(auth);
-        if (email == null) {
+        if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         try {
-            SimpleUser user = userService.findByEmail(email);
+            SimpleUser user = userService.findByEmail(principal.getName());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
             }
@@ -102,20 +91,16 @@ public class RestaurantController {
         }
     }
 
-    // ---------------------------------------------------------------
-    // GET /api/restaurant/me  →  used by the menu preview page
-    // Returns current user's restaurant as JSON
-    // ---------------------------------------------------------------
+    // GET /api/restaurant/me → used by menu preview
     @GetMapping("/api/restaurant/me")
     @ResponseBody
-    public ResponseEntity<?> getMyRestaurant(Authentication auth) {
-        String email = resolveEmail(auth);
-        if (email == null) {
+    public ResponseEntity<?> getMyRestaurant(Principal principal) {
+        if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         try {
-            SimpleUser user = userService.findByEmail(email);
+            SimpleUser user = userService.findByEmail(principal.getName());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
             }
@@ -127,24 +112,22 @@ public class RestaurantController {
             String safeBg = (bg == null || bg.isBlank()) ? "" : ColorContrastUtil.normalizeHex(bg);
             String text = safeBg.isBlank() ? "" : ColorContrastUtil.bestTextColor(safeBg);
 
-            // Return a safe DTO-style map (avoids Jackson lazy-load issues with @ManyToOne)
-            return ResponseEntity.ok(Map.of(
-                    "id", restaurant.getId(),
-                    "restaurantName", restaurant.getRestaurantName(),
-                    "restaurantType", restaurant.getRestaurantType(),
-                    "logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "",
-                    "menuBackgroundColor", safeBg,
-                    "menuTextColor", text
-            ));
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", restaurant.getId());
+            dto.put("restaurantName", restaurant.getRestaurantName());
+            dto.put("restaurantType", restaurant.getRestaurantType());
+            dto.put("logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "");
+            dto.put("menuBackgroundColor", safeBg);
+            dto.put("menuTextColor", text);
+
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ---------------------------------------------------------------
-    // PUT /api/restaurant/me/theme  →  save menu background color
-    // ---------------------------------------------------------------
+    // PUT /api/restaurant/me/theme → save menu background color
     @PutMapping("/api/restaurant/me/theme")
     @ResponseBody
     public ResponseEntity<?> updateMyTheme(@RequestBody Map<String, String> body, Authentication auth) {
@@ -180,9 +163,7 @@ public class RestaurantController {
         }
     }
 
-    // ---------------------------------------------------------------
-    // Public endpoints for QR / non-authenticated menu access
-    // ---------------------------------------------------------------
+    // Public endpoint for QR / non-authenticated menu access
     @GetMapping("/api/public/restaurants/{id}")
     @ResponseBody
     public ResponseEntity<?> getRestaurantPublic(@PathVariable("id") Long restaurantId) {
@@ -194,14 +175,15 @@ public class RestaurantController {
             String safeBg = (bg == null || bg.isBlank()) ? "" : ColorContrastUtil.normalizeHex(bg);
             String text = safeBg.isBlank() ? "" : ColorContrastUtil.bestTextColor(safeBg);
 
-            return ResponseEntity.ok(Map.of(
-                    "id", restaurant.getId(),
-                    "restaurantName", restaurant.getRestaurantName(),
-                    "restaurantType", restaurant.getRestaurantType(),
-                    "logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "",
-                    "menuBackgroundColor", safeBg,
-                    "menuTextColor", text
-            ));
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", restaurant.getId());
+            dto.put("restaurantName", restaurant.getRestaurantName());
+            dto.put("restaurantType", restaurant.getRestaurantType());
+            dto.put("logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "");
+            dto.put("menuBackgroundColor", safeBg);
+            dto.put("menuTextColor", text);
+
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));

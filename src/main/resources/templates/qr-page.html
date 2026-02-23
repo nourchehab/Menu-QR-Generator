@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu QR Code</title>
+    <link rel="stylesheet" href="/css/base.css">
+</head>
+<body style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
+    <h1>Your Menu QR Code</h1>
+
+    <img id="qrImage" src="/api/qr/menu" alt="Menu QR" style="margin:30px 0; width:320px;"/>
+
+    <br>
+
+    <button onclick="downloadQr()" style="padding:12px 20px; cursor:pointer;">
+        Download QR Code
+    </button>
+
+    <script>
+        async function downloadQr() {
+            const res = await fetch('/api/qr/menu');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'menu-qr.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

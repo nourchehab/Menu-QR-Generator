@@ -370,7 +370,7 @@
     Preview Mode — This is how customers will see your menu
     <div class="banner-actions">
         <a href="/dashboard" class="btn-banner outline">← Back to Dashboard</a>
-        <button class="btn-banner" onclick="generateQR()">Generate QR Code</button>
+        <a href="/qr-page" target="_blank" class="btn-banner">Generate QR Code</a>
     </div>
 </div>
 
@@ -422,7 +422,7 @@
             const isPublic = String(document.body.dataset.public).toLowerCase() === 'true';
             const restaurantId = document.body.dataset.restaurantId;
 
-            // Fetch restaurant info
+            // Fetch restaurant info (handle public preview or admin)
             const restaurantUrl = isPublic
                 ? `/api/public/restaurants/${encodeURIComponent(restaurantId)}`
                 : '/api/restaurant/me';
@@ -518,8 +518,7 @@
     }
 
     function generateQR() {
-        // Placeholder — hook into your QR generation endpoint
-        alert('QR generation coming soon!');
+        window.open('/qr-page', '_blank');
     }
 
     loadMenuPreview();

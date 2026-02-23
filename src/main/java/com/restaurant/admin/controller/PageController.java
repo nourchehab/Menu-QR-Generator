@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.ui.Model;
 
+import java.security.Principal;
+
 @Controller
 public class PageController {
 
@@ -35,7 +37,7 @@ public class PageController {
         return "login";
     }
 
-    // REMOVE the @PostMapping("/login") method - Spring Security handles it now
+    // Spring Security handles POST /login
 
     @GetMapping("/signup")
     public String signup() {
@@ -55,5 +57,17 @@ public class PageController {
     @GetMapping("/manageitems")
     public String manageItems() {
         return "manageitems";
+    }
+
+    @GetMapping("/menu/preview")
+    public String menuPreview(Principal principal, Model model) {
+        if (principal == null) return "redirect:/login";
+        model.addAttribute("publicMode", false);
+        return "menu-preview";
+    }
+
+    @GetMapping("/qr-page")
+    public String qrPage() {
+        return "qr-page";
     }
 }

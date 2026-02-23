@@ -63,6 +63,7 @@ public class MenuItemController {
 
     /**
      * ✅ UPDATED: API endpoint to add menu item (uses Principal instead of session)
+     * ✅ API endpoint to add menu item (uses Principal instead of session)
      */
     @PostMapping("/api/items")
     @ResponseBody
@@ -114,7 +115,8 @@ public class MenuItemController {
                     itemName,
                     itemPrice,
                     itemDescription,
-                    photoFile);
+                    photoFile
+            );
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -133,6 +135,8 @@ public class MenuItemController {
 
     /**
      * Get all menu items for current user's restaurant
+     * ✅ FIXED: Get all menu items for current user's restaurant
+     * Returns safe DTO JSON (avoids invalid JSON / circular JPA serialization)
      */
     @GetMapping("/api/items")
     @ResponseBody
@@ -156,7 +160,18 @@ public class MenuItemController {
 
             List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurant.getId());
 
-            return ResponseEntity.ok(menuItems);
+            // Return only the fields your menu-preview.html expects (avoid circular JPA serialization)
+            List<Map<String, Object>> dto = menuItems.stream().map(item -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", item.getId());
+                m.put("itemName", item.getItemName());
+                m.put("itemDescription", item.getItemDescription());
+                m.put("itemPrice", item.getItemPrice());
+                m.put("photoPath", item.getPhotoPath() == null ? "" : item.getPhotoPath());
+                return m;
+            }).toList();
+
+            return ResponseEntity.ok(dto);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

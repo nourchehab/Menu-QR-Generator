@@ -33,7 +33,11 @@ build/
 .vscode/
 ### Local Configuration (Credentials) ###
 src/main/resources/application-local.properties
+<<<<<<< HEAD
 .env
 
 ### Uploaded User Content ###
 uploads/
+=======
+.env
+>>>>>>> 054cba6046c044d858ef213c53e2cf37d340acda

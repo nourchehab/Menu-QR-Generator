@@ -21,7 +21,7 @@ public class CustomOidcUserService extends OidcUserService {
     private final PasswordEncoder passwordEncoder;
 
     public CustomOidcUserService(SimpleUserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+                                 PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
