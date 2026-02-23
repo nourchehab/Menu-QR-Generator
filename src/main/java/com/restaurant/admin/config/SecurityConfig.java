@@ -14,35 +14,30 @@ import com.restaurant.admin.security.oauth.CustomOAuth2UserService;
 import com.restaurant.admin.security.oauth.CustomOidcUserService;
 import com.restaurant.admin.security.oauth.OAuth2LoginFailureHandler;
 import com.restaurant.admin.security.oauth.OAuth2LoginSuccessHandler;
-// OAuth2 imports commented out until Google credentials are configured
-// import com.restaurant.admin.security.oauth.CustomOAuth2UserService;
-// import com.restaurant.admin.security.oauth.CustomOidcUserService;
-// import com.restaurant.admin.security.oauth.OAuth2LoginFailureHandler;
-// import com.restaurant.admin.security.oauth.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // private final CustomOAuth2UserService customOAuth2UserService;
-    // private final CustomOidcUserService customOidcUserService;
-    // private final OAuth2LoginSuccessHandler successHandler;
-    // private final OAuth2LoginFailureHandler failureHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
+    private final OAuth2LoginSuccessHandler successHandler;
+    private final OAuth2LoginFailureHandler failureHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final CustomLoginSuccessHandler formLoginSuccessHandler;
 
     public SecurityConfig(
-            // CustomOAuth2UserService customOAuth2UserService,
-            // CustomOidcUserService customOidcUserService,
-            // OAuth2LoginSuccessHandler successHandler,
-            // OAuth2LoginFailureHandler failureHandler,
+            CustomOAuth2UserService customOAuth2UserService,
+            CustomOidcUserService customOidcUserService,
+            OAuth2LoginSuccessHandler successHandler,
+            OAuth2LoginFailureHandler failureHandler,
             CustomAuthenticationProvider customAuthenticationProvider,
             CustomLoginSuccessHandler formLoginSuccessHandler
     ) {
-        // this.customOAuth2UserService = customOAuth2UserService;
-        // this.customOidcUserService = customOidcUserService;
-        // this.successHandler = successHandler;
-        // this.failureHandler = failureHandler;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
+        this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
     }
@@ -64,6 +59,9 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/login", "/signup",
                     "/css/**", "/js/**", "/images/**",
+                    "/uploads/**",
+                    "/m/**",
+                    "/api/public/**",
                     "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
                     "/auth/**"
                 ).permitAll()
@@ -77,17 +75,17 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
+            )
+            //OAuth2 login disabled until Google credentials are added to application-local.properties
+            .oauth2Login(oauth -> oauth
+                .loginPage("/login")
+                .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService)
+                .oidcUserService(customOidcUserService)
+                )
+            .successHandler(successHandler)
+            .failureHandler(failureHandler)
             );
-            // OAuth2 login disabled until Google credentials are added to application-local.properties
-            // .oauth2Login(oauth -> oauth
-            //     .loginPage("/login")
-            //     .userInfoEndpoint(userInfo -> userInfo
-            //         .userService(customOAuth2UserService)
-            //         .oidcUserService(customOidcUserService)
-            //     )
-            //     .successHandler(successHandler)
-            //     .failureHandler(failureHandler)
-            // );
 
         return http.build();
     }

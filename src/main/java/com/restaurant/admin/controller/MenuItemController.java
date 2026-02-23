@@ -62,7 +62,6 @@ public class MenuItemController {
     }
 
     /**
-     * ✅ UPDATED: API endpoint to add menu item (uses Principal instead of session)
      * ✅ API endpoint to add menu item (uses Principal instead of session)
      */
     @PostMapping("/api/items")
@@ -134,7 +133,6 @@ public class MenuItemController {
     }
 
     /**
-     * Get all menu items for current user's restaurant
      * ✅ FIXED: Get all menu items for current user's restaurant
      * Returns safe DTO JSON (avoids invalid JSON / circular JPA serialization)
      */
@@ -160,7 +158,7 @@ public class MenuItemController {
 
             List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurant.getId());
 
-            // Return only the fields your menu-preview.html expects (avoid circular JPA serialization)
+            // ✅ Return only the fields your menu-preview.html expects
             List<Map<String, Object>> dto = menuItems.stream().map(item -> {
                 Map<String, Object> m = new HashMap<>();
                 m.put("id", item.getId());
@@ -173,6 +171,33 @@ public class MenuItemController {
 
             return ResponseEntity.ok(dto);
 
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Public menu items endpoint (for QR / non-authenticated access).
+     * Returns the same safe DTO structure used by menu-preview.html.
+     */
+    @GetMapping("/api/public/restaurants/{restaurantId}/items")
+    @ResponseBody
+    public ResponseEntity<?> getMenuItemsPublic(@PathVariable Long restaurantId) {
+        try {
+            List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurantId);
+
+            List<Map<String, Object>> dto = menuItems.stream().map(item -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", item.getId());
+                m.put("itemName", item.getItemName());
+                m.put("itemDescription", item.getItemDescription());
+                m.put("itemPrice", item.getItemPrice());
+                m.put("photoPath", item.getPhotoPath() == null ? "" : item.getPhotoPath());
+                return m;
+            }).toList();
+
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
@@ -197,56 +222,6 @@ public class MenuItemController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
-        }
-    }
-    @PutMapping("/api/items/{id}")
-    @ResponseBody
-    public ResponseEntity<?> updateMenuItem(@PathVariable Long id,
-        @RequestParam("itemName") String itemName,
-        @RequestParam("itemPrice") BigDecimal itemPrice,
-        @RequestParam("itemDescription") String itemDescription,
-        @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile, Principal  principal){
-        // Logic Here:
-        if(principal == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "User not authenticated"));
-        }
-        try{
-            //Get user from principal(email)
-            String email = principal.getName();
-            SimpleUser currentUser = userService.findByEmail(email);
-            if(currentUser == null){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
-            }
-            //Get user's restaurant
-            Restaurant restaurant = restaurantService.getRestaurantByUser(currentUser).orElseThrow(() -> new RuntimeException("Restaurant not found. Please complete setup first."));
-            // Verification for security issues(Different Restaurants messing with foreign manu items and Menus)
-            MenuItem existingItem = menuItemService.getMenuItemById(id);
-            if(!existingItem.getRestaurant().getId().equals(restaurant.getId())){
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Not authorized to edit this item"));
-            }
-            //Validate inputs
-            if (itemName == null || itemName.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Item name is required"));
-            }
-            if (itemPrice == null || itemPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Valid price is required"));
-            }
-            if (itemDescription == null || itemDescription.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Item description is required"));
-            }
-            //Update item via the service
-            MenuItem updatedItem = menuItemService.updateMenuItem(id, itemName, itemPrice, itemDescription, photoFile);
-            //Create reponse map
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Item updated successfully");
-            response.put("itemId", updatedItem.getId());
-            response.put("itemName", updatedItem.getItemName());
-            return ResponseEntity.ok(response);
-        }catch(Exception e){
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error updating menu item: " + e.getMessage()));
         }
     }
 }

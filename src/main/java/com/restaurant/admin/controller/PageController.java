@@ -65,7 +65,11 @@ public class PageController {
         model.addAttribute("publicMode", false);
         return "menu-preview";
     }
-
+@GetMapping("/menu/theme")
+    public String menuTheme(Principal principal) {
+        if (principal == null) return "redirect:/login";
+        return "menu-theme";
+    }
     @GetMapping("/qr-page")
     public String qrPage() {
         return "qr-page";
