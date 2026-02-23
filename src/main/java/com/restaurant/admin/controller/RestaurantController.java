@@ -66,8 +66,8 @@ public class RestaurantController {
     }
 
     // ---------------------------------------------------------------
-    // POST /api/restaurant/setup  →  handle form submission (API)
-    // Changed to /api/... to avoid conflict with form POST at /restaurant/setup
+    // POST /api/restaurant/setup  →  handle form submission (JSON/API)
+    // Changed from /restaurant/setup to avoid conflict with form POST handler
     // ---------------------------------------------------------------
     @PostMapping("/api/restaurant/setup")
     @ResponseBody
