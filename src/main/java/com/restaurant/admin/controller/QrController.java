@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -67,4 +68,22 @@ public class QrController {
                 .contentType(MediaType.IMAGE_PNG)
                 .body(png);
     }
+    @GetMapping(value = "/menu/{restaurantId}", produces = MediaType.IMAGE_PNG_VALUE)
+public ResponseEntity<byte[]> getMenuQrPublic(@PathVariable Long restaurantId) {
+    Optional<Restaurant> restaurantOpt = restaurantRepository.findById(restaurantId);
+    if (restaurantOpt.isEmpty()) {
+        return ResponseEntity.status(404).build();
+    }
+
+    String url = publicBaseUrl + "/menu/" + restaurantId;
+    byte[] png = qrCodeService.generatePngQr(url, 320);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setCacheControl(CacheControl.noStore());
+
+    return ResponseEntity.ok()
+            .headers(headers)
+            .contentType(MediaType.IMAGE_PNG)
+            .body(png);
+}
 }

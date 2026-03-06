@@ -1,35 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Menu QR Code</title>
-    <link rel="stylesheet" href="/css/base.css">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your Menu QR Code — FlavorFrame</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #f9f5ef;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: #1a1208;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #ddd5c4;
+            border-radius: 16px;
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 4px 32px rgba(26,18,8,0.08);
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #7a6e60;
+            font-size: 0.88rem;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        .qr-wrap {
+            background: #fff;
+            border: 2px solid #ddd5c4;
+            border-radius: 12px;
+            padding: 16px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+        #qrImage {
+            display: block;
+            width: 280px;
+            height: 280px;
+        }
+        .menu-link {
+            display: block;
+            font-size: 0.78rem;
+            color: #7a6e60;
+            margin-bottom: 28px;
+            word-break: break-all;
+            background: #f9f5ef;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd5c4;
+            text-decoration: none;
+        }
+        .menu-link:hover { color: #c8622a; }
+        .fallback-note {
+            font-size: 0.78rem;
+            color: #7a6e60;
+            margin-bottom: 28px;
+        }
+        .fallback-note a { color: #c8622a; }
+        .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 11px 24px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .btn-primary { background: #c8622a; color: #fff; }
+        .btn-primary:hover { background: #a84e20; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ddd5c4;
+            color: #1a1208;
+        }
+        .btn-outline:hover { background: #f9f5ef; }
+        .error-msg {
+            color: #c0392b;
+            font-size: 0.85rem;
+            margin-top: 16px;
+            display: none;
+        }
+        @media (max-width: 480px) {
+            .card { padding: 32px 20px; }
+            #qrImage { width: 240px; height: 240px; }
+        }
+    </style>
 </head>
-<body style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
+<body>
+
+<div class="card">
     <h1>Your Menu QR Code</h1>
+    <p class="subtitle">Customers scan this to instantly view your full digital menu — no app needed.</p>
 
-    <img id="qrImage" src="/api/qr/menu" alt="Menu QR" style="margin:30px 0; width:320px;"/>
+    <div class="qr-wrap">
+        <img id="qrImage" src="/api/qr/menu" alt="Menu QR Code"
+             onerror="handleQrError()"/>
+    </div>
 
-    <br>
+    <br/>
 
-    <button onclick="downloadQr()" style="padding:12px 20px; cursor:pointer;">
-        Download QR Code
-    </button>
+    <!-- Fallback direct link (shown always, acts as backup if QR fails) -->
+    <p class="fallback-note">
+        Can't scan? Share this link directly:<br/>
+        <a id="menuLink" class="menu-link" href="#" target="_blank">Loading menu link…</a>
+    </p>
 
-    <script>
-        async function downloadQr() {
+    <div class="actions">
+        <button class="btn btn-primary" onclick="downloadQr()">⬇ Download QR</button>
+        <a id="previewBtn" class="btn btn-outline" href="#" target="_blank">👁 Preview Menu</a>
+    </div>
+
+    <p class="error-msg" id="errorMsg">
+        ⚠ Could not load QR code. Please <a href="/dashboard">return to dashboard</a> and try again.
+    </p>
+</div>
+
+<script>
+    // Load restaurant info to build the public menu URL
+    async function init() {
+        try {
+            const res = await fetch('/api/restaurant/me');
+            if (!res.ok) throw new Error('Not found');
+            const restaurant = await res.json();
+
+            const menuUrl = `${location.origin}/menu/${restaurant.id}`;
+            
+            const linkEl = document.getElementById('menuLink');
+            linkEl.href = menuUrl;
+            linkEl.textContent = menuUrl;
+
+            document.getElementById('previewBtn').href = `/menu/preview`;
+        } catch (e) {
+            document.getElementById('menuLink').textContent = 'Could not load link';
+        }
+    }
+
+    async function downloadQr() {
+        try {
             const res = await fetch('/api/qr/menu');
+            if (!res.ok) throw new Error('Failed');
             const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'menu-qr.png';
             document.body.appendChild(a);
             a.click();
             a.remove();
-
-            window.URL.revokeObjectURL(url);
+            URL.revokeObjectURL(url);
+        } catch {
+            alert('Download failed. Please try again.');
         }
-    </script>
+    }
+
+    function handleQrError() {
+        document.getElementById('qrImage').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'block';
+    }
+
+    init();
+</script>
 </body>
 </html>

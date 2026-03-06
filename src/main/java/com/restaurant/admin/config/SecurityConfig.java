@@ -63,7 +63,7 @@ public class SecurityConfig {
                     "/m/**",
                     "/api/public/**",
                     "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
-                    "/auth/**"
+                    "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
