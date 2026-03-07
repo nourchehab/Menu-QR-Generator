@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="ngrok-skip-browser-warning" content="true"/>
     <title>Menu Preview — FlavorFrame</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -430,15 +431,19 @@
     async function loadMenuPreview() {
         try {
             const isPublic = String(document.body.dataset.public).toLowerCase() === 'true';
-            const restaurantId = document.body.dataset.restaurantId;
+        const restaurantId = document.body.dataset.restaurantId;
 
-            const restaurantUrl = isPublic
-                ? `/api/public/restaurants/${encodeURIComponent(restaurantId)}`
-                : '/api/restaurant/me';
+        const fetchOpts = {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        };
 
-            const resRes = await fetch(restaurantUrl);
-            if (!resRes.ok) throw new Error('Could not load restaurant info');
-            const restaurant = await resRes.json();
+        const restaurantUrl = isPublic
+            ? `/api/public/restaurants/${encodeURIComponent(restaurantId)}`
+            : '/api/restaurant/me';
+
+        const resRes = await fetch(restaurantUrl, fetchOpts);
+        if (!resRes.ok) throw new Error('Could not load restaurant info');
+        const restaurant = await resRes.json();
 
             // Apply menu theme ONLY to page background + general text.
             if (restaurant.menuBackgroundColor) {
@@ -461,12 +466,12 @@
             }
 
             const itemsUrl = isPublic
-                ? `/api/public/restaurants/${encodeURIComponent(restaurantId)}/items`
-                : '/api/items';
+            ? `/api/public/restaurants/${encodeURIComponent(restaurantId)}/items`
+            : '/api/items';
 
-            const itemRes = await fetch(itemsUrl);
-            if (!itemRes.ok) throw new Error('Could not load menu items');
-            const items = await itemRes.json();
+        const itemRes = await fetch(itemsUrl, fetchOpts);
+        if (!itemRes.ok) throw new Error('Could not load menu items');
+        const items = await itemRes.json();
 
             document.getElementById('loadingGrid').style.display = 'none';
             document.getElementById('menuGrid').style.display = 'grid';

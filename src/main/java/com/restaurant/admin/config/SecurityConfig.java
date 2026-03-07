@@ -53,7 +53,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+    .csrf(csrf -> csrf.disable())
+    .headers(headers -> headers
+        .frameOptions(frame -> frame.disable())
+    )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll()
                 .requestMatchers(
