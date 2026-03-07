@@ -36,6 +36,17 @@ public class MenuItem {
     private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category categoryEntity;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "item_tags",
+        joinColumns = @JoinColumn(name = "item_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private java.util.Set<Tag> tags = new java.util.HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
     
@@ -129,6 +140,22 @@ public class MenuItem {
     
     public void setRestaurant(Restaurant restaurant) {
         this.restaurant = restaurant;
+    }
+
+    public Category getCategoryEntity() {
+        return categoryEntity;
+    }
+
+    public void setCategoryEntity(Category categoryEntity) {
+        this.categoryEntity = categoryEntity;
+    }
+
+    public java.util.Set<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(java.util.Set<Tag> tags) {
+        this.tags = tags;
     }
     
     public LocalDateTime getCreatedAt() {
