@@ -76,6 +76,11 @@ public class ClassifyController {
         // Minimal echo assistant for now
         Object msg = body == null ? null : body.get("message");
         if (msg == null) return ResponseEntity.badRequest().body(Map.of("error", "Missing message"));
-        return ResponseEntity.ok(Map.of("reply", "Assistant (demo): I received your message: " + msg.toString()));
+        try {
+            String reply = classificationService.askAssistant(msg.toString());
+            return ResponseEntity.ok(Map.of("reply", reply));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Assistant error"));
+        }
     }
 }

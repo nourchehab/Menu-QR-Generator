@@ -110,7 +110,26 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .add-btn:hover {
+        /* Match Add Item button appearance for Categorise buttons */
+        .btn-categorise {
+            background: white;
+            color: #ff6b35;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+            border: none;
+            display: inline-block;
+            font-family: inherit;
+            font-size: inherit;
+            cursor: pointer;
+        }
+
+        .add-btn:hover,
+        .btn-categorise:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
@@ -214,6 +233,19 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        /* per-item Categorise button hover (small buttons) */
+        .btn-categorise-item {
+            transition: all 0.18s ease;
+        }
+        .btn-categorise-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            /* override inline styles using !important so hover shows reliably */
+            background: #c47a1b !important;
+            color: #ffffff !important;
+            border-color: rgba(196,122,27,0.08) !important;
         }
 
         .btn-edit {
@@ -320,7 +352,10 @@
                 <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
                 <h1 class="page-title">Manage Items</h1>
             </div>
-            <a href="/enteritems" class="add-btn">+ Add Item</a>
+               <div style="display:flex; gap:0.75rem; align-items:center;">
+                   <button id="categoriseAllBtn" class="add-btn btn-categorise" type="button">Categorise</button>
+                   <a href="/enteritems" class="add-btn">+ Add Item</a>
+               </div>
         </div>
 
         <div class="content-card">
@@ -462,6 +497,7 @@
                     </div>
                     <div class="item-actions">
                         <button class="btn-action btn-delete" onclick="deleteItem(${item.id})">Delete</button>
+                        <button class="btn-action btn-categorise-item" onclick="openCategoriseModal(${item.id})" style="background:#fff8e6; color:#c47a1b;">Categorise</button>
                         <button class="btn-action btn-edit"
                             onclick="openEditModal(${item.id}, '${safeName}', ${item.itemPrice}, '${safeDesc}', ${photoUrl ? `'${photoUrl}'` : 'null'})">
                             Edit
@@ -598,6 +634,185 @@
                 });
             }
         }
+
+        // Categorise modal and functions
+        const categoriseModal = document.createElement('div');
+        categoriseModal.id = 'categoriseModal';
+        categoriseModal.style.display = 'none';
+        categoriseModal.style.position = 'fixed';
+        categoriseModal.style.inset = '0';
+        categoriseModal.style.background = 'rgba(0,0,0,0.55)';
+        categoriseModal.style.alignItems = 'center';
+        categoriseModal.style.justifyContent = 'center';
+        categoriseModal.style.padding = '1.5rem';
+        categoriseModal.style.zIndex = '9999';
+        categoriseModal.innerHTML = `
+            <div style="width:100%; max-width:760px; background:#fff; border-radius:18px; padding:1.25rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem;">
+                    <div style="font-family:'Fraunces', serif; font-size:1.25rem; color:#1a1a2e;">Categorise Items</div>
+                    <div style="display:flex; gap:.5rem; align-items:center;">
+                        <button id="openAssistantBtn" type="button" class="btn-action btn-edit">Assistant</button>
+                        <button type="button" id="closeCategoriseBtn" class="btn-action btn-edit">✕</button>
+                    </div>
+                </div>
+                <div id="categoriseMain">
+                    <div id="categoriseBody"><div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div></div>
+                    <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1rem;">
+                        <button id="applySuggestionBtn" class="btn-action" style="background:#ff6b35; color:white;">Apply Selected</button>
+                    </div>
+                </div>
+                <div id="chatPanel" style="display:none; margin-top:1rem; border-top:1px solid #f0f0f0; padding-top:1rem;">
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-controls" style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem;">
+                        <button id="chatBackBtn" class="btn-action btn-edit">Back</button>
+                        <input id="chatInput" type="text" placeholder="Ask assistant about categories or suggestions..." style="flex:1; padding:.6rem .75rem; border:1px solid #e6e6e9; border-radius:8px;"/>
+                        <button id="sendChatBtn" class="btn-action send" style="background:#1a73e8; color:white;">Send</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(categoriseModal);
+
+        // Wire header Categorise button (bulk) to open modal
+        const headerCatBtn = document.getElementById('categoriseAllBtn');
+        if (headerCatBtn) headerCatBtn.addEventListener('click', () => openCategoriseModal());
+
+        let _categoriseState = { itemId: null, suggestions: [], selectedIndex: 0 };
+
+        window.openCategoriseModal = async function (itemId) {
+            _categoriseState.itemId = itemId;
+            _categoriseState.suggestions = [];
+            _categoriseState.selectedIndex = 0;
+            document.getElementById('categoriseBody').innerHTML = '<div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div>';
+            categoriseModal.style.display = 'flex';
+
+            try {
+                const resp = await fetch('/api/classify/suggest-schemas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                if (resp.status === 401 || resp.redirected) {
+                    categoriseModal.style.display = 'none';
+                    Swal.fire({ title: 'Sign in required', text: 'Please sign in to use categorisation.', icon: 'warning', confirmButtonText: 'Sign in', target: document.body })
+                        .then(() => { window.location.href = '/login'; });
+                    return;
+                }
+                if (!resp.ok) throw new Error('Server error ' + resp.status);
+                const suggestions = await resp.json();
+                _categoriseState.suggestions = suggestions;
+                renderCategoriseSuggestions();
+            } catch (err) {
+                console.error('Categorise error', err);
+                document.getElementById('categoriseBody').innerHTML = '<div style="color:#ff4444;">Failed to load suggestions.</div>';
+            }
+        }
+
+        function renderCategoriseSuggestions() {
+            const body = document.getElementById('categoriseBody');
+            const suggestions = _categoriseState.suggestions || [];
+            if (!suggestions.length) {
+                body.innerHTML = '<div style="padding:1rem;">No suggestions available.</div>';
+                return;
+            }
+            const html = suggestions.map((s, idx) => {
+                const title = s.title || ('Suggestion ' + (idx+1));
+                const groups = s.groups || {};
+                const groupHtml = Object.keys(groups).slice(0,10).map(g => `<li><strong>${g}</strong>: ${(groups[g]||[]).slice(0,6).join(', ')}</li>`).join('');
+                return `<div style="border:1px dashed #eee; padding:.75rem; margin-bottom:.5rem; border-radius:8px;">
+                    <label style="display:flex; gap:1rem; align-items:center;"><input type="radio" name="suggestionSel" value="${idx}" ${idx===0? 'checked' : ''}/> <strong style="margin-left:.25rem;">${title}</strong> <span style="margin-left:8px; color:#888;">(${Math.round((s.confidence||0)*100)}%)</span></label>
+                    <ul style="margin-top:.5rem; color:#444;">${groupHtml}</ul>
+                </div>`;
+            }).join('');
+            body.innerHTML = html;
+            document.querySelectorAll('input[name="suggestionSel"]').forEach(r => r.addEventListener('change', () => {
+                _categoriseState.selectedIndex = parseInt(r.value);
+            }));
+        }
+
+        // Chat assistant handlers inside modal
+        function appendChatMessage(text, who) {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            const el = document.createElement('div');
+            el.className = 'chat-message ' + (who === 'user' ? 'user' : 'assistant');
+            el.textContent = text;
+            container.appendChild(el);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.addEventListener('click', async function (e) {
+            if (e.target && e.target.id === 'openAssistantBtn') {
+                document.getElementById('categoriseMain').style.display = 'none';
+                document.getElementById('chatPanel').style.display = 'block';
+
+                // Auto-generate a greeting from the assistant when opened (only once)
+                const container = document.getElementById('chatMessages');
+                if (container && container.children.length === 0) {
+                    // show a temporary loading message
+                    appendChatMessage('Thinking...', 'assistant');
+                    try {
+                        const resp = await fetch('/api/classify/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: 'Please provide a short, friendly greeting to an admin using the categorisation assistant.' })
+                        });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            const reply = data.reply || data.error || 'Hello — how can I help you with categorising your menu today?';
+                            // replace the temporary loading message with real reply
+                            if (container.lastChild) container.lastChild.textContent = reply;
+                        } else {
+                            if (container.lastChild) container.lastChild.textContent = 'Assistant: (error fetching greeting)';
+                        }
+                    } catch (err) {
+                        if (container.lastChild) container.lastChild.textContent = 'Assistant: (network error)';
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'chatBackBtn') {
+                document.getElementById('chatPanel').style.display = 'none';
+                document.getElementById('categoriseMain').style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', async function (e) {
+            if (e.target && e.target.id === 'sendChatBtn') {
+                const input = document.getElementById('chatInput');
+                const msg = input && input.value && input.value.trim();
+                if (!msg) return;
+                appendChatMessage(msg, 'user');
+                input.value = '';
+                try {
+                    const resp = await fetch('/api/classify/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
+                    if (!resp.ok) { appendChatMessage('Assistant: error contacting server', 'assistant'); return; }
+                    const data = await resp.json();
+                    appendChatMessage(data.reply || data.error || 'No reply', 'assistant');
+                } catch (err) { appendChatMessage('Assistant: network error', 'assistant'); }
+            }
+        });
+
+        document.getElementById('closeCategoriseBtn').addEventListener('click', () => { categoriseModal.style.display = 'none'; });
+        document.getElementById('applySuggestionBtn').addEventListener('click', async () => {
+            const idx = _categoriseState.selectedIndex || 0;
+            try {
+                const resp = await fetch('/api/classify/apply-suggestion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ suggestionIndex: idx }) });
+                if (resp.status === 401 || resp.redirected) {
+                    categoriseModal.style.display = 'none';
+                    Swal.fire({ title: 'Sign in required', text: 'Please sign in to apply suggestions.', icon: 'warning', confirmButtonText: 'Sign in', target: document.body })
+                        .then(() => { window.location.href = '/login'; });
+                    return;
+                }
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    Swal.fire({ title: 'Applied', text: 'Suggestion applied to your items.', icon: 'success', timer: 1300, showConfirmButton: false, target: document.body });
+                    categoriseModal.style.display = 'none';
+                    fetchItems();
+                } else {
+                    Swal.fire({ title: 'Error', text: data.error || 'Failed to apply suggestion', icon: 'error', target: document.body });
+                }
+            } catch (err) {
+                Swal.fire({ title: 'Error', text: 'Network error while applying suggestion', icon: 'error', target: document.body });
+            }
+        });
 
         editForm.addEventListener('submit', async function (e) {
             e.preventDefault();

@@ -2,16 +2,36 @@ package com.restaurant.admin.service;
 
 import com.restaurant.admin.model.MenuItem;
 import com.restaurant.admin.repository.MenuItemRepository;
+import com.restaurant.admin.repository.RestaurantRepository;
+import com.restaurant.admin.repository.CategoryRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.restaurant.admin.repository.CategoryRepository;
 
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClassificationService {
 
+    private final Logger log = LoggerFactory.getLogger(ClassificationService.class);
+
     @Autowired
     private MenuItemRepository menuItemRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Value("${app.ai.apiKey:}")
+    private String aiApiKey;
+
+    @Autowired(required = false)
+    private AiClientService aiClientService;
 
     public List<Map<String, Object>> suggestSchemas(Long restaurantId) {
         List<MenuItem> items = menuItemRepository.findByRestaurantId(restaurantId);
@@ -59,6 +79,7 @@ public class ClassificationService {
         return true;
         }
 
+    @Transactional
     public void applySuggestion(Long restaurantId, int suggestionIndex) {
         List<Map<String, Object>> suggestions = suggestSchemas(restaurantId);
         if (suggestionIndex < 0 || suggestionIndex >= suggestions.size()) {
@@ -71,58 +92,83 @@ public class ClassificationService {
 
         java.util.Map<?,?> groups = (java.util.Map<?,?>) groupsObj;
 
-        // lazily obtain repository beans by autowiring fields
-        // Use Spring context via autowired fields if present
-        try {
-            // Obtain Restaurant
-            com.restaurant.admin.repository.RestaurantRepository rr = null;
-            try {
-                rr = (com.restaurant.admin.repository.RestaurantRepository) java.lang.Class.forName("com.restaurant.admin.repository.RestaurantRepository").getDeclaredConstructor().newInstance();
-            } catch (Exception ignore) {
-                // ignore — we'll use menuItemRepository to find items
-            }
+        // Resolve restaurant and use autowired repositories to persist categories
+        com.restaurant.admin.model.Restaurant rest = restaurantRepository.findById(restaurantId).orElse(null);
+        if (rest == null) throw new IllegalArgumentException("Restaurant not found");
 
-            // For each group name, create or find Category and assign items
-            for (Object gk : groups.keySet()) {
-                String groupName = gk == null ? "" : gk.toString();
-                // create category if missing via CategoryRepository bean
-                com.restaurant.admin.model.Category cat = null;
-                try {
-                    // try to get CategoryRepository from Spring
-                    CategoryRepository cr = org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncludingAncestors(
-                            org.springframework.web.context.ContextLoader.getCurrentWebApplicationContext(), com.restaurant.admin.repository.CategoryRepository.class)
-                            .values().stream().findFirst().orElse(null);
-                    if (cr != null) {
-                        com.restaurant.admin.model.Restaurant rest = org.springframework.web.context.ContextLoader.getCurrentWebApplicationContext()
-                                .getBean(com.restaurant.admin.repository.RestaurantRepository.class).findById(restaurantId).orElse(null);
-                        if (rest == null) throw new RuntimeException("Restaurant not found");
-                        java.util.Optional<com.restaurant.admin.model.Category> existing = cr.findByRestaurantAndNameIgnoreCase(rest, groupName);
-                        if (existing.isPresent()) cat = existing.get();
-                        else cat = cr.save(new com.restaurant.admin.model.Category(groupName, rest, null));
-                    }
-                } catch (Exception e) {
-                    // If anything fails, continue without category persistence
-                    cat = null;
-                }
+        List<com.restaurant.admin.model.MenuItem> items = menuItemRepository.findByRestaurantId(restaurantId);
 
-                Object listObj = groups.get(gk);
-                if (!(listObj instanceof java.util.Collection)) continue;
-                for (Object itemObj : (java.util.Collection<?>) listObj) {
-                    String itemName = itemObj == null ? null : itemObj.toString();
-                    if (itemName == null) continue;
-                    // find menu item by matching name under restaurant
-                    List<com.restaurant.admin.model.MenuItem> items = menuItemRepository.findByRestaurantId(restaurantId);
-                    for (com.restaurant.admin.model.MenuItem mi : items) {
-                        if (mi.getItemName() != null && mi.getItemName().equalsIgnoreCase(itemName)) {
-                            if (cat != null) mi.setCategoryEntity(cat);
-                            // save via menuItemRepository
-                            try { menuItemRepository.save(mi); } catch (Exception ignore) {}
-                        }
+        for (Object gk : groups.keySet()) {
+            String groupName = gk == null ? "" : gk.toString();
+            com.restaurant.admin.model.Category cat = categoryRepository.findByRestaurantAndNameIgnoreCase(rest, groupName)
+                    .orElseGet(() -> categoryRepository.save(new com.restaurant.admin.model.Category(groupName, rest, null)));
+
+            Object listObj = groups.get(gk);
+            if (!(listObj instanceof java.util.Collection)) continue;
+            for (Object itemObj : (java.util.Collection<?>) listObj) {
+                String itemName = itemObj == null ? null : itemObj.toString();
+                if (itemName == null) continue;
+                for (com.restaurant.admin.model.MenuItem mi : items) {
+                    if (mi.getItemName() != null && mi.getItemName().equalsIgnoreCase(itemName)) {
+                        mi.setCategoryEntity(cat);
+                        // also set the free-text category so UI reflects grouping immediately
+                        try {
+                            mi.setCategory(cat.getName());
+                            menuItemRepository.save(mi);
+                        } catch (Exception ignore) {}
                     }
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    public boolean isAiKeyConfigured() {
+        return aiApiKey != null && !aiApiKey.isBlank();
+    }
+
+    public String askAssistant(String message) {
+        log.debug("askAssistant: message='{}'", message);
+        if (aiClientService == null) {
+            String fallback = localRuleAssistant(message);
+            log.debug("askAssistant: no aiClientService, reply='{}'", fallback);
+            return fallback;
+        }
+        Optional<String> resp = aiClientService.sendMessage(message);
+        if (resp.isPresent()) {
+            String out = resp.get();
+            // If AI responded with a router error or Not Found, fallback to local rules
+            String lower = out.toLowerCase();
+            if (lower.contains("http 404") || lower.contains("not found") || lower.contains("http 410") || out.startsWith("Assistant (error):")) {
+                log.warn("AI returned error response, using local fallback: {}", out);
+                return localRuleAssistant(message);
+            }
+            log.debug("askAssistant: ai response='{}'", out);
+            return out;
+        } else {
+            String fallback = localRuleAssistant(message);
+            log.debug("askAssistant: ai empty response, reply='{}'", fallback);
+            return fallback;
+        }
+    }
+
+    private String localRuleAssistant(String message) {
+        String m = message == null ? "" : message.trim();
+        String lower = m.toLowerCase();
+
+        if (lower.contains("mix") && (lower.contains("first") || lower.contains("second") || lower.contains("suggestion"))) {
+            return "Assistant (local): Yes — you can combine suggestions. Suggested approach:\n1) Create a merged category set containing categories from both suggestions.\n2) Assign items appearing in either suggestion to the best-matching merged category.\n3) Rename or deduplicate similar category names (e.g., 'Sandwiches' vs 'Sandwich').\n4) Review and adjust item assignments manually before applying.";
+        }
+
+        if (lower.contains("i am") || lower.contains("i'm") || lower.contains("halal") || lower.contains("new york") || lower.contains("halal cafe")) {
+            return "Assistant (local): Based on that context, consider adding contextual categories (e.g., 'Halal Specials', 'Local Favorites') and tags (e.g., 'Halal', 'Spicy'). You can also prioritize items by region or dietary need.";
+        }
+
+        // If the message looks like a short question, provide guidance
+        if (m.endsWith("?") || lower.startsWith("how") || lower.startsWith("what") || lower.startsWith("can i")) {
+            return "Assistant (local): I can help refine category suggestions — say whether you want to (a) merge suggestions, (b) create new categories, or (c) suggest tags, and paste any suggestion groups for a concrete plan.";
+        }
+
+        // Generic fallback guidance
+        return "Assistant (local): I can help refine category suggestions. Tell me whether you want to merge existing suggestions, create new categories, or generate tags, and I will propose step-by-step actions.";
     }
     }
