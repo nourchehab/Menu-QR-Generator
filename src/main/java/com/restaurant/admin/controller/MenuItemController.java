@@ -299,7 +299,7 @@ public class MenuItemController {
      * Update menu item (name/price/description) and optionally replace image
      * manageitems.html expects JSON {success:true,...}
      */
-    @PutMapping("/api/items/{id}")
+    @PostMapping("/api/items/{id}")
     @ResponseBody
     public ResponseEntity<?> updateMenuItem(
             @PathVariable Long id,
@@ -307,6 +307,7 @@ public class MenuItemController {
             @RequestParam("itemPrice") BigDecimal itemPrice,
             @RequestParam("itemDescription") String itemDescription,
             @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile,
+            @RequestParam(value = "category", required = false) String category,
             Principal principal
     ) {
         if (principal == null) {
@@ -319,13 +320,15 @@ public class MenuItemController {
             MenuItem existing = menuItemService.getMenuItemById(id);
             assertItemBelongsToRestaurant(existing, restaurant);
 
-            MenuItem updated = menuItemService.updateMenuItem(id, itemName, itemPrice, itemDescription, photoFile);
+            MenuItem updated = menuItemService.updateMenuItem(id, itemName, itemPrice, itemDescription, photoFile, category);
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Item updated successfully",
-                    "photoUrl", imageStorageService.toPublicUrl(updated.getPhotoPath())
-            ));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Item updated successfully");
+            response.put("photoUrl", imageStorageService.toPublicUrl(updated.getPhotoPath()));
+
+            return ResponseEntity.ok(response);
+
         } catch (SecurityException se) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", se.getMessage()));
         } catch (IllegalArgumentException iae) {

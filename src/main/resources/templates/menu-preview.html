@@ -181,6 +181,18 @@
     <span class="restaurant-type" id="restaurantType"></span>
 </header>
 
+<div id="categoryFilters" style="display:none; max-width:680px; margin:18px auto 0; padding:0 20px;">
+    <div style="background:var(--card-bg); border:1px solid var(--divider); border-radius:14px; padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+            <div style="font-weight:600; color:var(--ink);">Filter by category</div>
+            <button id="clearFiltersBtn" type="button" style="border:none; background:transparent; color:var(--accent); font-weight:600; cursor:pointer;">
+                Clear filters
+            </button>
+        </div>
+        <div id="filterButtons" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+    </div>
+</div>
+
 <main class="menu-container" id="menuContainer">
     <div id="loadingSkeletons">
         <div class="skeleton-row"><div class="sk sk-photo"></div><div class="sk-body"><div class="sk sk-line w80"></div><div class="sk sk-line w35"></div><div class="sk sk-line w65"></div><div class="sk sk-line w55"></div></div></div>
@@ -194,6 +206,9 @@
 
 <script>
     const LBP_RATE = 89500;
+
+    let allMenuItems = [];
+    let selectedCategories = new Set();
 
     const typeEmojis  = { cafe:'☕', buffet:'🍱', fastfood:'🍔', finedining:'🍷', default:'🍽' };
     const typeLabels  = { cafe:'Café', buffet:'Buffet', fastfood:'Fast Food', finedining:'Fine Dining', default:'Restaurant' };
@@ -258,6 +273,127 @@
         return map;
     }
 
+    function getUniqueCategories(items) {
+        const categories = [];
+        const seen = new Set();
+
+        items.forEach(item => {
+            const category = (getItemCategory(item) || 'Menu').trim();
+            const key = category.toLowerCase();
+
+            if (!seen.has(key)) {
+                seen.add(key);
+                categories.push(category);
+            }
+        });
+
+        return categories;
+    }
+
+    function renderFilterButtons(categories) {
+        const filtersWrap = document.getElementById('categoryFilters');
+        const filterButtons = document.getElementById('filterButtons');
+        const clearBtn = document.getElementById('clearFiltersBtn');
+
+        if (!categories || categories.length === 0) {
+            filtersWrap.style.display = 'none';
+            return;
+        }
+
+        filtersWrap.style.display = 'block';
+
+        let html = '';
+        categories.forEach(category => {
+            const isSelected = selectedCategories.has(category);
+            html += `
+                <button
+                    type="button"
+                    class="category-filter-btn"
+                    data-category="${escHtml(category)}"
+                    style="
+                        border:1px solid ${isSelected ? 'var(--accent)' : 'var(--divider)'};
+                        background:${isSelected ? 'var(--accent)' : 'var(--card-bg)'};
+                        color:${isSelected ? '#fff' : 'var(--ink)'};
+                        border-radius:999px;
+                        padding:8px 14px;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    ${escHtml(category)}
+                </button>
+            `;
+        });
+
+        filterButtons.innerHTML = html;
+
+        document.querySelectorAll('.category-filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const category = button.dataset.category.toLowerCase();
+
+                if (selectedCategories.has(category)) {
+                    selectedCategories.delete(category);
+                } else {
+                    selectedCategories.add(category);
+                }
+
+                renderFilterButtons(categories);
+                renderMenuItems();
+            });
+        });
+
+        clearBtn.onclick = () => {
+            selectedCategories.clear();
+            renderFilterButtons(categories);
+            renderMenuItems();
+        };
+    }
+
+        function renderMenuItems() {
+        const content = document.getElementById('menuContent');
+
+        let visibleItems = allMenuItems;
+
+        if (selectedCategories.size > 0) {
+            visibleItems = allMenuItems.filter(item => {
+                const category = (getItemCategory(item) || 'Menu').trim();
+                return selectedCategories.has(category.toLowerCase());
+            });
+        }
+
+        if (!visibleItems || visibleItems.length === 0) {
+            content.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🔎</div>
+                    <h3>No matching items</h3>
+                    <p>Try changing or clearing your filters.</p>
+                </div>`;
+            return;
+        }
+
+        const grouped = groupByCategory(visibleItems);
+        let html = `<div class="item-count-bar">${visibleItems.length} item${visibleItems.length !== 1 ? 's' : ''} shown</div>`;
+        let delay = 0;
+        let first = true;
+
+        grouped.forEach((catItems, catName) => {
+            if (!first) html += `<div class="category-gap"></div>`;
+            first = false;
+
+            html += `<div class="category-section">
+                <div class="category-header"><div class="category-title">${escHtml(catName)}</div></div>`;
+
+            catItems.forEach((item, idx) => {
+                html += buildItemRow(item, idx === 0, delay * 0.06);
+                delay++;
+            });
+
+            html += `</div>`;
+        });
+
+        content.innerHTML = html;
+    }
+
     async function loadMenuPreview() {
         try {
             const isPublic     = String(document.body.dataset.public).toLowerCase() === 'true';
@@ -307,32 +443,17 @@
                 return;
             }
 
-            const grouped = groupByCategory(items);
-            let html = `<div class="item-count-bar">${items.length} item${items.length !== 1 ? 's' : ''} on the menu</div>`;
-            let delay = 0;
-            let first = true;
+            allMenuItems = items;
 
-            grouped.forEach((catItems, catName) => {
-                if (!first) html += `<div class="category-gap"></div>`;
-                first = false;
-
-                html += `<div class="category-section">
-                    <div class="category-header"><div class="category-title">${escHtml(catName)}</div></div>`;
-
-                catItems.forEach((item, idx) => {
-                    html += buildItemRow(item, idx === 0, delay * 0.06);
-                    delay++;
-                });
-
-                html += `</div>`;
-            });
-
-            content.innerHTML = html;
+            const categories = getUniqueCategories(items);
+            renderFilterButtons(categories);
+            renderMenuItems();
 
         } catch (err) {
             document.getElementById('loadingSkeletons').style.display = 'none';
             const content = document.getElementById('menuContent');
             content.style.display = 'block';
+            document.getElementById('categoryFilters').style.display = 'none';
             content.innerHTML = `
                 <div class="error-state">
                     <h3>Couldn't load menu</h3>

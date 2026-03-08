@@ -82,13 +82,20 @@ public class MenuItemService {
      */
     @Transactional
     public MenuItem updateMenuItem(Long id, String itemName, BigDecimal itemPrice,
-                                  String itemDescription, MultipartFile photoFile) throws IOException {
+                                  String itemDescription, MultipartFile photoFile, String category) throws IOException {
 
         MenuItem menuItem = getMenuItemById(id);
 
         menuItem.setItemName(itemName);
         menuItem.setItemPrice(itemPrice);
         menuItem.setItemDescription(itemDescription);
+        if (category != null && !category.isBlank()) {
+            String clean = category.trim().toLowerCase();
+            clean = clean.substring(0,1).toUpperCase() + clean.substring(1);
+            menuItem.setCategory(clean);
+        } else {
+            menuItem.setCategory(null);
+        }
 
         // Update photo if new one provided
         if (photoFile != null && !photoFile.isEmpty()) {

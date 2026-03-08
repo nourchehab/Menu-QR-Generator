@@ -501,6 +501,17 @@
                     maxlength="500"
                 ></textarea>
             </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input 
+                    type="text" 
+                    id="category" 
+                    name="category" 
+                    class="form-input" 
+                    placeholder="e.g., Appetizers, Main Courses, Desserts, Drinks"
+                    maxlength="100"
+                />
+            </div>
 
             <div class="form-group">
                 <label>
@@ -540,6 +551,7 @@
     const itemNameInput = document.getElementById('itemName');
     const itemPriceInput = document.getElementById('itemPrice');
     const itemDescriptionInput = document.getElementById('itemDescription');
+    const categoryInput = document.getElementById('category');
     const uploadArea = document.getElementById('uploadArea');
     const photoInput = document.getElementById('itemPhoto');
     const previewArea = document.getElementById('previewArea');
@@ -632,7 +644,7 @@
         formData.append('itemName', itemNameInput.value.trim());
         formData.append('itemPrice', itemPriceInput.value);
         formData.append('itemDescription', itemDescriptionInput.value.trim());
-        
+        formData.append('category', categoryInput.value.trim());
         // Add photo if selected
         if (photoInput.files.length > 0) {
             formData.append('itemPhoto', photoInput.files[0]);
