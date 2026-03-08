@@ -54,10 +54,19 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 2.5rem;
-            animation: fadeSlideIn 0.6s ease-out;
-        }
+            /* Chat panel layout: fixed, larger, scrollable */
+            #chatPanel { display:flex; flex-direction:column; height:60vh; max-height:70vh; min-height:360px; }
+            .chat-messages { flex:1; overflow:auto; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; align-items:flex-start; }
 
-        .header-left {
+            /* User query box (left-aligned boxed bubble) */
+            .chat-message.user { align-self:flex-start; max-width:86%; background:#111827; color:#f9fafb; padding:0.8rem 1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.6); font-weight:600; }
+
+            /* Assistant response: centered block (not aligned to left or right) */
+            .chat-message.assistant { align-self:center; max-width:86%; margin:0 auto; background:transparent; border:none; color:#0f1724; padding:0; font-weight:400; line-height:1.45; }
+            .chat-message.assistant p { margin:0 0 .6rem 0; text-align:left; }
+
+            /* Spacer inserted between a user message and the assistant reply (two-line gap) */
+            .chat-spacer { height:2.2rem; }
             display: flex;
             align-items: center;
             gap: 1.5rem;
@@ -729,10 +738,35 @@
         function appendChatMessage(text, who) {
             const container = document.getElementById('chatMessages');
             if (!container) return;
-            const el = document.createElement('div');
-            el.className = 'chat-message ' + (who === 'user' ? 'user' : 'assistant');
-            el.textContent = text;
-            container.appendChild(el);
+
+            if (who === 'user') {
+                const userBox = document.createElement('div');
+                userBox.className = 'chat-message user';
+                // put user query in a bold-ish box
+                userBox.innerText = text;
+                container.appendChild(userBox);
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
+            // assistant reply: if the last element was a user message, insert a spacer of two lines
+            const last = container.lastElementChild;
+            if (last && last.classList && last.classList.contains('user')) {
+                const spacer = document.createElement('div');
+                spacer.className = 'chat-spacer';
+                container.appendChild(spacer);
+            }
+
+            const bot = document.createElement('div');
+            bot.className = 'chat-message assistant';
+            // allow multi-paragraph assistant replies
+            const paragraphs = (text || '').split('\n').filter(Boolean);
+            paragraphs.forEach(p => {
+                const pp = document.createElement('p');
+                pp.innerText = p;
+                bot.appendChild(pp);
+            });
+            container.appendChild(bot);
             container.scrollTop = container.scrollHeight;
         }
 

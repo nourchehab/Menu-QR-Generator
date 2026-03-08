@@ -156,19 +156,19 @@ public class ClassificationService {
         String lower = m.toLowerCase();
 
         if (lower.contains("mix") && (lower.contains("first") || lower.contains("second") || lower.contains("suggestion"))) {
-            return "Assistant (local): Yes — you can combine suggestions. Suggested approach:\n1) Create a merged category set containing categories from both suggestions.\n2) Assign items appearing in either suggestion to the best-matching merged category.\n3) Rename or deduplicate similar category names (e.g., 'Sandwiches' vs 'Sandwich').\n4) Review and adjust item assignments manually before applying.";
+            return "Yes — you can combine suggestions. Suggested approach:\n1) Create a merged set of categories from both suggestions.\n2) Assign items appearing in either suggestion to the best-matching merged category.\n3) Rename or deduplicate similar category names (e.g., 'Sandwiches' vs 'Sandwich').\n4) Review and tweak assignments manually before applying.";
         }
 
         if (lower.contains("i am") || lower.contains("i'm") || lower.contains("halal") || lower.contains("new york") || lower.contains("halal cafe")) {
-            return "Assistant (local): Based on that context, consider adding contextual categories (e.g., 'Halal Specials', 'Local Favorites') and tags (e.g., 'Halal', 'Spicy'). You can also prioritize items by region or dietary need.";
+            return "Based on that context, consider adding contextual categories like 'Halal Specials' or 'Local Favorites' and tags such as 'Halal' or 'Spicy'. You can also prioritize items by region or dietary need.";
         }
 
         // If the message looks like a short question, provide guidance
         if (m.endsWith("?") || lower.startsWith("how") || lower.startsWith("what") || lower.startsWith("can i")) {
-            return "Assistant (local): I can help refine category suggestions — say whether you want to (a) merge suggestions, (b) create new categories, or (c) suggest tags, and paste any suggestion groups for a concrete plan.";
+            return "I can help refine category suggestions — tell me whether you want to (a) merge suggestions, (b) create new categories, or (c) suggest tags, and paste any suggestion groups for a concrete plan.";
         }
 
         // Generic fallback guidance
-        return "Assistant (local): I can help refine category suggestions. Tell me whether you want to merge existing suggestions, create new categories, or generate tags, and I will propose step-by-step actions.";
+        return "I can help refine category suggestions. Say whether you want to merge suggestions, create new categories, or generate tags, and I'll propose step-by-step actions.";
     }
     }
