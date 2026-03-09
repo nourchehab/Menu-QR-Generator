@@ -181,7 +181,7 @@
     <span class="restaurant-type" id="restaurantType"></span>
 </header>
 
-<div id="categoryFilters" style="display:none; max-width:680px; margin:18px auto 0; padding:0 20px;">
+<div id="categoryFilters" style="display:none; max-width:680px; margin:18px auto 20px; padding:0 20px;">
     <div style="background:var(--card-bg); border:1px solid var(--divider); border-radius:14px; padding:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
             <div style="font-weight:600; color:var(--ink);">Filter by category</div>
@@ -304,20 +304,21 @@
 
         let html = '';
         categories.forEach(category => {
-            const isSelected = selectedCategories.has(category);
+            const isSelected = selectedCategories.has(category.toLowerCase());
             html += `
                 <button
                     type="button"
                     class="category-filter-btn"
                     data-category="${escHtml(category)}"
                     style="
-                        border:1px solid ${isSelected ? 'var(--accent)' : 'var(--divider)'};
-                        background:${isSelected ? 'var(--accent)' : 'var(--card-bg)'};
-                        color:${isSelected ? '#fff' : 'var(--ink)'};
+                        border:1px solid ${isSelected ? '#cfcfcf' : '#dddddd'};
+                        background:${isSelected ? '#e6e6e6' : '#fafafa'};
+                        color:#222;
                         border-radius:999px;
                         padding:8px 14px;
                         font-weight:600;
                         cursor:pointer;
+                        transition:all .2s ease;
                     "
                 >
                     ${escHtml(category)}
