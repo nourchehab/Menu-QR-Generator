@@ -420,7 +420,7 @@
             document.getElementById('restaurantType').textContent = typeLabels[type] || typeLabels.default;
 
             document.getElementById('logoWrap').innerHTML = restaurant.logoPath
-                ? `<img src="/uploads/logos/${restaurant.logoPath}" alt="${escHtml(restaurant.restaurantName)} logo" />`
+                ? `<img src="${escHtml(restaurant.logoPath)}" alt="${escHtml(restaurant.restaurantName)} logo" />`
                 : `<div class="logo-placeholder">${typeEmojis[type] || typeEmojis.default}</div>`;
 
             const itemRes = await fetch(

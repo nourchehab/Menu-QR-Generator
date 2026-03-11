@@ -15,22 +15,22 @@ import java.util.List;
 
 @Service
 public class MenuItemService {
-    
+
     @Autowired
     private MenuItemRepository menuItemRepository;
-    
+
     @Autowired
     private RestaurantRepository restaurantRepository;
 
     @Autowired
     private MenuItemImageStorageService imageStorageService;
-    
+
     /**
      * Add a new menu item
      */
     @Transactional
     public MenuItem addMenuItem(Long restaurantId, String itemName, BigDecimal itemPrice,
-                               String itemDescription, MultipartFile photoFile) throws IOException {
+            String itemDescription, MultipartFile photoFile) throws IOException {
         return addMenuItem(restaurantId, itemName, itemPrice, itemDescription, photoFile, null);
     }
 
@@ -39,8 +39,8 @@ public class MenuItemService {
      */
     @Transactional
     public MenuItem addMenuItem(Long restaurantId, String itemName, BigDecimal itemPrice,
-                               String itemDescription, MultipartFile photoFile,
-                               String category) throws IOException {
+            String itemDescription, MultipartFile photoFile,
+            String category) throws IOException {
 
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
@@ -53,22 +53,21 @@ public class MenuItemService {
 
         // Handle photo upload if provided
         if (photoFile != null && !photoFile.isEmpty()) {
-            com.restaurant.admin.image.ProcessedImageResult result =
-                    imageStorageService.storeWithVariants(photoFile, category);
-            menuItem.setPhotoPath(result.displayFilename());
-            menuItem.setThumbPath(result.thumbFilename());
+            String photoUrl = imageStorageService.storePhoto(photoFile);
+            menuItem.setPhotoPath(photoUrl);
+            menuItem.setThumbPath(photoUrl);
         }
 
         return menuItemRepository.save(menuItem);
     }
-    
+
     /**
      * Get all menu items for a restaurant
      */
     public List<MenuItem> getMenuItemsByRestaurant(Long restaurantId) {
         return menuItemRepository.findByRestaurantId(restaurantId);
     }
-    
+
     /**
      * Get menu item by ID
      */
@@ -76,7 +75,7 @@ public class MenuItemService {
         return menuItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
     }
-    
+
     /**
      * Update menu item
      */
@@ -100,11 +99,12 @@ public class MenuItemService {
         // Update photo if new one provided
         if (photoFile != null && !photoFile.isEmpty()) {
             imageStorageService.deleteIfExists(menuItem.getPhotoPath());
-            imageStorageService.deleteIfExists(menuItem.getThumbPath());
-            com.restaurant.admin.image.ProcessedImageResult result =
-                    imageStorageService.storeWithVariants(photoFile, menuItem.getCategory());
-            menuItem.setPhotoPath(result.displayFilename());
-            menuItem.setThumbPath(result.thumbFilename());
+            if (menuItem.getThumbPath() != null && !menuItem.getThumbPath().equals(menuItem.getPhotoPath())) {
+                imageStorageService.deleteIfExists(menuItem.getThumbPath());
+            }
+            String photoUrl = imageStorageService.storePhoto(photoFile);
+            menuItem.setPhotoPath(photoUrl);
+            menuItem.setThumbPath(photoUrl);
         }
 
         return menuItemRepository.save(menuItem);
@@ -117,11 +117,12 @@ public class MenuItemService {
     public MenuItem uploadMenuItemImage(Long id, MultipartFile photoFile) throws IOException {
         MenuItem menuItem = getMenuItemById(id);
         imageStorageService.deleteIfExists(menuItem.getPhotoPath());
-        imageStorageService.deleteIfExists(menuItem.getThumbPath());
-        com.restaurant.admin.image.ProcessedImageResult result =
-                imageStorageService.storeWithVariants(photoFile, menuItem.getCategory());
-        menuItem.setPhotoPath(result.displayFilename());
-        menuItem.setThumbPath(result.thumbFilename());
+        if (menuItem.getThumbPath() != null && !menuItem.getThumbPath().equals(menuItem.getPhotoPath())) {
+            imageStorageService.deleteIfExists(menuItem.getThumbPath());
+        }
+        String photoUrl = imageStorageService.storePhoto(photoFile);
+        menuItem.setPhotoPath(photoUrl);
+        menuItem.setThumbPath(photoUrl);
         return menuItemRepository.save(menuItem);
     }
 
@@ -137,7 +138,7 @@ public class MenuItemService {
         menuItem.setThumbPath(null);
         return menuItemRepository.save(menuItem);
     }
-    
+
     /**
      * Delete menu item
      */
@@ -147,7 +148,7 @@ public class MenuItemService {
         imageStorageService.deleteIfExists(menuItem.getPhotoPath());
         menuItemRepository.delete(menuItem);
     }
-    
+
     /**
      * Get count of menu items for a restaurant
      */
