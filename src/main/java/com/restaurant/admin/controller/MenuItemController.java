@@ -41,7 +41,8 @@ public class MenuItemController {
 
     // ✅ Works for BOTH password login and Google login
     private String resolveEmail(Principal principal) {
-        if (principal == null) return null;
+        if (principal == null)
+            return null;
 
         if (principal instanceof Authentication auth) {
             Object p = auth.getPrincipal();
@@ -65,9 +66,11 @@ public class MenuItemController {
     }
 
     private String normalizeEmail(String email) {
-        if (email == null) return null;
+        if (email == null)
+            return null;
         String e = email.trim();
-        if (e.isEmpty()) return null;
+        if (e.isEmpty())
+            return null;
         return e.toLowerCase();
     }
 
@@ -114,7 +117,8 @@ public class MenuItemController {
         }
 
         String email = resolveEmail(principal);
-        if (email == null) return "redirect:/login";
+        if (email == null)
+            return "redirect:/login";
 
         SimpleUser currentUser = userService.findByEmail(email);
         if (currentUser == null) {
@@ -133,6 +137,34 @@ public class MenuItemController {
 
         model.addAttribute("restaurant", restaurant);
         return "add-menu-item";
+    }
+
+    /**
+     * Test endpoint for debugging image upload
+     */
+    @PostMapping("/api/items/test-upload")
+    @ResponseBody
+    public ResponseEntity<?> testUpload(
+            @RequestParam("itemName") String itemName,
+            @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile) {
+        try {
+            System.out.println("Received test upload: " + itemName);
+            if (photoFile == null) {
+                System.out.println("photoFile is NULL!");
+                return ResponseEntity.ok(Map.of("error", "photoFile is null"));
+            }
+            if (photoFile.isEmpty()) {
+                System.out.println("photoFile is EMPTY!");
+                return ResponseEntity.ok(Map.of("error", "photoFile is empty"));
+            }
+            System.out.println("photoFile size: " + photoFile.getSize());
+            String url = imageStorageService.storePhoto(photoFile);
+            System.out.println("Stored photo at URL: " + url);
+            return ResponseEntity.ok(Map.of("success", true, "url", url));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -172,8 +204,7 @@ public class MenuItemController {
                     itemPrice,
                     itemDescription,
                     photoFile,
-                    category
-            );
+                    category);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -285,8 +316,7 @@ public class MenuItemController {
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Item deleted successfully"
-            ));
+                    "message", "Item deleted successfully"));
         } catch (SecurityException se) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", se.getMessage()));
         } catch (Exception e) {
@@ -308,8 +338,7 @@ public class MenuItemController {
             @RequestParam("itemDescription") String itemDescription,
             @RequestParam(value = "itemPhoto", required = false) MultipartFile photoFile,
             @RequestParam(value = "category", required = false) String category,
-            Principal principal
-    ) {
+            Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not authenticated"));
@@ -328,7 +357,6 @@ public class MenuItemController {
             response.put("photoUrl", imageStorageService.toPublicUrl(updated.getPhotoPath()));
 
             return ResponseEntity.ok(response);
-
         } catch (SecurityException se) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", se.getMessage()));
         } catch (IllegalArgumentException iae) {
@@ -349,8 +377,7 @@ public class MenuItemController {
     public ResponseEntity<?> uploadItemImage(
             @PathVariable Long id,
             @RequestParam("itemPhoto") MultipartFile photoFile,
-            Principal principal
-    ) {
+            Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not authenticated"));
@@ -366,8 +393,7 @@ public class MenuItemController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Image uploaded successfully",
-                    "photoUrl", imageStorageService.toPublicUrl(updated.getPhotoPath())
-            ));
+                    "photoUrl", imageStorageService.toPublicUrl(updated.getPhotoPath())));
         } catch (SecurityException se) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", se.getMessage()));
         } catch (IllegalArgumentException iae) {
@@ -399,8 +425,7 @@ public class MenuItemController {
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Image deleted successfully"
-            ));
+                    "message", "Image deleted successfully"));
         } catch (SecurityException se) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", se.getMessage()));
         } catch (Exception e) {
