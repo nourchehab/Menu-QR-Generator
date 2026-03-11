@@ -35,33 +35,60 @@ public class MenuItemPhotoMigrationRunner implements CommandLineRunner {
         if (!migrationEnabled)
             return;
 
-        log.info("Starting menu item photo migration to S3...");
+        log.info("Starting menu item image migration to S3 (photoPath + thumbPath)...");
         List<MenuItem> items = menuItemRepository.findAll();
 
         int migrated = 0, skipped = 0, failed = 0;
         for (MenuItem item : items) {
-            String current = item.getPhotoPath();
-            if (current == null || current.isBlank()) {
-                skipped++;
-                continue;
-            }
-            if (current.startsWith("http://") || current.startsWith("https://")) {
+            String currentPhoto = item.getPhotoPath();
+            String currentThumb = item.getThumbPath();
+
+            boolean photoNeedsMigration = needsMigration(currentPhoto);
+            boolean thumbNeedsMigration = needsMigration(currentThumb);
+
+            if (!photoNeedsMigration && !thumbNeedsMigration) {
                 skipped++;
                 continue;
             }
 
             try {
-                String s3Url = menuItemImageStorageService.migratePhotoPathToS3(current);
-                item.setPhotoPath(s3Url);
+                // If both fields point to the same legacy file, migrate once and reuse URL.
+                if (photoNeedsMigration && thumbNeedsMigration && currentPhoto.equals(currentThumb)) {
+                    String s3Url = menuItemImageStorageService.migratePhotoPathToS3(currentPhoto);
+                    item.setPhotoPath(s3Url);
+                    item.setThumbPath(s3Url);
+                    migrated++;
+                } else {
+                    if (photoNeedsMigration) {
+                        String photoS3Url = menuItemImageStorageService.migratePhotoPathToS3(currentPhoto);
+                        item.setPhotoPath(photoS3Url);
+                        migrated++;
+                    }
+                    if (thumbNeedsMigration) {
+                        String thumbS3Url = menuItemImageStorageService.migratePhotoPathToS3(currentThumb);
+                        item.setThumbPath(thumbS3Url);
+                        migrated++;
+                    }
+                }
+
                 menuItemRepository.save(item);
-                migrated++;
-                log.info("Migrated id={} -> {}", item.getId(), s3Url);
+                log.info("Migrated menu item id={} photoPath={} thumbPath={}",
+                        item.getId(), item.getPhotoPath(), item.getThumbPath());
             } catch (Exception ex) {
                 failed++;
-                log.error("Failed migrating id={} path={}", item.getId(), current, ex);
+                log.error("Failed migrating menu item id={} photoPath={} thumbPath={}",
+                        item.getId(), currentPhoto, currentThumb, ex);
             }
         }
 
-        log.info("Migration finished. migrated={}, skipped={}, failed={}", migrated, skipped, failed);
+        log.info("Menu image migration finished. migratedFields={}, skippedItems={}, failedItems={}",
+                migrated, skipped, failed);
+    }
+
+    private boolean needsMigration(String path) {
+        return path != null
+                && !path.isBlank()
+                && !path.startsWith("http://")
+                && !path.startsWith("https://");
     }
 }
