@@ -38,3 +38,6 @@ src/main/resources/application-local.properties
 
 ### Uploaded User Content ###
 uploads/
+
+# Environment variables
+.env

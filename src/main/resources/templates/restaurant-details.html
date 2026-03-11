@@ -327,14 +327,14 @@ select:focus {
 <h1 class="title">Enter Restaurant Details</h1>
 
 <!-- ✅ UPDATED: Added enctype and proper name attribute -->
-<form id="restaurantForm" class="details-form" method="post" action="/restaurant/setup" enctype="multipart/form-data">
+<form id="restaurantForm" class="details-form" method="post" action="/signup/restaurant/setup" enctype="multipart/form-data">
 
     <label>Restaurant Name</label>
     <input type="text" id="restaurantName" name="restaurantName" placeholder="Enter restaurant name" required>
 
     <label>Upload Logo</label>
     <!-- ✅ UPDATED: Added name="logoUpload" -->
-    <input type="file" id="logoUpload" name="logoUpload" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" required>
+    <input type="file" id="logoUpload" name="logoUpload" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">
     <div class="error-message" id="fileError">Please upload an image file (PNG, JPEG, GIF, or WebP)</div>
     
     <!-- Preview Box -->

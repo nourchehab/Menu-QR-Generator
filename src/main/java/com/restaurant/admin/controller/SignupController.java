@@ -106,6 +106,7 @@ public class SignupController {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
         session.removeAttribute("signupEmail");
         session.removeAttribute("signupPassword");
