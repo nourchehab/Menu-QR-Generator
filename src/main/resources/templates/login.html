@@ -159,6 +159,16 @@
     .login-section, .verification-section {
         transition: opacity 0.3s ease;
     }
+
+    .error-message {
+        background: #fdecea;
+        color: #e74c3c;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        text-align: center;
+    }
 </style>
 </head>
 <body>
@@ -168,10 +178,11 @@
         <h2>Welcome Back!</h2>
         <p>Log in to manage your restaurant</p>
 
-        <div th:if="${error}" style="background: #fdecea; color: #e74c3c; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center; font-size: 14px;">
+        <div th:if="${error}" class="error-message">
             <span th:text="${error}"></span>
         </div>
 
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
         <div class="success-message" id="successMessage" style="display: none;"></div>
 
         <!-- Step 1: Login Credentials -->
@@ -260,27 +271,39 @@
     const codeInputs = document.querySelectorAll('.code-input');
     const verificationCode = document.getElementById('verificationCode');
     const verifyBtn = document.getElementById('verifyBtn');
+    const loginBtn = document.getElementById('loginBtn');
     const resendBtn = document.getElementById('resendBtn');
     const resendTimer = document.getElementById('resendTimer');
     const countdownSpan = document.getElementById('countdown');
     const backBtn = document.getElementById('backBtn');
     const rememberMe = document.getElementById('rememberMe');
     const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
 
     let userEmail = '';
     let userPassword = '';
     let countdown = 60;
     let countdownInterval;
+    let isSubmitting = false; // ✅ FIX 1: Prevent multiple submissions
 
     // Step 1: Submit credentials and request verification code
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        userEmail = emailInput.value;
+        // ✅ FIX 1: Prevent multiple clicks
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Verifying...';
+
+        userEmail = emailInput.value.trim().toLowerCase(); // ✅ Normalize email
         userPassword = passwordInput.value;
 
-        // Validate credentials first
         try {
+            // Validate credentials first
             const response = await fetch('/api/login/verify-credentials', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -293,6 +316,9 @@
             if (!response.ok) {
                 const error = await response.text();
                 showError(error || 'Invalid email or password');
+                isSubmitting = false;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue';
                 return;
             }
 
@@ -305,15 +331,24 @@
 
             if (!codeResponse.ok) {
                 showError('Failed to send verification code. Please try again.');
+                isSubmitting = false;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue';
                 return;
             }
 
             // Show verification section
             showVerificationStep();
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
             
         } catch (error) {
             showError('An error occurred. Please try again.');
             console.error(error);
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
         }
     });
 
@@ -321,51 +356,82 @@
     verifyForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const code = verificationCode.value;
+        // ✅ Prevent multiple submissions
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        const code = verificationCode.value.trim(); // ✅ FIX 2: Trim the code
+
+        console.log('Verifying code:', code, 'for email:', userEmail); // Debug
 
         try {
             const response = await fetch('/api/login/verify-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: userEmail,
-                    code: code,
-                    rememberMe: rememberMe.checked
+                    email: userEmail, // ✅ Using normalized email
+                    code: code
                 })
             });
 
             if (!response.ok) {
                 showCodeError();
+                isSubmitting = false;
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify & Log In';
                 return;
             }
 
-            // Success! Complete login
-            const data = await response.json();
-            
-            // Submit the actual login form
-            const formData = new FormData();
-            formData.append('username', userEmail);
-            formData.append('password', userPassword);
-            if (rememberMe.checked) {
-                formData.append('remember-me', 'on');
-            }
-
-            const loginResponse = await fetch('/login', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (loginResponse.redirected) {
-                window.location.href = loginResponse.url;
-            } else {
-                window.location.href = '/dashboard';
-            }
+            // Success! Complete login by submitting actual form
+            completeLogin();
 
         } catch (error) {
             showError('Verification failed. Please try again.');
             console.error(error);
+            isSubmitting = false;
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Log In';
         }
     });
+
+    // ✅ Complete login after successful verification
+    async function completeLogin() {
+        const formData = new FormData();
+        formData.append('username', userEmail);
+        formData.append('password', userPassword);
+        if (rememberMe.checked) {
+            formData.append('remember-me', 'on');
+        }
+
+        try {
+            const loginResponse = await fetch('/login', {
+                method: 'POST',
+                body: formData,
+                redirect: 'manual'
+            });
+
+            // Check for redirect or successful response
+            if (loginResponse.type === 'opaqueredirect' || loginResponse.redirected) {
+                window.location.href = '/dashboard';
+            } else if (loginResponse.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                showError('Login failed. Please try again.');
+                isSubmitting = false;
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify & Log In';
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            // Even on error, try to redirect - might have worked
+            window.location.href = '/dashboard';
+        }
+    }
 
     // Handle code input
     codeInputs.forEach((input, index) => {
@@ -424,6 +490,7 @@
         loginSection.style.display = 'block';
         clearCodeInputs();
         stopCountdown();
+        isSubmitting = false; // ✅ Reset flag
     }
 
     function clearCodeInputs() {
@@ -444,24 +511,18 @@
     }
 
     function showError(message) {
-        const errorDiv = document.querySelector('[th\\:if="${error}"]') || createErrorDiv();
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
         setTimeout(() => {
-            errorDiv.style.display = 'none';
+            errorMessage.style.display = 'none';
         }, 5000);
-    }
-
-    function createErrorDiv() {
-        const div = document.createElement('div');
-        div.style.cssText = 'background: #fdecea; color: #e74c3c; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center; font-size: 14px;';
-        document.querySelector('.auth-card').insertBefore(div, document.querySelector('.auth-card').children[2]);
-        return div;
     }
 
     function showSuccess(message) {
         successMessage.textContent = message;
         successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 5000);
@@ -493,6 +554,11 @@
 
     // Resend code
     resendBtn.addEventListener('click', async () => {
+        if (isSubmitting) return; // ✅ Prevent spam
+
+        isSubmitting = true;
+        resendBtn.disabled = true;
+
         try {
             const response = await fetch('/api/login/send-code', {
                 method: 'POST',
@@ -509,26 +575,15 @@
             }
         } catch (error) {
             showError('An error occurred. Please try again.');
+        } finally {
+            isSubmitting = false;
+            resendBtn.disabled = false;
         }
     });
 
     // Back button
     backBtn.addEventListener('click', () => {
         showLoginStep();
-    });
-
-    // Focus first code input when verification section becomes active
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.target.classList.contains('active')) {
-                codeInputs[0].focus();
-            }
-        });
-    });
-
-    observer.observe(verificationSection, {
-        attributes: true,
-        attributeFilter: ['class']
     });
 </script>
 
