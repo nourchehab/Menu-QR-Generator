@@ -90,6 +90,7 @@ public class RestaurantController {
             @RequestParam("restaurantName") String restaurantName,
             @RequestParam("restaurantType") String restaurantType,
             @RequestParam(value = "logo", required = false) MultipartFile logo,
+            @RequestParam(value = "logoUpload", required = false) MultipartFile logoUpload,
             Principal principal) {
 
         if (principal == null) {
@@ -102,8 +103,10 @@ public class RestaurantController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
             }
 
-            Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(), restaurantName, restaurantType, logo);
+                MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
+
+                Restaurant restaurant = restaurantService.setupRestaurant(
+                    user.getId(), restaurantName, restaurantType, effectiveLogo);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -141,7 +144,7 @@ public class RestaurantController {
             dto.put("id", restaurant.getId());
             dto.put("restaurantName", restaurant.getRestaurantName());
             dto.put("restaurantType", restaurant.getRestaurantType());
-            dto.put("logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "");
+            dto.put("logoPath", restaurantService.toPublicLogoUrl(restaurant.getLogoPath()));
             dto.put("menuBackgroundColor", safeBg);
             dto.put("menuTextColor", text);
 
@@ -208,7 +211,7 @@ public class RestaurantController {
             dto.put("id", restaurant.getId());
             dto.put("restaurantName", restaurant.getRestaurantName());
             dto.put("restaurantType", restaurant.getRestaurantType());
-            dto.put("logoPath", restaurant.getLogoPath() != null ? restaurant.getLogoPath() : "");
+            dto.put("logoPath", restaurantService.toPublicLogoUrl(restaurant.getLogoPath()));
             dto.put("menuBackgroundColor", safeBg);
             dto.put("menuTextColor", text);
 

@@ -34,8 +34,14 @@ public class S3PhotoStorageService {
     @Value("${aws.s3.photos-folder:photos}")
     private String photosFolder;
 
+    @Value("${aws.s3.logos-folder:photos/logos}")
+    private String logosFolder;
+
     @Value("${file.upload.photo-dir:uploads/photos}")
     private String localPhotoDir;
+
+    @Value("${file.upload.logo-dir:uploads/logos}")
+    private String localLogoDir;
 
     public S3PhotoStorageService(S3Client s3Client) {
         this.s3Client = s3Client;
@@ -43,7 +49,7 @@ public class S3PhotoStorageService {
 
     public String uploadNewPhoto(MultipartFile file) throws IOException {
         String extension = getExtension(file.getOriginalFilename(), file.getContentType());
-        String key = buildKey(extension);
+        String key = buildKey(photosFolder, extension);
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -63,13 +69,41 @@ public class S3PhotoStorageService {
         if (isRemoteUrl(storedPath))
             return storedPath;
 
-        Path source = resolveExistingFile(storedPath);
+        Path source = resolveExistingFile(storedPath, localPhotoDir);
         if (source == null) {
             throw new IOException("Could not resolve existing photo path: " + storedPath);
         }
 
         String extension = getExtension(source.getFileName().toString(), Files.probeContentType(source));
-        String key = buildKey(extension);
+        String key = buildKey(photosFolder, extension);
+        String contentType = defaultContentType(Files.probeContentType(source));
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType(contentType)
+                .build();
+
+        s3Client.putObject(request, RequestBody.fromFile(source));
+
+        return s3Client.utilities()
+                .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                .toExternalForm();
+    }
+
+    public String migrateExistingLogoPath(String storedPath) throws IOException {
+        if (!StringUtils.hasText(storedPath))
+            return null;
+        if (isRemoteUrl(storedPath))
+            return storedPath;
+
+        Path source = resolveExistingFile(storedPath, localLogoDir);
+        if (source == null) {
+            throw new IOException("Could not resolve existing logo path: " + storedPath);
+        }
+
+        String extension = getExtension(source.getFileName().toString(), Files.probeContentType(source));
+        String key = buildKey(logosFolder, extension);
         String contentType = defaultContentType(Files.probeContentType(source));
 
         PutObjectRequest request = PutObjectRequest.builder()
@@ -100,22 +134,46 @@ public class S3PhotoStorageService {
         }
     }
 
-    private Path resolveExistingFile(String storedPath) {
+    public String uploadNewLogo(MultipartFile file) throws IOException {
+        String extension = getExtension(file.getOriginalFilename(), file.getContentType());
+        String key = buildKey(logosFolder, extension);
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType(defaultContentType(file.getContentType()))
+                .build();
+
+        s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        return s3Client.utilities()
+                .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                .toExternalForm();
+    }
+
+        private Path resolveExistingFile(String storedPath, String fallbackLocalDir) {
         String cleaned = storedPath.replace("\\", "/").trim();
         Path raw = Paths.get(cleaned);
+        String withoutLeadingSlash = cleaned.startsWith("/") ? cleaned.substring(1) : cleaned;
 
         List<Path> candidates = new ArrayList<>();
         if (raw.isAbsolute())
             candidates.add(raw.normalize());
         candidates.add(Paths.get(cleaned).normalize());
+        candidates.add(Paths.get(withoutLeadingSlash).normalize());
         candidates.add(Paths.get(System.getProperty("user.dir")).resolve(cleaned).normalize());
+        candidates.add(Paths.get(System.getProperty("user.dir")).resolve(withoutLeadingSlash).normalize());
         candidates.add(Paths.get(System.getProperty("user.dir")).resolve("src/main/resources/static").resolve(cleaned)
                 .normalize());
+        candidates.add(Paths.get(System.getProperty("user.dir")).resolve("src/main/resources/static")
+            .resolve(withoutLeadingSlash).normalize());
         candidates.add(Paths.get(System.getProperty("user.dir")).resolve("uploads").resolve(cleaned).normalize());
+        candidates.add(Paths.get(System.getProperty("user.dir")).resolve("uploads").resolve(withoutLeadingSlash)
+            .normalize());
 
         if (raw.getFileName() != null) {
-            candidates.add(Paths.get(localPhotoDir).resolve(raw.getFileName()).normalize());
-            candidates.add(Paths.get(System.getProperty("user.dir")).resolve(localPhotoDir).resolve(raw.getFileName())
+            candidates.add(Paths.get(fallbackLocalDir).resolve(raw.getFileName()).normalize());
+            candidates.add(
+                Paths.get(System.getProperty("user.dir")).resolve(fallbackLocalDir).resolve(raw.getFileName())
                     .normalize());
         }
 
@@ -127,8 +185,8 @@ public class S3PhotoStorageService {
         return null;
     }
 
-    private String buildKey(String extension) {
-        return photosFolder + "/" + UUID.randomUUID() + extension;
+    private String buildKey(String folder, String extension) {
+        return folder + "/" + UUID.randomUUID() + extension;
     }
 
     private boolean isRemoteUrl(String value) {

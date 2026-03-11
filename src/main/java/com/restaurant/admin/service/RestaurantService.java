@@ -5,18 +5,12 @@ import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.RestaurantRepository;
 import com.restaurant.admin.repository.SimpleUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
-import java.util.UUID;
 import com.restaurant.admin.util.ColorContrastUtil;
 
 @Service
@@ -27,9 +21,9 @@ public class RestaurantService {
     
     @Autowired
     private SimpleUserRepository userRepository;
-    
-    @Value("${file.upload.logo-dir:uploads/logos}")
-    private String logoUploadDir;
+
+    @Autowired
+    private S3PhotoStorageService s3PhotoStorageService;
     
     /**
      * Create or update restaurant setup for a user
@@ -58,7 +52,10 @@ public class RestaurantService {
         
         // Handle logo upload if provided
         if (logoFile != null && !logoFile.isEmpty()) {
-            String logoPath = saveLogo(logoFile);
+            if (restaurant.getLogoPath() != null && !restaurant.getLogoPath().isBlank()) {
+                s3PhotoStorageService.deleteIfS3Url(restaurant.getLogoPath());
+            }
+            String logoPath = s3PhotoStorageService.uploadNewLogo(logoFile);
             restaurant.setLogoPath(logoPath);
         }
         
@@ -70,30 +67,6 @@ public class RestaurantService {
         userRepository.save(user);
         
         return restaurant;
-    }
-    
-    /**
-     * Save logo file to disk
-     */
-    private String saveLogo(MultipartFile file) throws IOException {
-        // Create upload directory if it doesn't exist
-        Path uploadPath = Paths.get(logoUploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-        
-        // Generate unique filename
-        String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null && originalFilename.contains(".") 
-                ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
-                : "";
-        String uniqueFilename = UUID.randomUUID().toString() + extension;
-        
-        // Save file
-        Path filePath = uploadPath.resolve(uniqueFilename);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        
-        return uniqueFilename; // Return just the filename, not full path
     }
     
     /**
@@ -139,10 +112,16 @@ public class RestaurantService {
     }
 
     
-    /**
-     * Get logo path for serving
-     */
-    public String getLogoPath(String filename) {
-        return logoUploadDir + "/" + filename;
+    public String toPublicLogoUrl(String storedPath) {
+        if (storedPath == null || storedPath.isBlank()) {
+            return null;
+        }
+        if (storedPath.startsWith("http://") || storedPath.startsWith("https://")) {
+            return storedPath;
+        }
+        if (storedPath.startsWith("/uploads/")) {
+            return storedPath;
+        }
+        return "/uploads/logos/" + storedPath;
     }
 }
