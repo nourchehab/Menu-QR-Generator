@@ -401,36 +401,34 @@
 
     // ✅ Complete login after successful verification
     async function completeLogin() {
-        const formData = new FormData();
-        formData.append('username', userEmail);
-        formData.append('password', userPassword);
+        // Create a hidden form and submit it
+        // This allows Spring Security's CustomLoginSuccessHandler to determine the redirect
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/login';
+        
+        const usernameInput = document.createElement('input');
+        usernameInput.type = 'hidden';
+        usernameInput.name = 'username';
+        usernameInput.value = userEmail;
+        form.appendChild(usernameInput);
+        
+        const passwordInput = document.createElement('input');
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'password';
+        passwordInput.value = userPassword;
+        form.appendChild(passwordInput);
+        
         if (rememberMe.checked) {
-            formData.append('remember-me', 'on');
+            const rememberInput = document.createElement('input');
+            rememberInput.type = 'hidden';
+            rememberInput.name = 'remember-me';
+            rememberInput.value = 'on';
+            form.appendChild(rememberInput);
         }
-
-        try {
-            const loginResponse = await fetch('/login', {
-                method: 'POST',
-                body: formData,
-                redirect: 'manual'
-            });
-
-            // Check for redirect or successful response
-            if (loginResponse.type === 'opaqueredirect' || loginResponse.redirected) {
-                window.location.href = '/dashboard';
-            } else if (loginResponse.ok) {
-                window.location.href = '/dashboard';
-            } else {
-                showError('Login failed. Please try again.');
-                isSubmitting = false;
-                verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Verify & Log In';
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            // Even on error, try to redirect - might have worked
-            window.location.href = '/dashboard';
-        }
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 
     // Handle code input
