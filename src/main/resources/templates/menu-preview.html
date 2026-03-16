@@ -235,16 +235,17 @@
         const desc  = getItemDescription(item);
         const price = getItemPrice(item);
         const photo = getItemPhotoUrl(item);
+        const isPublic = String(document.body.dataset.public).toLowerCase() === 'true';
 
         const photoHtml = photo
             ? `<div class="row-photo-wrap">
                  <img class="row-photo" src="${escHtml(photo)}" alt="${escHtml(name)}" loading="lazy"
                       onerror="this.parentElement.style.display='none'" />
-                 <button class="row-add-btn" title="Add">+</button>
+                 ${isPublic ? `<button class="row-add-btn" title="Add">+</button>` : ''}
                </div>`
             : '';
 
-        const popularBadge = isPopular
+        const popularBadge = (isPublic && isPopular)
             ? `<div class="row-badges"><span class="badge-popular">Popular</span></div>`
             : '';
 
@@ -350,7 +351,7 @@
         };
     }
 
-        function renderMenuItems() {
+    function renderMenuItems() {
         const content = document.getElementById('menuContent');
 
         let visibleItems = allMenuItems;
