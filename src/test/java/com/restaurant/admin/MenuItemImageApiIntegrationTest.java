@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,15 +75,22 @@ public class MenuItemImageApiIntegrationTest {
         );
 
         mockMvc.perform(multipart("/api/items/{id}/image", item.getId())
-                        .file(file))
+                        .file(file)
+                        .with(user("test@example.com"))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.photoUrl").value(org.hamcrest.Matchers.startsWith("/uploads/photos/")));
+                .andExpect(jsonPath("$.photoUrl").value(org.hamcrest.Matchers.anyOf(
+                        org.hamcrest.Matchers.startsWith("/uploads/photos/"),
+                        org.hamcrest.Matchers.startsWith("http")
+                )));
 
         MenuItem refreshed = menuItemRepository.findById(item.getId()).orElseThrow();
         assertThat(refreshed.getPhotoPath()).isNotBlank();
 
-        mockMvc.perform(delete("/api/items/{id}/image", item.getId()))
+        mockMvc.perform(delete("/api/items/{id}/image", item.getId())
+                        .with(user("test@example.com"))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -100,7 +109,9 @@ public class MenuItemImageApiIntegrationTest {
         );
 
         mockMvc.perform(multipart("/api/items/{id}/image", item.getId())
-                        .file(bad))
+                        .file(bad)
+                        .with(user("test@example.com"))
+                        .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists());
     }

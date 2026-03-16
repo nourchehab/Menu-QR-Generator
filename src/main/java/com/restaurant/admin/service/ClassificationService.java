@@ -104,6 +104,17 @@ public class ClassificationService {
         return "Other";
     }
 
+    /**
+     * Additional normalization function that maps AI-suggested labels to the known taxonomy.
+     */
+    private String normalize(String suggested) {
+        if (suggested == null) return "Other";
+        return TAXONOMY.stream()
+            .filter(t -> suggested.toLowerCase().contains(t.toLowerCase()))
+            .findFirst()
+            .orElse("Other");
+    }
+
     public List<Map<String, Object>> suggestSchemas(Long restaurantId) {
         List<MenuItem> items = menuItemRepository.findByRestaurantId(restaurantId);
 
@@ -174,7 +185,9 @@ public class ClassificationService {
         List<com.restaurant.admin.model.MenuItem> items = menuItemRepository.findByRestaurantId(restaurantId);
 
         for (Object gk : groups.keySet()) {
-            String groupName = gk == null ? "Other" : gk.toString();
+            String groupNameRaw = gk == null ? "Other" : gk.toString();
+            // Normalize suggested group name to one of the TAXONOMY values
+            String groupName = normalize(groupNameRaw);
             com.restaurant.admin.model.Category cat = categoryRepository.findByRestaurantAndNameIgnoreCase(rest, groupName)
                     .orElseGet(() -> categoryRepository.save(new com.restaurant.admin.model.Category(groupName, rest, null)));
 

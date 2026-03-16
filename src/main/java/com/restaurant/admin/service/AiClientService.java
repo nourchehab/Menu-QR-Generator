@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,28 +35,43 @@ public class AiClientService {
 
     /**
      * Send a message to the AI endpoint with optional conversation history.
-     * History lines are prepended to the prompt so the model has context and
-     * doesn't return the same response for every call.
+     * Uses Mistral instruct format and includes parameters for generation.
      *
      * @param message the current user message
-     * @param history prior turns, each formatted as "User: ..." or "Assistant: ..."
-     * @return the AI response, or empty if endpoint/key not configured
+     * @param history prior turns, not used directly in instruct prompt here
+     * @return the AI response or a dynamic fallback using the user message
      */
     public Optional<String> sendMessage(String message, List<String> history) {
-        if (endpoint.isBlank() || apiKey.isBlank()) return Optional.empty();
+        String userMessage = message == null ? "" : message;
+        String fallback = "You asked: \"" + userMessage + "\". AI is currently unavailable. " +
+                "Try selecting from: Starters, Main Course, Drinks, Desserts, or Other.";
 
-        // Build context-enriched prompt
-        String prompt = buildPrompt(message, history);
-        log.debug("sendMessage: prompt length={} endpoint={}", prompt.length(), endpoint);
+        if (endpoint.isBlank() || apiKey.isBlank()) {
+            log.warn("AI endpoint or API key not configured, returning fallback for message='{}'", userMessage);
+            return Optional.of(fallback);
+        }
+
+        // Mistral instruct-style prompt
+        String prompt = "<s>[INST] You are a helpful restaurant menu assistant. " +
+                "Answer this: " + userMessage + " [/INST]";
+
+        log.info("Calling AI with message: {}", userMessage);
 
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
 
-            // Hugging Face style: POST { "inputs": "..." }
-            Map<String, Object> hfPayload = Map.of("inputs", prompt);
-            HttpEntity<Map<String, Object>> req = new HttpEntity<>(hfPayload, headers);
+            Map<String, Object> params = new HashMap<>();
+            params.put("max_new_tokens", 200);
+            params.put("temperature", 0.7);
+            params.put("return_full_text", false);
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("inputs", prompt);
+            payload.put("parameters", params);
+
+            HttpEntity<Map<String, Object>> req = new HttpEntity<>(payload, headers);
 
             ResponseEntity<Object> resp = rest.postForEntity(endpoint, req, Object.class);
             org.springframework.http.HttpStatusCode status = resp.getStatusCode();
@@ -63,11 +79,13 @@ public class AiClientService {
             String bodyStr = body == null ? "" : body.toString();
 
             if (!status.is2xxSuccessful() || body == null) {
-                log.warn("AI endpoint returned non-2xx: {} body={} for message={}", status.value(), bodyStr, message);
-                return Optional.of("Assistant (error): HTTP " + status.value() + " - " + bodyStr);
+                log.warn("AI endpoint returned non-2xx: {} body={} for message={}", status.value(), bodyStr, userMessage);
+                return Optional.of(fallback);
             }
 
-            // Hugging Face returns List of objects with 'generated_text'
+            String generated = null;
+
+            // Hugging Face style: List[ { "generated_text": "..." } ]
             if (body instanceof List) {
                 List<?> list = (List<?>) body;
                 if (!list.isEmpty()) {
@@ -75,21 +93,16 @@ public class AiClientService {
                     if (first instanceof Map) {
                         Object gen = ((Map<?,?>) first).get("generated_text");
                         if (gen != null) {
-                            // Strip the prompt from generated_text (HF models echo the input)
-                            String generated = gen.toString();
-                            if (generated.startsWith(prompt)) {
-                                generated = generated.substring(prompt.length()).trim();
-                            }
-                            if (!generated.isBlank()) return Optional.of(generated);
+                            generated = gen.toString().trim();
                         }
                     } else if (first instanceof String) {
-                        return Optional.of(first.toString());
+                        generated = first.toString();
                     }
                 }
             }
 
-            // OpenAI-compatible response shape
-            if (body instanceof Map) {
+            // OpenAI-compatible shapes
+            if (generated == null && body instanceof Map) {
                 Map<?,?> bmap = (Map<?,?>) body;
                 Object reply = bmap.get("reply");
                 if (reply == null) reply = bmap.get("text");
@@ -111,19 +124,24 @@ public class AiClientService {
                         }
                     }
                 }
-                if (reply != null) return Optional.of(reply.toString());
+                if (reply != null) generated = reply.toString().trim();
             }
 
-            // Last resort: convert body to string
-            return Optional.of(body.toString());
+            if (generated == null || generated.isBlank()) {
+                log.info("AI returned empty response body, using fallback for message='{}'", userMessage);
+                return Optional.of(fallback);
+            }
+
+            log.info("AI returned: {}", generated);
+            return Optional.of(generated);
 
         } catch (HttpStatusCodeException hsce) {
             String respBody = hsce.getResponseBodyAsString();
             log.warn("AI request failed: status={} body={}", hsce.getStatusCode().value(), respBody);
-            return Optional.of("Assistant (error): HTTP " + hsce.getStatusCode().value() + " - " + respBody);
+            return Optional.of(fallback);
         } catch (Exception e) {
             log.error("AI request error", e);
-            return Optional.of("Assistant (error): " + e.getMessage());
+            return Optional.of(fallback);
         }
     }
 
@@ -133,19 +151,11 @@ public class AiClientService {
     }
 
     /**
-     * Builds a prompt string by prepending conversation history so the model
-     * receives multi-turn context. GPT-2 / HF text-gen models work best with
-     * a simple "User/Assistant:" dialogue format.
+     * Simple controller-friendly chat wrapper that always returns a String
+     * (never Optional.empty) and uses a dynamic fallback when necessary.
      */
-    private String buildPrompt(String message, List<String> history) {
-        if (history == null || history.isEmpty()) {
-            return message;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (String turn : history) {
-            sb.append(turn).append("\n");
-        }
-        sb.append("User: ").append(message).append("\nAssistant:");
-        return sb.toString();
+    public String chat(String userMessage) {
+        return sendMessage(userMessage, List.of()).orElse("You asked: \"" + (userMessage == null ? "" : userMessage) + "\". AI is currently unavailable. " +
+                "Try selecting from: Starters, Main Course, Drinks, Desserts, or Other.");
     }
 }

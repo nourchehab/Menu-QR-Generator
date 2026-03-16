@@ -48,13 +48,19 @@ public class S3PhotoStorageService {
     }
 
     public String uploadNewPhoto(MultipartFile file) throws IOException {
-        String extension = getExtension(file.getOriginalFilename(), file.getContentType());
+        String contentType = file.getContentType();
+        // Validate file is an image
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("Invalid image file type: " + contentType);
+        }
+
+        String extension = getExtension(file.getOriginalFilename(), contentType);
         String key = buildKey(photosFolder, extension);
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(defaultContentType(file.getContentType()))
+                .contentType(defaultContentType(contentType))
                 .build();
 
         s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));

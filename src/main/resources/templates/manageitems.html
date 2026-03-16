@@ -801,16 +801,39 @@
                                 history: _categoriseState.chatHistory
                             })
                         });
-                        if (resp.ok) {
-                            const data = await resp.json();
-                            const reply = data.reply || data.error || 'Hello — how can I help you with categorising your menu today?';
-                            if (container.lastChild) container.lastChild.textContent = reply;
-                            // Push greeting exchange to history so follow-ups have context
-                            _categoriseState.chatHistory.push('User: ' + greetingMsg);
-                            _categoriseState.chatHistory.push('Assistant: ' + reply);
-                        } else {
-                            if (container.lastChild) container.lastChild.textContent = 'Assistant: (error fetching greeting)';
+
+                        // Handle redirect to login (auth) explicitly
+                        if (resp.redirected || resp.status === 302) {
+                            const msg = 'Assistant: sign in required';
+                            if (container.lastChild) container.lastChild.textContent = msg;
+                            // skip pushing to history and exit handler
+                            return;
                         }
+
+                        let reply = null;
+                        if (!resp.ok) {
+                            // Try to extract text error for debugging
+                            try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error fetching greeting'; }
+                        } else {
+                            const ct = resp.headers.get('content-type') || '';
+                            if (ct.includes('application/json')) {
+                                try {
+                                    const data = await resp.json();
+                                    if (data) reply = data.reply || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
+                                } catch (e) {
+                                    try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error parsing response'; }
+                                }
+                            } else {
+                                // Non-JSON success response
+                                try { reply = await resp.text(); } catch (_) { reply = 'Assistant: (no reply)'; }
+                            }
+                        }
+
+                        reply = reply || 'Hello — how can I help you with categorising your menu today?';
+                        if (container.lastChild) container.lastChild.textContent = reply;
+                        // Push greeting exchange to history so follow-ups have context
+                        _categoriseState.chatHistory.push('User: ' + greetingMsg);
+                        _categoriseState.chatHistory.push('Assistant: ' + reply);
                     } catch (err) {
                         if (container.lastChild) container.lastChild.textContent = 'Assistant: (network error)';
                     }
@@ -845,9 +868,32 @@
                             history: _categoriseState.chatHistory
                         })
                     });
-                    if (!resp.ok) { appendChatMessage('Assistant: error contacting server', 'assistant'); return; }
-                    const data = await resp.json();
-                    const reply = data.reply || data.error || 'No reply';
+
+                    if (resp.redirected || resp.status === 302) {
+                        appendChatMessage('Assistant: sign in required', 'assistant');
+                        return;
+                    }
+
+                    let reply = null;
+                    if (!resp.ok) {
+                        try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error contacting server'; }
+                        appendChatMessage(reply, 'assistant');
+                        return;
+                    }
+
+                    const ct = resp.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        try {
+                            const data = await resp.json();
+                            reply = data.reply || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
+                        } catch (e) {
+                            try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error parsing response'; }
+                        }
+                    } else {
+                        try { reply = await resp.text(); } catch (_) { reply = 'Assistant: no reply'; }
+                    }
+
+                    reply = reply || 'No reply';
                     appendChatMessage(reply, 'assistant');
                     // Update history so each new message has full prior context
                     _categoriseState.chatHistory.push('User: ' + msg);

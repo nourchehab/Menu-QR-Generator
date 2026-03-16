@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final OAuth2LoginFailureHandler failureHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final CustomLoginSuccessHandler formLoginSuccessHandler;
+    private final String activeProfile;
 
     public SecurityConfig(
             CustomOAuth2UserService customOAuth2UserService,
@@ -33,6 +34,7 @@ public class SecurityConfig {
             OAuth2LoginFailureHandler failureHandler,
             CustomAuthenticationProvider customAuthenticationProvider,
             CustomLoginSuccessHandler formLoginSuccessHandler
+            , @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
@@ -40,6 +42,7 @@ public class SecurityConfig {
         this.failureHandler = failureHandler;
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
+        this.activeProfile = activeProfile == null ? "" : activeProfile;
     }
 
     @Bean
@@ -57,9 +60,11 @@ public class SecurityConfig {
     .headers(headers -> headers
         .frameOptions(frame -> frame.disable())
     )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll()
-                .requestMatchers(
+            .authorizeHttpRequests(auth -> {
+                // Allow unauthenticated access to signup endpoints
+                auth.requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll();
+                // Public assets and selected API endpoints
+                auth.requestMatchers(
                     "/", "/login", "/signup",
                     "/css/**", "/js/**", "/images/**",
                     "/uploads/**",
@@ -67,9 +72,15 @@ public class SecurityConfig {
                     "/api/public/**",
                     "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
                     "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
+                ).permitAll();
+
+                // During local development allow anonymous access to assistant endpoints
+                if ("local".equalsIgnoreCase(this.activeProfile)) {
+                    auth.requestMatchers("/api/classify/chat", "/api/classify/suggest").permitAll();
+                }
+
+                auth.anyRequest().authenticated();
+            })
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(formLoginSuccessHandler)

@@ -52,6 +52,10 @@ class ClassifyControllerTest {
         user = new SimpleUser();
         restaurant = new Restaurant();
         restaurant.setId(1L);
+        // standard stubbings
+        // mark these stubbings lenient so tests that don't exercise them remain clean
+        lenient().when(userService.findByEmail(anyString())).thenReturn(user);
+        lenient().when(restaurantService.getRestaurantByUser(any())).thenReturn(Optional.of(restaurant));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -114,8 +118,6 @@ class ClassifyControllerTest {
     void applySuggestionReturnsErrorForInvalidIndex() {
         when(userService.findByEmail("test@example.com")).thenReturn(user);
         when(restaurantService.getRestaurantByUser(user)).thenReturn(Optional.of(restaurant));
-        doThrow(new IllegalArgumentException("Invalid suggestion index"))
-                .when(classificationService).applySuggestion(eq(1L), eq(999));
 
         Map<String, Object> body = Map.of("suggestionIndex", 999);
         ResponseEntity<?> response = controller.applySuggestion(body, principal);
