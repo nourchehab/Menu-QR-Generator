@@ -73,11 +73,19 @@ public class ClassifyController {
 
     @PostMapping("/api/classify/chat")
     public ResponseEntity<?> chat(@RequestBody Map<String, Object> body, Principal principal) {
-        // Minimal echo assistant for now
         Object msg = body == null ? null : body.get("message");
         if (msg == null) return ResponseEntity.badRequest().body(Map.of("error", "Missing message"));
+
+        // Optional conversation history to give the AI (and local fallback) context
+        List<String> history = List.of();
+        if (body.get("history") instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> hist = (List<String>) body.get("history");
+            history = hist;
+        }
+
         try {
-            String reply = classificationService.askAssistant(msg.toString());
+            String reply = classificationService.askAssistant(msg.toString(), history);
             return ResponseEntity.ok(Map.of("reply", reply));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Assistant error"));
