@@ -1,6 +1,8 @@
 package com.restaurant.admin.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "simple_user1") // separate table for simplicity
@@ -28,6 +30,9 @@ public class SimpleUser {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean googleLinked = false;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Restaurant> restaurants = new ArrayList<>();
+
     // ===== getters / setters =====
     public Long getId() { return id; }
 
@@ -50,4 +55,7 @@ public class SimpleUser {
 
     public boolean isGoogleLinked() { return googleLinked; }
     public void setGoogleLinked(boolean googleLinked) { this.googleLinked = googleLinked; }
+
+    public List<Restaurant> getRestaurants() { return restaurants; }
+    public void setRestaurants(List<Restaurant> restaurants) { this.restaurants = restaurants; }
 }

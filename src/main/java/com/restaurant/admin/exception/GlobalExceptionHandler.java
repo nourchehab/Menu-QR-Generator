@@ -55,6 +55,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle resource not found exceptions (404)
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        // Silently return 404 for missing resources (favicon, etc)
+        ApiResponse<?> response = new ApiResponse<>(false, "Resource not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    /**
      * Handle all other exceptions (500 Internal Server Error)
      */
     @ExceptionHandler(Exception.class)

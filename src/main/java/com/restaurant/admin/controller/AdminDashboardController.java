@@ -96,9 +96,13 @@ public class AdminDashboardController {
     
     /**
      * GET /admin/restaurants → View admin dashboard page
+     * Optional param: restaurantId - to view specific restaurant dashboard
      */
     @GetMapping("/restaurants")
-    public String adminDashboard(Principal principal, Model model) {
+    public String adminDashboard(
+            Principal principal, 
+            Model model,
+            @RequestParam(required = false) Long restaurantId) {
         if (principal == null) {
             return "redirect:/login";
         }
@@ -109,17 +113,37 @@ public class AdminDashboardController {
                 return "redirect:/login";
             }
             
-            // Get restaurant with branches
-            Restaurant restaurant = restaurantService.getRestaurantByUser(user)
-                    .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+            Restaurant restaurant;
             
+            if (restaurantId != null) {
+                // Get specific restaurant and verify ownership
+                restaurant = restaurantService.getRestaurantById(restaurantId)
+                        .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                
+                // Verify user owns this restaurant
+                if (!restaurant.getUser().getId().equals(user.getId())) {
+                    return "redirect:/restaurants";
+                }
+            } else {
+                // Get the user's single restaurant (OneToOne relationship)
+                restaurant = restaurantService.getRestaurantByUser(user)
+                        .orElseThrow(() -> new RuntimeException("No restaurant found"));
+            }
+            
+            // Get branches for this specific restaurant
             List<Branch> branches = branchService.getAllBranchesForUser(user);
+            // Filter branches for this restaurant
+            branches = branches.stream()
+                    .filter(b -> b.getRestaurant().getId().equals(restaurant.getId()))
+                    .toList();
+            
             boolean isMultiBranch = branches.size() > 1;
             
             model.addAttribute("restaurant", restaurant);
             model.addAttribute("branches", branches);
             model.addAttribute("isMultiBranch", isMultiBranch);
             model.addAttribute("branchCount", branches.size());
+            model.addAttribute("restaurantId", restaurant.getId());
             
             return "admin-dashboard";
         } catch (Exception e) {

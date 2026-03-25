@@ -2,8 +2,11 @@ package com.restaurant.admin.controller;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.restaurant.admin.model.Restaurant;
@@ -140,27 +144,28 @@ public class SignupController {
     }
 
     @GetMapping("/details")
-    public String restaurantDetails(@RequestParam String option) {
+    public String restaurantDetails(@RequestParam String option, Model model) {
+        model.addAttribute("formAction", "/signup/restaurant/setup");
         return "restaurant-details";
     }
 
     @PostMapping("/signup/restaurant/setup")
-    public String completeRestaurantSetup(
+    @ResponseBody
+    public ResponseEntity<?> completeRestaurantSetup(
             @RequestParam String restaurantName,
             @RequestParam String restaurantType,
             @RequestParam(value = "logoUpload", required = false) MultipartFile logoFile,
             Principal principal) {
 
         if (principal == null) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         String email = principal.getName();
-
         SimpleUser user = userService.findByEmail(email);
 
         if (user == null) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
         }
 
         try {
@@ -173,13 +178,19 @@ public class SignupController {
             if (restaurant != null) {
                 user.setRestaurantSetupComplete(true);
                 userService.save(user);
+                
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Restaurant created successfully",
+                        "restaurantId", restaurant.getId()
+                ));
             }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create restaurant"));
         } catch (Exception e) {
-            e.printStackTrace();
-            return "redirect:/choose-option?error=setup";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
-
-        return "redirect:/dashboard";
     }
 
 }

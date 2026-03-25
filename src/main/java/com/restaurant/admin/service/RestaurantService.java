@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import com.restaurant.admin.util.ColorContrastUtil;
 
@@ -35,19 +36,8 @@ public class RestaurantService {
         SimpleUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Check if restaurant already exists for this user
-        Optional<Restaurant> existingRestaurant = restaurantRepository.findByUser(user);
-        
-        Restaurant restaurant;
-        if (existingRestaurant.isPresent()) {
-            // Update existing restaurant
-            restaurant = existingRestaurant.get();
-            restaurant.setRestaurantName(restaurantName);
-            restaurant.setRestaurantType(restaurantType);
-        } else {
-            // Create new restaurant
-            restaurant = new Restaurant(restaurantName, restaurantType, user);
-        }
+        // Always create a new restaurant (support multiple restaurants per user)
+        Restaurant restaurant = new Restaurant(restaurantName, restaurantType, user);
 
         
         // Handle logo upload if provided
@@ -76,6 +66,13 @@ public class RestaurantService {
         return restaurantRepository.findByUser(user);
     }
     
+    /**
+     * Get all restaurants for a user
+     */
+    public List<Restaurant> getRestaurantsByUser(SimpleUser user) {
+        return restaurantRepository.findAllByUser(user);
+    }
+
     /**
      * Get restaurant by user ID
      */

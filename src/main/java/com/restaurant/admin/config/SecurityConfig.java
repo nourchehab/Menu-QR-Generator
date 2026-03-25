@@ -71,7 +71,7 @@ public class SecurityConfig {
                     "/m/**",
                     "/api/public/**",
                     "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
-                    "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**"
+                    "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**", "/restaurants"
                 ).permitAll();
 
                 // During local development allow anonymous access to assistant endpoints

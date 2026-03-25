@@ -24,8 +24,8 @@ public class Restaurant {
     @Column
     private String menuBackgroundColor; // e.g. #ffffff
     
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = false)
     private SimpleUser user;
     
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)

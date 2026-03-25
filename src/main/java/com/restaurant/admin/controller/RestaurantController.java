@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -76,11 +77,12 @@ public class RestaurantController {
         return user;
     }
 
-    // GET /restaurant/setup → show setup form
+    // GET /restaurant/setup → show setup form (for adding new restaurant from dashboard)
     @GetMapping("/restaurant/setup")
-    public String setupPage(Principal principal) {
+    public String setupPage(Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
-        return "restaurant-setup";
+        model.addAttribute("formAction", "/restaurant/setup");
+        return "restaurant-details";
     }
 
     // POST /restaurant/setup → handle form submission

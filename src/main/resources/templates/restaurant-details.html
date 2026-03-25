@@ -327,7 +327,7 @@ select:focus {
 <h1 class="title">Enter Restaurant Details</h1>
 
 <!-- ✅ UPDATED: Added enctype and proper name attribute -->
-<form id="restaurantForm" class="details-form" method="post" action="/signup/restaurant/setup" enctype="multipart/form-data">
+<form id="restaurantForm" class="details-form" method="post" th:action="${formAction}" enctype="multipart/form-data">
 
     <label>Restaurant Name</label>
     <input type="text" id="restaurantName" name="restaurantName" placeholder="Enter restaurant name" required>
@@ -392,6 +392,32 @@ select:focus {
             
             reader.readAsDataURL(file);
         }
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const action = form.getAttribute('action');
+        
+        fetch(action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.restaurantId) {
+                // Redirect to the new restaurant's dashboard
+                window.location.href = `/dashboard?restaurantId=${data.restaurantId}`;
+            } else {
+                alert('Error: ' + (data.error || 'Failed to create restaurant'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating restaurant: ' + error.message);
+        });
     });
     
 </script>
