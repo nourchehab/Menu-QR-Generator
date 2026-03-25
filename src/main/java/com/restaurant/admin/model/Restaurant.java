@@ -31,6 +31,9 @@ public class Restaurant {
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItem> menuItems = new ArrayList<>();
     
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Branch> branches = new ArrayList<>();
+    
     // Constructors
     public Restaurant() {}
     
@@ -109,5 +112,30 @@ public class Restaurant {
     public void removeMenuItem(MenuItem item) {
         menuItems.remove(item);
         item.setRestaurant(null);
+    }
+
+    public List<Branch> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<Branch> branches) {
+        this.branches = branches;
+    }
+
+    // Helper method to add branch
+    public void addBranch(Branch branch) {
+        branches.add(branch);
+        branch.setRestaurant(this);
+    }
+
+    // Helper method to remove branch
+    public void removeBranch(Branch branch) {
+        branches.remove(branch);
+        branch.setRestaurant(null);
+    }
+
+    // Helper method: is this restaurant multi-branch?
+    public boolean isMultiBranch() {
+        return branches.size() > 1;
     }
 }
