@@ -63,7 +63,7 @@ public class RestaurantService {
      * Get restaurant by user
      */
     public Optional<Restaurant> getRestaurantByUser(SimpleUser user) {
-        return restaurantRepository.findByUser(user);
+        return restaurantRepository.findFirstByUserOrderByIdDesc(user);
     }
     
     /**
@@ -77,7 +77,7 @@ public class RestaurantService {
      * Get restaurant by user ID
      */
     public Optional<Restaurant> getRestaurantByUserId(Long userId) {
-        return restaurantRepository.findByUserId(userId);
+        return restaurantRepository.findFirstByUserIdOrderByIdDesc(userId);
     }
 
     /**
@@ -92,7 +92,7 @@ public class RestaurantService {
      */
     @Transactional
     public Restaurant updateMenuBackgroundColor(SimpleUser user, String hex) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
         String safe = (hex == null || hex.isBlank()) ? "" : ColorContrastUtil.normalizeHex(hex);

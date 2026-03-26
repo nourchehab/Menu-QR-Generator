@@ -60,7 +60,7 @@ class BranchServiceTest {
     @DisplayName("createBranch should save branch successfully when user owns restaurant")
     void createBranch_success() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.save(any(Branch.class))).thenReturn(testBranch);
 
         // Act
@@ -77,7 +77,7 @@ class BranchServiceTest {
     @DisplayName("createBranch should throw SecurityException when user has no restaurant")
     void createBranch_noRestaurant_throwsSecurityException() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.empty());
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> branchService.createBranch(testUser, "Downtown", "123 Main St", "555-0001"))
@@ -99,7 +99,7 @@ class BranchServiceTest {
         Branch activeBranch2 = new Branch("Midtown", "456 Second", "555-0002", testRestaurant);
         List<Branch> activeBranches = List.of(activeBranch1, activeBranch2);
 
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByRestaurantAndIsActiveTrue(testRestaurant)).thenReturn(activeBranches);
 
         // Act
@@ -120,7 +120,7 @@ class BranchServiceTest {
         inactiveBranch.setActive(false);
         List<Branch> allBranches = List.of(activeBranch, inactiveBranch);
 
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByRestaurant(testRestaurant)).thenReturn(allBranches);
 
         // Act
@@ -135,7 +135,7 @@ class BranchServiceTest {
     @DisplayName("getBranchForUser should return branch if user owns it")
     void getBranchForUser_success() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.of(testBranch));
 
         // Act
@@ -150,7 +150,7 @@ class BranchServiceTest {
     @DisplayName("getBranchForUser should throw exception for non-existent branch")
     void getBranchForUser_branchNotFound() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(999L, testRestaurant)).thenReturn(Optional.empty());
 
         // Act
@@ -171,7 +171,7 @@ class BranchServiceTest {
         Branch updatedBranch = new Branch("Downtown Updated", "999 New Ave", "555-9999", testRestaurant);
         updatedBranch.setId(1L);
 
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.of(testBranch));
         when(branchRepository.save(any(Branch.class))).thenReturn(updatedBranch);
 
@@ -189,7 +189,7 @@ class BranchServiceTest {
     @DisplayName("updateBranch should throw exception if branch not owned by user")
     void updateBranch_notOwned_throwsException() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -209,7 +209,7 @@ class BranchServiceTest {
         toggledBranch.setId(1L);
         toggledBranch.setActive(false);
 
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.of(testBranch));
         when(branchRepository.save(any(Branch.class))).thenReturn(toggledBranch);
 
@@ -229,7 +229,7 @@ class BranchServiceTest {
     @DisplayName("deleteBranch should delete branch successfully")
     void deleteBranch_success() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.of(testBranch));
         doNothing().when(branchRepository).delete(testBranch);
 
@@ -244,7 +244,7 @@ class BranchServiceTest {
     @DisplayName("deleteBranch should throw exception if branch not owned by user")
     void deleteBranch_notOwned_throwsException() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.findByIdAndRestaurant(1L, testRestaurant)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -262,7 +262,7 @@ class BranchServiceTest {
     @DisplayName("isMultiBranch should return true when restaurant has > 1 branch")
     void isMultiBranch_true() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.countByRestaurant(testRestaurant)).thenReturn(3L);
 
         // Act
@@ -276,7 +276,7 @@ class BranchServiceTest {
     @DisplayName("isMultiBranch should return false when restaurant has 1 or 0 branches")
     void isMultiBranch_false() {
         // Arrange
-        when(restaurantRepository.findByUser(testUser)).thenReturn(Optional.of(testRestaurant));
+        when(restaurantRepository.findFirstByUserOrderByIdDesc(testUser)).thenReturn(Optional.of(testRestaurant));
         when(branchRepository.countByRestaurant(testRestaurant)).thenReturn(1L);
 
         // Act

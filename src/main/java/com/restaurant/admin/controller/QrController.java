@@ -50,7 +50,7 @@ public class QrController {
             return ResponseEntity.status(404).build();
         }
 
-        Optional<Restaurant> restaurantOpt = restaurantRepository.findByUser(userOpt.get());
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findFirstByUserOrderByIdDesc(userOpt.get());
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(404).build();
         }

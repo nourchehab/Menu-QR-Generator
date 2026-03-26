@@ -10,12 +10,16 @@ import java.util.Optional;
 
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
-    
-    Optional<Restaurant> findByUser(SimpleUser user);
-    
-    Optional<Restaurant> findByUserId(Long userId);
-    
+
+    /** Returns the most recently created restaurant for a user (avoids NonUniqueResultException). */
+    Optional<Restaurant> findFirstByUserOrderByIdDesc(SimpleUser user);
+
+    /** Returns the most recently created restaurant for a user by ID. */
+    Optional<Restaurant> findFirstByUserIdOrderByIdDesc(Long userId);
+
     boolean existsByUser(SimpleUser user);
 
     List<Restaurant> findAllByUser(SimpleUser user);
+
+    List<Restaurant> findAllByUserId(Long userId);
 }

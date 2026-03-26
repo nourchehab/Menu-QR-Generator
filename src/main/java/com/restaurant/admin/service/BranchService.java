@@ -28,7 +28,7 @@ public class BranchService {
      */
     @Transactional
     public Branch createBranch(SimpleUser user, String branchName, String address, String phone) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));
         
         Branch branch = new Branch(branchName, address, phone, restaurant);
@@ -41,7 +41,7 @@ public class BranchService {
      * Security: Verifies user owns the restaurant
      */
     public List<Branch> getActiveBranchesForUser(SimpleUser user) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));
         return branchRepository.findByRestaurantAndIsActiveTrue(restaurant);
     }
@@ -51,7 +51,7 @@ public class BranchService {
      * Security: Verifies user owns the restaurant
      */
     public List<Branch> getAllBranchesForUser(SimpleUser user) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));
         return branchRepository.findByRestaurant(restaurant);
     }
@@ -61,7 +61,7 @@ public class BranchService {
      * Security: Verifies the branch belongs to user's restaurant
      */
     public Optional<Branch> getBranchForUser(SimpleUser user, Long branchId) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));
         return branchRepository.findByIdAndRestaurant(branchId, restaurant);
     }
@@ -111,7 +111,7 @@ public class BranchService {
      * Check if a user's restaurant is multi-branch
      */
     public boolean isMultiBranch(SimpleUser user) {
-        Restaurant restaurant = restaurantRepository.findByUser(user)
+        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));
         long branchCount = branchRepository.countByRestaurant(restaurant);
         return branchCount > 1;
