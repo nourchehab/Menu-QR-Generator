@@ -74,6 +74,32 @@
             .preview-banner{font-size:.7rem;}
             .category-header{top:40px;}
         }
+        #google_translate_element {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        #google_translate_element select {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 14px;
+            font-size: 1.2rem;
+            font-family: 'DM Sans', sans-serif;
+            color: #333;
+            cursor: pointer;
+        }
+
+        #google_translate_element select:hover {
+            background-color: #f2f2f2;
+            border-color: #888;
+        }
     </style>
 </head>
 <!--
@@ -83,7 +109,21 @@
 -->
 <body th:attr="data-public=${publicMode}, data-restaurant-id=${restaurantId}, data-branch-id=${branchId}">
 
-<div class="preview-banner" id="previewBanner" style="display:none;">
+    <div id="google_translate_element"></div>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'ar',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+  }, 'google_translate_element');
+}
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<div class="preview-banner notranslate" id="previewBanner" style="display:none;">
     <span class="dot"></span>
     Preview Mode
     <div class="banner-actions" id="bannerActions"></div>
@@ -91,7 +131,7 @@
 
 <header class="restaurant-header">
     <div class="logo-wrap" id="logoWrap"><div class="logo-placeholder">🍽</div></div>
-    <h1 class="restaurant-name" id="restaurantName">Loading…</h1>
+    <h1 class="restaurant-name notranslate" id="restaurantName">Loading…</h1>
     <span class="restaurant-type" id="restaurantType"></span>
     <div class="branch-label" id="branchLabel" style="display:none;"></div>
 </header>
@@ -115,7 +155,7 @@
     <div id="menuContent" style="display:none;"></div>
 </main>
 
-<footer class="menu-footer">Powered by <span>FlavorFrame</span></footer>
+<footer class="menu-footer notranslate">Powered by <span>FlavorFrame</span></footer>
 
 <script>
     const LBP_RATE = 89500;
@@ -275,8 +315,8 @@
             if (!isPublic) {
                 document.getElementById('previewBanner').style.display = 'flex';
                 document.getElementById('bannerActions').innerHTML = `
-                    <a href="${dashboardUrl}" class="btn-banner outline">← Dashboard</a>
-                    <a href="${themeUrl}" class="btn-banner">Customize Theme</a>`;
+                    <a href="${dashboardUrl}" class="btn-banner outline notranslate">← Dashboard</a>
+                    <a href="${themeUrl}" class="btn-banner notranslate">Customize Theme</a>`;
             }
 
             // ── Restaurant info ───────────────────────────────────────────────
