@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.restaurant.admin.service.TranslationService;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -38,6 +39,9 @@ public class MenuItemController {
 
     @Autowired
     private SimpleUserService userService;
+
+    @Autowired
+    private TranslationService translationService;
 
     // ✅ Works for BOTH password login and Google login
     private String resolveEmail(Principal principal) {
@@ -402,6 +406,28 @@ public class MenuItemController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Add a method to handle translation of menu item details (description or name)
+    @PostMapping("/api/items/translate")
+    @ResponseBody
+    public ResponseEntity<?> translateMenuItem(
+            @RequestParam("text") String text, 
+            @RequestParam("sourceLang") String sourceLang,
+            @RequestParam("targetLang") String targetLang) {
+
+        try {
+            // Translate using the TranslationService
+            String translatedText = translationService.translate(text, sourceLang, targetLang);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "translatedText", translatedText
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error during translation: " + e.getMessage()));
         }
     }
 

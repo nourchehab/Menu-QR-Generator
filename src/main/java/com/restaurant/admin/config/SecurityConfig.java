@@ -74,6 +74,8 @@ public class SecurityConfig {
                     "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**", "/restaurants"
                 ).permitAll();
 
+                auth.requestMatchers("/api/items/translate").permitAll();
+
                 // During local development allow anonymous access to assistant endpoints
                 if ("local".equalsIgnoreCase(this.activeProfile)) {
                     auth.requestMatchers("/api/classify/chat", "/api/classify/suggest").permitAll();
@@ -103,4 +105,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }
