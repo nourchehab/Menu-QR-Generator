@@ -43,7 +43,7 @@ public void onAuthenticationSuccess(HttpServletRequest request,
             SimpleUser user = optionalUser.get();
 
             if (user.isRestaurantSetupComplete()) {
-                response.sendRedirect("/dashboard");
+                response.sendRedirect("/restaurants");
             } else {
                 response.sendRedirect("/choose-option");
             }

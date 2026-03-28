@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branches – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --brand: #ff6b35;
+            --brand-light: #ff8c42;
+            --brand-dark: #d84315;
+            --surface: #fffcfa;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --muted: #888;
+            --border: #f0ebe6;
+            --success-bg: #f0fdf4;
+            --success: #16a34a;
+            --error-bg: #fef2f2;
+            --error: #dc2626;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .page {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        .header {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 2.5rem 2.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .header-left {}
+
+        .breadcrumb {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 500;
+            letter-spacing: 0.4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .header-restaurant-name {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand));
+            color: white;
+            box-shadow: 0 6px 18px rgba(255,107,53,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(255,107,53,0.4);
+        }
+
+        .btn-ghost {
+            background: var(--border);
+            color: var(--muted);
+        }
+
+        .btn-ghost:hover { background: #e5e0db; color: var(--text); }
+
+        /* ── Flash messages ──────────────────────────────── */
+        .flash {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .flash-success { background: var(--success-bg); color: var(--success); }
+        .flash-error   { background: var(--error-bg);   color: var(--error);   }
+
+        /* ── Add branch card ─────────────────────────────── */
+        .add-card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 2rem 2.5rem;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            margin-bottom: 2rem;
+            border: 2px dashed #ffd4c2;
+        }
+
+        .add-card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 1.25rem;
+        }
+
+        .add-form {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .add-form input {
+            flex: 1;
+            min-width: 220px;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            background: var(--surface);
+            transition: border-color 0.2s;
+        }
+
+        .add-form input:focus { border-color: var(--brand); }
+        .add-form input::placeholder { color: #bbb; }
+
+        /* ── Branch grid ─────────────────────────────────── */
+        .branches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .branch-card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .branch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 45px rgba(0,0,0,0.18);
+        }
+
+        .branch-card-top {
+            background: linear-gradient(135deg, #fff5f0, #ffe8da);
+            padding: 1.5rem 1.5rem 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .branch-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--brand-light), var(--brand));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+        }
+
+        .branch-card-meta { flex: 1; min-width: 0; }
+
+        .branch-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .branch-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        .status-active   { background: #dcfce7; color: #16a34a; }
+        .status-inactive { background: #fee2e2; color: #dc2626; }
+
+        .branch-card-body {
+            padding: 1rem 1.5rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .branch-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+        .btn-go {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--brand-light), var(--brand));
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.25);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-go:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,107,53,0.35); }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .btn-rename { background: #f0f9ff; color: #0369a1; }
+        .btn-rename:hover { background: #e0f2fe; }
+
+        .btn-delete { background: #fff5f5; color: #dc2626; }
+        .btn-delete:hover { background: #fee2e2; }
+
+        /* ── Rename inline form ───────────────────────────── */
+        .rename-form {
+            display: none;
+            gap: 0.5rem;
+        }
+
+        .rename-form.open { display: flex; }
+
+        .rename-form input {
+            flex: 1;
+            padding: 0.55rem 0.75rem;
+            border: 2px solid #93c5fd;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .rename-form button {
+            padding: 0.55rem 0.85rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .rename-form .save-btn { background: #2563eb; color: white; }
+        .rename-form .save-btn:hover { background: #1d4ed8; }
+        .rename-form .cancel-btn { background: #e5e7eb; color: #374151; }
+
+        /* ── Empty state ─────────────────────────────────── */
+        .empty {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .empty-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+
+        .empty h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.6rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+        /* ── Back bar ────────────────────────────────────── */
+        .back-bar {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 1.5rem 1rem; }
+            .header { padding: 1.75rem 1.5rem 1.5rem; }
+            .header h1 { font-size: 1.7rem; }
+            .add-card { padding: 1.5rem; }
+            .branches-grid { grid-template-columns: 1fr; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="breadcrumb">
+                <a href="/restaurants">My Restaurants</a> › Branches
+            </div>
+            <h1>Branches</h1>
+            <p class="header-restaurant-name" th:text="${restaurant.restaurantName}">Restaurant Name</p>
+        </div>
+        <div class="header-actions">
+            <a href="/restaurants" class="btn btn-ghost">← Back</a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="flash flash-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="flash flash-error"   th:text="${error}"></div>
+
+    <!-- Add branch form -->
+    <div class="add-card">
+        <h2>+ Add a New Branch</h2>
+        <form class="add-form" method="post" th:action="@{/branch/create}">
+            <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+            <input type="text"
+                   name="branchName"
+                   placeholder="e.g. Downtown, Hamra, Mall of Lebanon…"
+                   required
+                   maxlength="80"
+                   autocomplete="off">
+            <button type="submit" class="btn btn-primary">Create Branch</button>
+        </form>
+    </div>
+
+    <!-- Branch grid -->
+    <div th:if="${hasBranches}" class="branches-grid">
+        <div th:each="branch : ${branches}" class="branch-card">
+
+            <div class="branch-card-top">
+                <div class="branch-icon">📍</div>
+                <div class="branch-card-meta">
+                    <div class="branch-name" th:text="${branch.branchName}">Branch Name</div>
+                    <span th:if="${branch.active}"   class="branch-status status-active">Active</span>
+                    <span th:unless="${branch.active}" class="branch-status status-inactive">Inactive</span>
+                </div>
+            </div>
+
+            <div class="branch-card-body">
+
+                <!-- Rename form (hidden until toggled) -->
+                <form class="rename-form" th:id="'rename-form-' + ${branch.id}"
+                      method="post" th:action="@{/branch/{id}/rename(id=${branch.id})}">
+                    <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                    <input type="text"
+                           name="branchName"
+                           th:value="${branch.branchName}"
+                           maxlength="80"
+                           required>
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn"
+                            th:onclick="'toggleRename(' + ${branch.id} + ')'">✕</button>
+                </form>
+
+                <!-- Actions row -->
+                <div class="branch-actions">
+                    <a th:href="@{/branch/{id}/dashboard(id=${branch.id})}"
+                       class="btn-go">Go to Dashboard →</a>
+
+                    <button class="btn-icon btn-rename"
+                            th:onclick="'toggleRename(' + ${branch.id} + ')'"
+                            title="Rename branch">✏️</button>
+
+                    <form method="post"
+                          th:action="@{/branch/{id}/delete(id=${branch.id})}"
+                          style="display:inline"
+                          onsubmit="return confirm('Delete this branch? This cannot be undone.')">
+                        <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                        <button type="submit" class="btn-icon btn-delete" title="Delete branch">🗑</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:unless="${hasBranches}" class="empty">
+        <span class="empty-icon">📍</span>
+        <h2>No branches yet</h2>
+        <p>Use the form above to add your first branch location. Each branch inherits the restaurant menu and can be customised independently.</p>
+    </div>
+
+</div>
+
+<script>
+    function toggleRename(branchId) {
+        const form = document.getElementById('rename-form-' + branchId);
+        form.classList.toggle('open');
+    }
+</script>
+</body>
+</html>

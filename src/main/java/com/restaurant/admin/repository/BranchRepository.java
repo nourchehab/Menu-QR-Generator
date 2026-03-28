@@ -10,24 +10,17 @@ import java.util.Optional;
 
 @Repository
 public interface BranchRepository extends JpaRepository<Branch, Long> {
-    
-    /**
-     * Find all active branches for a restaurant
-     */
+
     List<Branch> findByRestaurantAndIsActiveTrue(Restaurant restaurant);
-    
-    /**
-     * Find all branches (active or inactive) for a restaurant
-     */
+
     List<Branch> findByRestaurant(Restaurant restaurant);
-    
-    /**
-     * Find a branch by ID and verify it belongs to a specific restaurant
-     */
+
+    /** Main branch always first, then by creation date ascending. */
+    List<Branch> findByRestaurantOrderByIsMainBranchDescCreatedAtAsc(Restaurant restaurant);
+
     Optional<Branch> findByIdAndRestaurant(Long id, Restaurant restaurant);
-    
-    /**
-     * Count branches for a restaurant
-     */
+
+    Optional<Branch> findFirstByRestaurantAndIsMainBranchTrue(Restaurant restaurant);
+
     long countByRestaurant(Restaurant restaurant);
 }

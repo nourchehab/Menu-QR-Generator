@@ -31,7 +31,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         SimpleUser user = userService.findByEmail(email);
 
         if (user != null && user.isRestaurantSetupComplete()) {
-            response.sendRedirect("/dashboard");
+            response.sendRedirect("/restaurants");
         } else {
             response.sendRedirect("/choose-option");
         }

@@ -5,6 +5,7 @@ import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.RestaurantRepository;
 import com.restaurant.admin.repository.SimpleUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,31 +17,33 @@ import com.restaurant.admin.util.ColorContrastUtil;
 
 @Service
 public class RestaurantService {
-    
+
     @Autowired
     private RestaurantRepository restaurantRepository;
-    
+
     @Autowired
     private SimpleUserRepository userRepository;
 
     @Autowired
     private S3PhotoStorageService s3PhotoStorageService;
-    
+
+    // @Lazy to avoid circular dependency (BranchService → RestaurantService → BranchService)
+    @Autowired
+    @Lazy
+    private BranchService branchService;
+
     /**
-     * Create or update restaurant setup for a user
+     * Create a new restaurant for a user, then auto-create the Main Branch.
      */
     @Transactional
-    public Restaurant setupRestaurant(Long userId, String restaurantName, 
-                                     String restaurantType, MultipartFile logoFile) throws IOException {
-        
+    public Restaurant setupRestaurant(Long userId, String restaurantName,
+                                      String restaurantType, MultipartFile logoFile) throws IOException {
+
         SimpleUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // Always create a new restaurant (support multiple restaurants per user)
+
         Restaurant restaurant = new Restaurant(restaurantName, restaurantType, user);
 
-        
-        // Handle logo upload if provided
         if (logoFile != null && !logoFile.isEmpty()) {
             if (restaurant.getLogoPath() != null && !restaurant.getLogoPath().isBlank()) {
                 s3PhotoStorageService.deleteIfS3Url(restaurant.getLogoPath());
@@ -48,77 +51,51 @@ public class RestaurantService {
             String logoPath = s3PhotoStorageService.uploadNewLogo(logoFile);
             restaurant.setLogoPath(logoPath);
         }
-        
-        // Save restaurant
+
         restaurant = restaurantRepository.save(restaurant);
-        
-        // Mark user's restaurant setup as complete
+
+        // ✅ Auto-create the Main Branch for every new restaurant
+        branchService.ensureMainBranch(restaurant);
+
         user.setRestaurantSetupComplete(true);
         userRepository.save(user);
-        
+
         return restaurant;
     }
-    
-    /**
-     * Get restaurant by user
-     */
+
     public Optional<Restaurant> getRestaurantByUser(SimpleUser user) {
         return restaurantRepository.findFirstByUserOrderByIdDesc(user);
     }
-    
-    /**
-     * Get all restaurants for a user
-     */
+
     public List<Restaurant> getRestaurantsByUser(SimpleUser user) {
         return restaurantRepository.findAllByUser(user);
     }
 
-    /**
-     * Get restaurant by user ID
-     */
     public Optional<Restaurant> getRestaurantByUserId(Long userId) {
         return restaurantRepository.findFirstByUserIdOrderByIdDesc(userId);
     }
 
-    /**
-     * Get restaurant by id
-     */
     public Optional<Restaurant> getRestaurantById(Long id) {
         return restaurantRepository.findById(id);
     }
 
-    /**
-     * Update menu background color for a user's restaurant
-     */
     @Transactional
     public Restaurant updateMenuBackgroundColor(SimpleUser user, String hex) {
         Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-
         String safe = (hex == null || hex.isBlank()) ? "" : ColorContrastUtil.normalizeHex(hex);
         restaurant.setMenuBackgroundColor(safe);
         return restaurantRepository.save(restaurant);
     }
 
-    
-    /**
-     * Check if user has a restaurant
-     */
     public boolean userHasRestaurant(SimpleUser user) {
         return restaurantRepository.existsByUser(user);
     }
 
-    
     public String toPublicLogoUrl(String storedPath) {
-        if (storedPath == null || storedPath.isBlank()) {
-            return null;
-        }
-        if (storedPath.startsWith("http://") || storedPath.startsWith("https://")) {
-            return storedPath;
-        }
-        if (storedPath.startsWith("/uploads/")) {
-            return storedPath;
-        }
+        if (storedPath == null || storedPath.isBlank()) return null;
+        if (storedPath.startsWith("http://") || storedPath.startsWith("https://")) return storedPath;
+        if (storedPath.startsWith("/uploads/")) return storedPath;
         return "/uploads/logos/" + storedPath;
     }
 }

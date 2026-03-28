@@ -23,73 +23,47 @@ import java.util.Map;
 @Controller
 public class PageController {
 
-    @Autowired
-    private RestaurantService restaurantService;
+    @Autowired private RestaurantService restaurantService;
+    @Autowired private BranchService     branchService;
+    @Autowired private SimpleUserService userService;
 
-    @Autowired
-    private BranchService branchService;
+    // ── Auth helpers ──────────────────────────────────────────────────────────
 
-    @Autowired
-    private SimpleUserService userService;
-
-    /**
-     * Normalize email helper
-     */
     private String normalizeEmail(String email) {
         if (email == null) return null;
         String e = email.trim();
-        if (e.isEmpty()) return null;
-        return e.toLowerCase();
+        return e.isEmpty() ? null : e.toLowerCase();
     }
 
-    /**
-     * Resolve email from Authentication (handles OIDC/OAuth2 and form login)
-     */
     private String resolveEmail(Authentication auth) {
         if (auth == null) return null;
-
         Object principal = auth.getPrincipal();
-
-        if (principal instanceof OidcUser oidcUser) {
-            return normalizeEmail(oidcUser.getEmail());
-        }
-
-        if (principal instanceof OAuth2User oauth2User) {
-            Object email = oauth2User.getAttributes().get("email");
+        if (principal instanceof OidcUser u)    return normalizeEmail(u.getEmail());
+        if (principal instanceof OAuth2User u) {
+            Object email = u.getAttributes().get("email");
             return normalizeEmail(email != null ? email.toString() : null);
         }
-
         return normalizeEmail(auth.getName());
     }
 
-    /**
-     * Resolve email from Principal
-     */
     private String resolveEmail(Principal principal) {
         if (principal == null) return null;
         if (principal instanceof Authentication auth) return resolveEmail(auth);
         return normalizeEmail(principal.getName());
     }
 
-    /**
-     * Get current SimpleUser from Principal
-     */
     private SimpleUser getCurrentUser(Principal principal) {
         String email = resolveEmail(principal);
         if (email == null) return null;
-
         SimpleUser user = userService.findByEmail(email);
-        if (user == null && principal != null) {
-            user = userService.findByEmail(principal.getName());
-        }
+        if (user == null && principal != null) user = userService.findByEmail(principal.getName());
         return user;
     }
 
+    // ── Static pages ──────────────────────────────────────────────────────────
 
     @GetMapping("/")
-    public String landing() {
-        return "landing";
-    }
+    public String landing() { return "landing"; }
 
     @GetMapping("/login")
     public String showLoginForm(
@@ -97,106 +71,89 @@ public class PageController {
             @RequestParam(required = false) String oauthError,
             @RequestParam(required = false) String logout,
             Model model) {
-
-        if (error != null) {
-            model.addAttribute("error", "Invalid email or password");
-        }
-
-        if (oauthError != null) {
-            model.addAttribute("error", "Google login failed or was canceled. Please try again.");
-        }
-
-        if (logout != null) {
-            model.addAttribute("message", "You have been logged out successfully");
-        }
-
+        if (error != null)      model.addAttribute("error",   "Invalid email or password");
+        if (oauthError != null) model.addAttribute("error",   "Google login failed or was canceled. Please try again.");
+        if (logout != null)     model.addAttribute("message", "You have been logged out successfully");
         return "login";
     }
 
-    // Spring Security handles POST /login
-
     @GetMapping("/signup")
-    public String signup() {
-        return "signup";
-    }
+    public String signup() { return "signup"; }
 
-    @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(required = false) Long restaurantId, Model model, Principal principal) {
-        // If restaurantId is provided, load that specific restaurant
-        if (restaurantId != null) {
-            try {
-                restaurantService.getRestaurantById(restaurantId).ifPresent(restaurant -> {
-                    model.addAttribute("restaurant", restaurant);
-                    model.addAttribute("restaurantId", restaurantId);
-                });
-            } catch (Exception e) {
-                // If restaurant not found or error, fall through to normal dashboard
-            }
-        }
-        return "dashboard";
-    }
+    // NOTE: /dashboard is owned by BranchController
 
     @GetMapping("/enteritems")
-    public String enterItems() {
-        return "enteritems";
-    }
+    public String enterItems() { return "enteritems"; }
 
     @GetMapping("/manageitems")
-    public String manageItems() {
-        return "manageitems";
-    }
+    public String manageItems() { return "manageitems"; }
 
+    // ── Branch-scoped pages — forward branchId to template ───────────────────
+
+    /**
+     * GET /menu/preview?branchId={id}
+     * Authenticated preview — passes branchId so the template fetches the right branch.
+     * Public preview comes from PublicMenuController (/menu/branch/{branchId}).
+     */
     @GetMapping("/menu/preview")
-    public String menuPreview(Principal principal, Model model) {
+    public String menuPreview(
+            @RequestParam(required = false) Long branchId,
+            Principal principal,
+            Model model) {
         if (principal == null) return "redirect:/login";
-        model.addAttribute("publicMode", false);
+        model.addAttribute("publicMode",    false);
+        model.addAttribute("branchId",      branchId);
+        model.addAttribute("restaurantId",  null);
         return "menu-preview";
     }
-@GetMapping("/menu/theme")
+
+    /**
+     * GET /menu/theme?branchId={id}
+     * The template reads branchId from the URL itself (JS), so we just return the view.
+     */
+    @GetMapping("/menu/theme")
     public String menuTheme(Principal principal) {
         if (principal == null) return "redirect:/login";
         return "menu-theme";
     }
+
+    /**
+     * GET /qr-page?branchId={id}
+     * The template reads branchId from the URL itself (JS), so we just return the view.
+     */
     @GetMapping("/qr-page")
-    public String qrPage() {
+    public String qrPage(Principal principal) {
+        if (principal == null) return "redirect:/login";
         return "qr-page";
     }
+
+    // ── Restaurant list ───────────────────────────────────────────────────────
 
     @GetMapping("/restaurants")
     public String restaurantList(Principal principal, Model model) {
         try {
-            if (principal == null) {
-                return "redirect:/login";
-            }
+            if (principal == null) return "redirect:/login";
 
             SimpleUser user = getCurrentUser(principal);
-            if (user == null) {
-                return "redirect:/login";
-            }
+            if (user == null) return "redirect:/login";
 
-            // Get all restaurants for user
             List<Restaurant> restaurants = restaurantService.getRestaurantsByUser(user);
-            if (restaurants == null) {
-                restaurants = new ArrayList<>();
-            }
-            
-            // Process logo URLs for each restaurant
+            if (restaurants == null) restaurants = new ArrayList<>();
+
             Map<Long, String> logoUrls = new HashMap<>();
             for (Restaurant restaurant : restaurants) {
                 String publicUrl = restaurantService.toPublicLogoUrl(restaurant.getLogoPath());
-                if (publicUrl != null) {
-                    logoUrls.put(restaurant.getId(), publicUrl);
-                }
+                if (publicUrl != null) logoUrls.put(restaurant.getId(), publicUrl);
             }
-            
-            model.addAttribute("restaurants", restaurants);
+
+            model.addAttribute("restaurants",    restaurants);
             model.addAttribute("hasRestaurants", !restaurants.isEmpty());
-            model.addAttribute("logoUrls", logoUrls);
+            model.addAttribute("logoUrls",       logoUrls);
 
             return "restaurant-list";
         } catch (Exception e) {
             model.addAttribute("error", "Failed to load restaurant list: " + e.getMessage());
-            model.addAttribute("restaurants", new ArrayList<>());
+            model.addAttribute("restaurants",    new ArrayList<>());
             model.addAttribute("hasRestaurants", false);
             return "restaurant-list";
         }
