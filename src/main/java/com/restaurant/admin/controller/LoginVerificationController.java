@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.service.EmailVerificationService;
 import com.restaurant.admin.service.SimpleUserService;
 
@@ -64,7 +65,7 @@ public class LoginVerificationController {
     }
 
     /**
-     * Step 2: Send verification code to email
+     * Step 2: Send verification code to email  
      */
     @PostMapping("/send-code")
     public ResponseEntity<String> sendVerificationCode(@RequestBody CodeRequest request) {

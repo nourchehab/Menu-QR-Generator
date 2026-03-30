@@ -65,6 +65,46 @@ public class BranchItemApiController {
     // ── PUBLIC endpoint — used by QR scan (no auth required) ─────────────────
 
     /**
+     * GET /api/branches/{branchId}
+     * Returns branch details including restaurantId.
+     * Used by manageitems.html to get restaurant ID for categorization API calls.
+     */
+    @GetMapping("/api/branches/{branchId}")
+    public ResponseEntity<?> getBranchDetails(@PathVariable Long branchId) {
+        try {
+            Branch branch = branchRepository.findById(branchId)
+                    .orElse(null);
+            
+            if (branch == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Branch not found"));
+            }
+            
+            // Check if restaurant exists
+            if (branch.getRestaurant() == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Branch has no associated restaurant"));
+            }
+            
+            Map<String, Object> response = Map.of(
+                    "id", branch.getId(),
+                    "name", branch.getBranchName() != null ? branch.getBranchName() : "",
+                    "restaurantId", branch.getRestaurant().getId(),
+                    "isMainBranch", branch.isMainBranch(),
+                    "data", Map.of(
+                            "restaurantId", branch.getRestaurant().getId()
+                    )
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error in getBranchDetails: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
+    }
+
+    /**
      * GET /api/public/branch/{branchId}/items
      * Returns the effective menu for a branch publicly.
      * Called by menu-preview.html when publicMode=true and branchId is set.

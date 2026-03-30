@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class BranchDTO {
 
     private Long id;
+    private Long restaurantId;
     private String branchName;
     private boolean active;
     private LocalDateTime createdAt;
@@ -25,6 +26,9 @@ public class BranchDTO {
 
     public Long getId()                          { return id; }
     public void setId(Long id)                   { this.id = id; }
+
+    public Long getRestaurantId()                { return restaurantId; }
+    public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
 
     public String getBranchName()                { return branchName; }
     public void setBranchName(String branchName) { this.branchName = branchName; }

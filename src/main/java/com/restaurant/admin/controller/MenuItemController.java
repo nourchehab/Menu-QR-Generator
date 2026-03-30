@@ -7,6 +7,7 @@ import com.restaurant.admin.service.MenuItemService;
 import com.restaurant.admin.service.MenuItemImageStorageService;
 import com.restaurant.admin.service.RestaurantService;
 import com.restaurant.admin.service.SimpleUserService;
+import com.restaurant.admin.service.AiCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,9 @@ public class MenuItemController {
 
     @Autowired
     private SimpleUserService userService;
+    
+    @Autowired
+    private AiCategoryService aiCategoryService;
 
 
     // ✅ Works for BOTH password login and Google login
@@ -433,6 +438,211 @@ public class MenuItemController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ===== AI CATEGORIZATION ENDPOINTS =====
+
+    /**
+     * Get AI service health status
+     */
+    @GetMapping("/api/ai/health")
+    @ResponseBody
+    public ResponseEntity<?> checkAiHealth() {
+        boolean healthy = aiCategoryService.isAiServiceAvailable();
+        return ResponseEntity.ok(Map.of(
+                "ai_service_healthy", healthy,
+                "message", healthy ? "AI service is operational" : "AI service is unavailable"
+        ));
+    }
+
+    /**
+     * Get AI categorization suggestion for a specific menu item
+     * Does not require authentication - checks ownership via menu item
+     */
+    @PostMapping("/api/items/{id}/categorize")
+    @ResponseBody
+    public ResponseEntity<?> getAiCategorization(@PathVariable Long id, 
+                                                  @RequestParam(defaultValue = "default") String branchId,
+                                                  Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not authenticated"));
+        }
+
+        try {
+            Restaurant restaurant = getCurrentUsersRestaurant(principal);
+            MenuItem menuItem = menuItemService.getMenuItemById(id);
+            
+            // Security check: ensure item belongs to user's restaurant
+            assertItemBelongsToRestaurant(menuItem, restaurant);
+            
+            // Call AI service and save results
+            boolean success = aiCategoryService.categorizeAndSaveMenuItem(
+                    menuItem, restaurant.getId(), branchId);
+            
+            if (!success) {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body(Map.of("error", "AI service is currently unavailable"));
+            }
+            
+            // Refresh item from DB to get updated AI fields
+            MenuItem updated = menuItemService.getMenuItemById(id);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "itemId", updated.getId(),
+                    "itemName", updated.getItemName(),
+                    "suggestedCategory", updated.getSuggestedCategory(),
+                    "confidence", String.format("%.0f%%", updated.getAiConfidence() * 100),
+                    "reasoning", updated.getAiReasoning()
+            ));
+            
+        } catch (SecurityException se) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", se.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error during AI categorization: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Accept an AI category suggestion and apply it as the official category
+     */
+    @PostMapping("/api/items/{id}/accept-suggestion")
+    @ResponseBody
+    public ResponseEntity<?> acceptAiSuggestion(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not authenticated"));
+        }
+
+        try {
+            Restaurant restaurant = getCurrentUsersRestaurant(principal);
+            MenuItem menuItem = menuItemService.getMenuItemById(id);
+            
+            // Security check
+            assertItemBelongsToRestaurant(menuItem, restaurant);
+            
+            if (menuItem.getSuggestedCategory() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "No AI suggestion available for this item. " +
+                                     "Please categorize it first."));
+            }
+            
+            boolean success = aiCategoryService.acceptAiSuggestion(menuItem);
+            
+            if (success) {
+                // Refresh from DB
+                MenuItem updated = menuItemService.getMenuItemById(id);
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "AI suggestion accepted",
+                        "itemName", updated.getItemName(),
+                        "category", updated.getCategory(),
+                        "confidence", updated.getAiConfidence()
+                ));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Failed to accept AI suggestion"));
+            }
+            
+        } catch (SecurityException se) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", se.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error accepting suggestion: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Batch categorize selected menu items
+     * Accepts optional list of itemIds to categorize (if not provided, categorizes all items)
+     */
+    @PostMapping("/api/restaurants/{restaurantId}/batch-categorize")
+    @ResponseBody
+    public ResponseEntity<?> BatchCategorizeMenuItems(@PathVariable Long restaurantId,
+                                                       @RequestParam(defaultValue = "default") String branchId,
+                                                       @RequestBody(required = false) Map<String, Object> body,
+                                                       Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not authenticated"));
+        }
+
+        try {
+            // Verify user owns this restaurant
+            Restaurant restaurant = getCurrentUsersRestaurant(principal);
+            if (!restaurant.getId().equals(restaurantId)) {
+                throw new SecurityException("Unauthorized: Cannot categorize items for another restaurant");
+            }
+            
+            List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurantId);
+            
+            // If specific itemIds are provided, filter to only those items
+            final List<Long> selectedItemIds;
+            if (body != null && body.get("itemIds") != null) {
+                Object itemIdsObj = body.get("itemIds");
+                if (itemIdsObj instanceof List) {
+                    List<Long> tempIds = new ArrayList<>();
+                    for (Object id : (List<?>) itemIdsObj) {
+                        if (id instanceof Number) {
+                            tempIds.add(((Number) id).longValue());
+                        }
+                    }
+                    selectedItemIds = tempIds;
+                } else {
+                    selectedItemIds = null;
+                }
+            } else {
+                selectedItemIds = null;
+            }
+            
+            // Only categorize selected items
+            List<MenuItem> itemsToProcess = menuItems;
+            if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
+                itemsToProcess = menuItems.stream()
+                        .filter(item -> selectedItemIds.contains(item.getId()))
+                        .toList();
+            }
+            
+            int successCount = aiCategoryService.categorizeMenuItemsBatch(
+                    itemsToProcess, restaurantId, branchId);
+            
+            // Build results array with AI suggestions for frontend display
+            List<Map<String, Object>> results = new ArrayList<>();
+            for (MenuItem item : itemsToProcess) {
+                if (item.getSuggestedCategory() != null) {
+                    results.add(Map.of(
+                        "success", true,
+                        "itemId", item.getId(),
+                        "itemName", item.getItemName(),
+                        "category", item.getSuggestedCategory(),
+                        "confidence", item.getAiConfidence() != null ? item.getAiConfidence() : 0.0,
+                        "reasoning", item.getAiReasoning() != null ? item.getAiReasoning() : ""
+                    ));
+                }
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "totalItems", menuItems.size(),
+                    "categorized", successCount,
+                    "results", results,
+                    "message", String.format("Categorized %d/%d menu items", successCount, menuItems.size())
+            ));
+            
+        } catch (SecurityException se) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", se.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error during batch categorization: " + e.getMessage()));
         }
     }
 }

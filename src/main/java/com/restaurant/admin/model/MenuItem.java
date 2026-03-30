@@ -39,6 +39,30 @@ public class MenuItem {
     @JoinColumn(name = "category_id")
     private Category categoryEntity;
 
+    /**
+     * AI-suggested category from the Python Gemini service
+     */
+    @Column(length = 100)
+    private String suggestedCategory;
+    
+    /**
+     * Confidence score (0.0-1.0) from AI model for the suggestion
+     */
+    @Column
+    private Double aiConfidence;
+    
+    /**
+     * Reasoning from AI for why this category was suggested
+     */
+    @Column(columnDefinition = "TEXT")
+    private String aiReasoning;
+    
+    /**
+     * Timestamp when AI last analyzed this item
+     */
+    @Column
+    private LocalDateTime aiAnalyzedAt;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "item_tags",
         joinColumns = @JoinColumn(name = "item_id"),
@@ -172,5 +196,37 @@ public class MenuItem {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSuggestedCategory() {
+        return suggestedCategory;
+    }
+
+    public void setSuggestedCategory(String suggestedCategory) {
+        this.suggestedCategory = suggestedCategory;
+    }
+
+    public Double getAiConfidence() {
+        return aiConfidence;
+    }
+
+    public void setAiConfidence(Double aiConfidence) {
+        this.aiConfidence = aiConfidence;
+    }
+
+    public String getAiReasoning() {
+        return aiReasoning;
+    }
+
+    public void setAiReasoning(String aiReasoning) {
+        this.aiReasoning = aiReasoning;
+    }
+
+    public LocalDateTime getAiAnalyzedAt() {
+        return aiAnalyzedAt;
+    }
+
+    public void setAiAnalyzedAt(LocalDateTime aiAnalyzedAt) {
+        this.aiAnalyzedAt = aiAnalyzedAt;
     }
 }

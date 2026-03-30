@@ -83,6 +83,7 @@ public class AdminDashboardController {
     private BranchDTO toBranchDTO(Branch branch) {
         BranchDTO dto = new BranchDTO();
         dto.setId(branch.getId());
+        dto.setRestaurantId(branch.getRestaurant() != null ? branch.getRestaurant().getId() : null);
         dto.setBranchName(branch.getBranchName());
         dto.setActive(branch.isActive());
         dto.setCreatedAt(branch.getCreatedAt());
