@@ -1,9 +1,9 @@
 """
-Langchain service for AI-powered menu item categorization using Google Gemini
+Langchain service for AI-powered menu item categorization using Groq + Llama
 With memory, restaurant context learning, and database integration
 """
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 import json
 import logging
 import os
@@ -25,20 +25,22 @@ class CategoryAssistant:
     - Restaurant-specific menu data learning
     - Integration with Spring Boot backend for live data
     - Few-shot learning from existing menu items
+    - Ultra-fast JSON responses via Groq + Llama
     """
     
     def __init__(self) -> None:
-        """Initialize the Gemini LLM and memory storage"""
-        api_key = os.getenv("GEMINI_API_KEY")
+        """Initialize the Groq Llama LLM and memory storage"""
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not set in .env file")
+            raise ValueError("GROQ_API_KEY not set in .env file")
         
-        model_name = os.getenv("AI_MODEL", "gemini-2.5-flash")
+        model_name = os.getenv("AI_MODEL", "llama-4-scout")
         
-        self.llm = ChatGoogleGenerativeAI(
+        self.llm = ChatGroq(
             model=model_name,
             api_key=api_key,
-            temperature=0.7
+            temperature=0.7,
+            max_tokens=500
         )
         
         # Predefined realistic categories
@@ -210,7 +212,7 @@ class CategoryAssistant:
         
         prompt = f"""{restaurant_context}
 
-Analyze this menu item and suggest the BEST category from the available list.
+You are a menu categorization assistant. Analyze this menu item and suggest the BEST category.
 
 Available categories: {", ".join(self.predefined_categories)}
 
@@ -219,19 +221,14 @@ Menu Item:
 - Description: {description}
 - Price: ${price}
 
-Respond ONLY with valid JSON in this exact format (no markdown, no extra text):
-{{
-    "category": "chosen_category_from_list",
-    "confidence": 0.85,
-    "reasoning": "brief explanation why this category fits",
-    "alternatives": ["alt_category_1", "alt_category_2"]
-}}
+Respond ONLY with valid JSON (no markdown, no extra text):
+{{"category": "chosen_category", "confidence": 0.85, "reasoning": "brief reason", "alternatives": ["alt1", "alt2"]}}
 
-Important:
-- "category" MUST be one of the available categories
-- "confidence" must be between 0.0 and 1.0
-- Keep reasoning under 50 words
-- alternatives should be 2-3 real alternatives from the list
+Rules:
+- category MUST be from available list
+- confidence: 0.0 to 1.0
+- reasoning: max 50 words
+- alternatives: 2-3 real options
 """
         
         try:
@@ -264,7 +261,7 @@ Important:
             return result
             
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Gemini response as JSON: {e}")
+            logger.error(f"Failed to parse Llama response as JSON: {e}")
             logger.debug(f"Response was: {response_text}")
             return {
                 "category": "Other",
@@ -274,13 +271,13 @@ Important:
             }
         except Exception as e:
             error_msg = str(e).lower()
-            # Handle Gemini API quota/rate limit errors gracefully
-            if "429" in error_msg or "quota" in error_msg or "resource_exhausted" in error_msg:
-                logger.warning(f"Gemini API quota exceeded: {e}")
+            # Handle rate limit errors gracefully
+            if "429" in error_msg or "rate" in error_msg or "throttle" in error_msg:
+                logger.warning(f"Groq rate limit hit: {e}")
                 return {
                     "category": "Other",
                     "confidence": 0.0,
-                    "reasoning": "AI service temporarily unavailable. Please try again later.",
+                    "reasoning": "AI service rate-limited. Try again in a moment.",
                     "alternatives": ["Specials", "Main Courses"]
                 }
             else:

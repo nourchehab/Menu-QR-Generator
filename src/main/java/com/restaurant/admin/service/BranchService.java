@@ -256,17 +256,22 @@ public class BranchService {
 
         if (branch.isMainBranch()) {
             // For main branch, branchMenuItemId is actually the restaurant MenuItem id
+            // Update the parent MenuItem directly since main branch reads from MenuItem
             MenuItem parent = menuItemRepository.findById(branchMenuItemId)
                     .orElseThrow(() -> new RuntimeException("Item not found"));
+            parent.setItemName(name);
+            parent.setItemDescription(description);
+            parent.setItemPrice(java.math.BigDecimal.valueOf(price));
+            parent.setCategory(category);
+            menuItemRepository.save(parent);
+            
+            // Also maintain BranchMenuItem for consistency if needed
             BranchMenuItem bmi = branchMenuItemRepository
                     .findByBranchAndParentItem(branch, parent)
                     .orElse(new BranchMenuItem());
             bmi.setBranch(branch);
             bmi.setParentItem(parent);
             bmi.setHidden(false);
-            bmi.setName(name);
-            bmi.setDescription(description);
-            bmi.setPrice(price);
             bmi.setCategory(category);
             return branchMenuItemRepository.save(bmi);
         } else {

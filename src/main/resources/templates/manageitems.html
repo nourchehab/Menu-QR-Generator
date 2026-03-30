@@ -59,9 +59,6 @@
         }
  
         .add-btn:hover, .categorise-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        
-        .categorise-btn { background: #4CAF50; color: white; }
-        .categorise-btn:hover { background: #45a049; }
  
         .content-card {
             background: rgba(255,255,255,0.98); border-radius: 24px; padding: 3rem;
@@ -149,7 +146,7 @@
             <div class="branch-label" id="branchLabel"></div>
         </div>
         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button id="categoriseBtn" class="categorise-btn">🤖 Categorise Items</button>
+            <button id="categoriseBtn" class="categorise-btn">Categorise Items</button>
             <a id="addItemBtn" href="#" class="add-btn">+ Add Item</a>
         </div>
     </div>
@@ -453,10 +450,10 @@
  
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.id   = `cat-item-${item.branchItemId || index}`;
+            checkbox.id   = `cat-item-${item.branchItemId || item.restaurantItemId || index}`;
             checkbox.checked = true;
             checkbox.style.cssText = 'cursor:pointer; width:18px; height:18px; margin-top:3px; flex-shrink:0; accent-color:#FF8C42;';
-            checkbox.setAttribute('data-item-id', item.branchItemId);
+            checkbox.setAttribute('data-item-id', item.branchItemId || item.restaurantItemId);
  
             const label = document.createElement('label');
             label.htmlFor = checkbox.id;

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="FlavorFrame AI Service",
-    description="AI-powered menu item categorization using Gemini & Langchain",
+    description="AI-powered menu item categorization using Groq + Llama & Langchain",
     version="1.0.0"
 )
 
