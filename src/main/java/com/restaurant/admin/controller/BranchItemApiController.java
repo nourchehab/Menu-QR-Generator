@@ -62,13 +62,12 @@ public class BranchItemApiController {
         return user;
     }
 
-    // ── PUBLIC endpoint — used by QR scan (no auth required) ─────────────────
+    // ── PUBLIC: used by QR scan (no auth) ────────────────────────────────────
 
     /**
      * GET /api/public/branch/{branchId}/items
-     * Returns the effective menu for a branch publicly.
-     * Called by menu-preview.html when publicMode=true and branchId is set.
-     * No authentication required — this is what customers see after scanning QR.
+     * Returns the effective menu for a branch publicly — no auth required.
+     * Called by menu-preview.html when publicMode=true.
      */
     @GetMapping("/api/public/branch/{branchId}/items")
     public ResponseEntity<?> getPublicBranchItems(@PathVariable Long branchId) {
@@ -82,11 +81,10 @@ public class BranchItemApiController {
         }
     }
 
-    // ── AUTHENTICATED endpoints — used by dashboard manage/enter items ────────
+    // ── AUTHENTICATED: dashboard manage/enter items ───────────────────────────
 
     /**
      * GET /api/branch/{branchId}/items
-     * Returns items for the branch — requires auth.
      */
     @GetMapping("/api/branch/{branchId}/items")
     public ResponseEntity<?> getItems(@PathVariable Long branchId, Principal principal) {
@@ -96,7 +94,6 @@ public class BranchItemApiController {
             SimpleUser user = getCurrentUser(principal);
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
-
             List<EffectiveMenuItem> items = branchService.getEffectiveMenu(user, branchId);
             return ResponseEntity.ok(items);
         } catch (SecurityException e) {
@@ -108,7 +105,9 @@ public class BranchItemApiController {
 
     /**
      * POST /api/branch/{branchId}/items
-     * Add a new item to the branch.
+     * Add a new item.
+     * - Main branch  → adds to restaurant MenuItem table (S3 photo upload via MenuItemService)
+     * - Other branch → adds as independent BranchMenuItem (S3 photo upload via BranchService)
      */
     @PostMapping("/api/branch/{branchId}/items")
     public ResponseEntity<?> addItem(
@@ -130,14 +129,19 @@ public class BranchItemApiController {
             Branch branch = branchService.getBranchForUser(user, branchId);
 
             if (branch.isMainBranch()) {
-                // Main branch → add to real MenuItem table so future branches can snapshot it
+                // ✅ Main branch: add to real MenuItem table so future branch snapshots include it
                 BigDecimal bdPrice = price != null ? BigDecimal.valueOf(price) : BigDecimal.ZERO;
-                menuItemService.addMenuItem(branch.getRestaurant().getId(), name, bdPrice,
-                        description, photo, category != null ? category : "");
-            } else {
-                // Other branches → independent snapshot item
-                branchService.addBranchOnlyItem(user, branchId, name, description, price,
+                menuItemService.addMenuItem(
+                        branch.getRestaurant().getId(),
+                        name, bdPrice, description,
+                        photo,                                  // ✅ photo passed to S3
                         category != null ? category : "");
+            } else {
+                // ✅ Snapshot branch: add as independent BranchMenuItem with S3 photo
+                branchService.addBranchOnlyItem(
+                        user, branchId, name, description, price,
+                        category != null ? category : "",
+                        photo);                                 // ✅ photo passed to S3
             }
             return ResponseEntity.ok(Map.of("success", true, "message", "Item added"));
         } catch (SecurityException e) {
@@ -150,6 +154,8 @@ public class BranchItemApiController {
     /**
      * POST /api/branch/{branchId}/items/{itemId}
      * Edit an item.
+     * - Main branch  → updates MenuItem via MenuItemService (handles S3 photo replacement)
+     * - Other branch → updates BranchMenuItem row via BranchService (handles S3 photo replacement)
      */
     @PostMapping("/api/branch/{branchId}/items/{itemId}")
     public ResponseEntity<?> editItem(
@@ -169,8 +175,23 @@ public class BranchItemApiController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
-            branchService.editItem(user, branchId, itemId, name, description, price,
-                    category != null ? category : "");
+            Branch branch = branchService.getBranchForUser(user, branchId);
+
+            if (branch.isMainBranch()) {
+                // ✅ Main branch: update real MenuItem (MenuItemService handles S3)
+                BigDecimal bdPrice = price != null ? BigDecimal.valueOf(price) : BigDecimal.ZERO;
+                menuItemService.updateMenuItem(
+                        itemId, name, bdPrice, description,
+                        photo,                                  // ✅ photo replacement via S3
+                        category != null ? category : "");
+            } else {
+                // ✅ Snapshot branch: update BranchMenuItem with S3 photo replacement
+                branchService.editBranchItem(
+                        user, branchId, itemId,
+                        name, description, price,
+                        category != null ? category : "",
+                        photo);                                 // ✅ photo replacement via S3
+            }
             return ResponseEntity.ok(Map.of("success", true, "message", "Item updated"));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
@@ -181,7 +202,7 @@ public class BranchItemApiController {
 
     /**
      * DELETE /api/branch/{branchId}/items/{itemId}
-     * Delete an item.
+     * Deletes item and its S3 photo.
      */
     @DeleteMapping("/api/branch/{branchId}/items/{itemId}")
     public ResponseEntity<?> deleteItem(

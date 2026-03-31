@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.restaurant.admin.model.Branch;
 import com.restaurant.admin.model.Restaurant;
 import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.BranchRepository;
@@ -44,54 +43,49 @@ public class QrController {
     }
 
     /**
-     * GET /api/qr/menu
-     * Legacy authenticated endpoint — generates QR for user's most-recent restaurant.
-     * Kept for backwards compatibility.
+     * GET /api/qr/restaurant/{restaurantId}
+     * ✅ Primary QR — points to /r/{restaurantId}.
+     * /r/ auto-redirects to branch menu if 1 branch, shows picker if multiple.
      */
-    @GetMapping(value = "/menu", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> getMenuQr(Authentication authentication) {
-        String email = authentication.getName();
-
-        Optional<SimpleUser> userOpt = simpleUserRepository.findByEmail(email);
-        if (userOpt.isEmpty()) return ResponseEntity.status(404).build();
-
-        Optional<Restaurant> restaurantOpt = restaurantRepository.findFirstByUserOrderByIdDesc(userOpt.get());
-        if (restaurantOpt.isEmpty()) return ResponseEntity.status(404).build();
-
-        String url = publicBaseUrl + "/menu/" + restaurantOpt.get().getId();
-        return pngResponse(url);
+    @GetMapping(value = "/restaurant/{restaurantId}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getRestaurantQr(@PathVariable Long restaurantId) {
+        if (restaurantRepository.findById(restaurantId).isEmpty()) {
+            return ResponseEntity.status(404).build();
+        }
+        return pngResponse(publicBaseUrl + "/r/" + restaurantId);
     }
 
     /**
-     * GET /api/qr/menu/{restaurantId}
-     * Public QR for a restaurant (old QR codes still work via /menu/{restaurantId}).
+     * GET /api/qr/branch/{branchId}
+     * From branch dashboard — still generates a restaurant-level QR.
      */
+    @GetMapping(value = "/branch/{branchId}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getBranchQr(@PathVariable Long branchId) {
+        return branchRepository.findById(branchId).map(branch -> {
+            Long restaurantId = branch.getRestaurant().getId();
+            return pngResponse(publicBaseUrl + "/r/" + restaurantId);
+        }).orElse(ResponseEntity.status(404).build());
+    }
+
+    /** Legacy authenticated endpoint. */
+    @GetMapping(value = "/menu", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getMenuQr(Authentication authentication) {
+        String email = authentication.getName();
+        Optional<SimpleUser> userOpt = simpleUserRepository.findByEmail(email);
+        if (userOpt.isEmpty()) return ResponseEntity.status(404).build();
+        Optional<Restaurant> restOpt = restaurantRepository.findFirstByUserOrderByIdDesc(userOpt.get());
+        if (restOpt.isEmpty()) return ResponseEntity.status(404).build();
+        return pngResponse(publicBaseUrl + "/r/" + restOpt.get().getId());
+    }
+
+    /** Legacy public endpoint. */
     @GetMapping(value = "/menu/{restaurantId}", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> getMenuQrPublic(@PathVariable Long restaurantId) {
         if (restaurantRepository.findById(restaurantId).isEmpty()) {
             return ResponseEntity.status(404).build();
         }
-        String url = publicBaseUrl + "/menu/" + restaurantId;
-        return pngResponse(url);
+        return pngResponse(publicBaseUrl + "/r/" + restaurantId);
     }
-
-    /**
-     * GET /api/qr/branch/{branchId}
-     * ✅ Branch-scoped QR — points to /b/{branchId} (short URL, no path conflict).
-     * This is what the branch dashboard QR button uses.
-     * No authentication required so anyone can scan.
-     */
-    @GetMapping(value = "/branch/{branchId}", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> getBranchQr(@PathVariable Long branchId) {
-        Optional<Branch> branchOpt = branchRepository.findById(branchId);
-        if (branchOpt.isEmpty()) return ResponseEntity.status(404).build();
-
-        // ✅ Points to /b/{branchId} — short, conflict-free public URL
-        String url = publicBaseUrl + "/b/" + branchId;
-        return pngResponse(url);
-    }
-
-    // ── Helper ────────────────────────────────────────────────────────────────
 
     private ResponseEntity<byte[]> pngResponse(String url) {
         byte[] png = qrCodeService.generatePngQr(url, 320);
