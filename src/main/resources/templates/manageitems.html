@@ -54,19 +54,6 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 2.5rem;
-            /* Chat panel layout: fixed, larger, scrollable */
-            #chatPanel { display:flex; flex-direction:column; height:60vh; max-height:70vh; min-height:360px; }
-            .chat-messages { flex:1; overflow:auto; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; align-items:flex-start; }
-
-            /* User query box (left-aligned boxed bubble) */
-            .chat-message.user { align-self:flex-start; max-width:86%; background:#111827; color:#f9fafb; padding:0.8rem 1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.6); font-weight:600; }
-
-            /* Assistant response: centered block (not aligned to left or right) */
-            .chat-message.assistant { align-self:center; max-width:86%; margin:0 auto; background:transparent; border:none; color:#0f1724; padding:0; font-weight:400; line-height:1.45; }
-            .chat-message.assistant p { margin:0 0 .6rem 0; text-align:left; }
-
-            /* Spacer inserted between a user message and the assistant reply (two-line gap) */
-            .chat-spacer { height:2.2rem; }
             display: flex;
             align-items: center;
             gap: 1.5rem;
@@ -361,10 +348,12 @@
                 <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
                 <h1 class="page-title">Manage Items</h1>
             </div>
-               <div style="display:flex; gap:0.75rem; align-items:center;">
-                   <button id="categoriseAllBtn" class="add-btn btn-categorise" type="button">Categorise</button>
-                   <a href="/enteritems" class="add-btn">+ Add Item</a>
-               </div>
+            <!-- ✨ AI IDEAS BUTTON ADDED HERE — only change to this block -->
+            <div style="display:flex; gap:0.75rem; align-items:center;">
+                <button id="categoriseAllBtn" class="add-btn btn-categorise" type="button">Categorise</button>
+                <button id="aiIdeasBtn" class="add-btn btn-categorise" type="button">✨ AI Ideas</button>
+                <a href="/enteritems" class="add-btn">+ Add Item</a>
+            </div>
         </div>
 
         <div class="content-card">
@@ -386,7 +375,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Edit Modal — UNCHANGED -->
     <div id="editModal"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
         <div
@@ -455,6 +444,88 @@
             </div>
         </div>
     </div>
+
+    <!-- ✨ AI IDEAS MODAL — NEW, inserted before closing body tag -->
+    <div id="aiIdeasModal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+               align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
+        <div style="width:100%; max-width:680px; background:#fff; border-radius:18px;
+                    padding:1.75rem; box-shadow:0 30px 90px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto;">
+
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                <div style="font-family:'Fraunces', serif; font-size:1.35rem; color:#1a1a2e;">✨ AI Menu Ideas</div>
+                <button type="button" onclick="closeAiIdeasModal()" class="btn-action btn-edit"
+                    style="padding:.45rem .75rem;">✕</button>
+            </div>
+
+            <!-- Inputs -->
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+                <div style="flex:1; min-width:160px;">
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">
+                        Cuisine Type
+                    </label>
+                    <input id="aiCuisineType" class="form-input" placeholder="e.g. Lebanese, Italian"
+                        style="font-size:0.92rem;" />
+                </div>
+                <div style="flex:1; min-width:160px;">
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">
+                        Restaurant Style
+                    </label>
+                    <input id="aiRestaurantType" class="form-input" placeholder="e.g. cafe, fine dining"
+                        style="font-size:0.92rem;" />
+                </div>
+                <div style="flex:1; min-width:160px;">
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">
+                        How many ideas?
+                    </label>
+                    <input id="aiIdeasCount" class="form-input" type="number" min="1" max="10" value="5"
+                        style="font-size:0.92rem;" />
+                </div>
+            </div>
+
+            <button id="generateIdeasBtn" type="button"
+                style="background:#ff6b35; color:white; border:none; border-radius:12px;
+                       padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600;
+                       font-size:1rem; cursor:pointer; width:100%; margin-bottom:1.25rem;
+                       transition:all 0.3s ease;"
+                onclick="generateAiIdeas()">
+                Generate Ideas
+            </button>
+
+            <!-- Loading state -->
+            <div id="aiIdeasLoading" style="display:none; text-align:center; padding:1.5rem 0;">
+                <div class="spinner"></div>
+                <p style="color:#666; margin-top:0.5rem;">Generating ideas...</p>
+            </div>
+
+            <!-- Error state -->
+            <div id="aiIdeasError"
+                style="display:none; color:#ff4444; padding:0.75rem; background:#fff0f0;
+                       border-radius:8px; font-size:0.93rem; margin-bottom:1rem;">
+            </div>
+
+            <!-- Results area -->
+            <div id="aiIdeasResults" style="display:none;">
+                <div style="font-weight:600; color:#1a1a2e; margin-bottom:0.75rem; font-size:0.95rem;">
+                    Generated Ideas — check the ones you want to add:
+                </div>
+                <div id="aiIdeasList"
+                    style="display:flex; flex-direction:column; gap:0.6rem;
+                           margin-bottom:1.25rem; max-height:320px; overflow-y:auto;">
+                    <!-- ideas injected here by JS -->
+                </div>
+                <button type="button" onclick="addSelectedAiIdeas()"
+                    style="background:#1a1a2e; color:white; border:none; border-radius:12px;
+                           padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600;
+                           font-size:1rem; cursor:pointer; width:100%; transition:all 0.3s ease;">
+                    + Add Selected to Menu
+                </button>
+            </div>
+
+        </div>
+    </div>
+    <!-- END AI IDEAS MODAL -->
 
     <script>
         document.addEventListener('DOMContentLoaded', fetchItems);
@@ -654,7 +725,7 @@
             }
         }
 
-        // Categorise modal and functions
+        // Categorise modal and functions — UNCHANGED
         const categoriseModal = document.createElement('div');
         categoriseModal.id = 'categoriseModal';
         categoriseModal.style.display = 'none';
@@ -744,7 +815,7 @@
             }));
         }
 
-        // Chat assistant handlers inside modal
+        // Chat assistant handlers inside modal — UNCHANGED
         function appendChatMessage(text, who) {
             const container = document.getElementById('chatMessages');
             if (!container) return;
@@ -752,14 +823,12 @@
             if (who === 'user') {
                 const userBox = document.createElement('div');
                 userBox.className = 'chat-message user';
-                // put user query in a bold-ish box
                 userBox.innerText = text;
                 container.appendChild(userBox);
                 container.scrollTop = container.scrollHeight;
                 return;
             }
 
-            // assistant reply: if the last element was a user message, insert a spacer of two lines
             const last = container.lastElementChild;
             if (last && last.classList && last.classList.contains('user')) {
                 const spacer = document.createElement('div');
@@ -769,7 +838,6 @@
 
             const bot = document.createElement('div');
             bot.className = 'chat-message assistant';
-            // allow multi-paragraph assistant replies
             const paragraphs = (text || '').split('\n').filter(Boolean);
             paragraphs.forEach(p => {
                 const pp = document.createElement('p');
@@ -785,10 +853,8 @@
                 document.getElementById('categoriseMain').style.display = 'none';
                 document.getElementById('chatPanel').style.display = 'block';
 
-                // Auto-generate a greeting from the assistant when opened (only once)
                 const container = document.getElementById('chatMessages');
                 if (container && container.children.length === 0) {
-                    // Reset history for a fresh session
                     _categoriseState.chatHistory = [];
                     const greetingMsg = 'Please provide a short, friendly greeting to an admin using the categorisation assistant.';
                     appendChatMessage('Thinking...', 'assistant');
@@ -802,17 +868,14 @@
                             })
                         });
 
-                        // Handle redirect to login (auth) explicitly
                         if (resp.redirected || resp.status === 302) {
                             const msg = 'Assistant: sign in required';
                             if (container.lastChild) container.lastChild.textContent = msg;
-                            // skip pushing to history and exit handler
                             return;
                         }
 
                         let reply = null;
                         if (!resp.ok) {
-                            // Try to extract text error for debugging
                             try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error fetching greeting'; }
                         } else {
                             const ct = resp.headers.get('content-type') || '';
@@ -824,14 +887,12 @@
                                     try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error parsing response'; }
                                 }
                             } else {
-                                // Non-JSON success response
                                 try { reply = await resp.text(); } catch (_) { reply = 'Assistant: (no reply)'; }
                             }
                         }
 
                         reply = reply || 'Hello — how can I help you with categorising your menu today?';
                         if (container.lastChild) container.lastChild.textContent = reply;
-                        // Push greeting exchange to history so follow-ups have context
                         _categoriseState.chatHistory.push('User: ' + greetingMsg);
                         _categoriseState.chatHistory.push('Assistant: ' + reply);
                     } catch (err) {
@@ -845,7 +906,6 @@
             if (e.target && e.target.id === 'chatBackBtn') {
                 document.getElementById('chatPanel').style.display = 'none';
                 document.getElementById('categoriseMain').style.display = 'block';
-                // Clear messages & history so next open starts fresh
                 const container = document.getElementById('chatMessages');
                 if (container) container.innerHTML = '';
                 _categoriseState.chatHistory = [];
@@ -895,10 +955,8 @@
 
                     reply = reply || 'No reply';
                     appendChatMessage(reply, 'assistant');
-                    // Update history so each new message has full prior context
                     _categoriseState.chatHistory.push('User: ' + msg);
                     _categoriseState.chatHistory.push('Assistant: ' + reply);
-                    // Cap history at last 10 turns to keep prompt size manageable
                     if (_categoriseState.chatHistory.length > 20) {
                         _categoriseState.chatHistory = _categoriseState.chatHistory.slice(-20);
                     }
@@ -1045,6 +1103,248 @@
                 });
             }
         }
+
+        // =====================================================================
+        // ✨ AI MENU IDEAS FEATURE
+        // =====================================================================
+
+        (function () {
+            const aiIdeasBtn = document.getElementById('aiIdeasBtn');
+            if (aiIdeasBtn) {
+                aiIdeasBtn.addEventListener('click', openAiIdeasModal);
+            }
+            const modal = document.getElementById('aiIdeasModal');
+            if (modal) {
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) closeAiIdeasModal();
+                });
+            }
+        })();
+
+        function openAiIdeasModal() {
+            // Pre-fill existing categories from the currently rendered items
+            const categorySet = new Set();
+            document.querySelectorAll('.item-card .item-details').forEach(function (el) {
+                const catEl = el.querySelector('div[style*="c47a1b"]');
+                if (catEl) {
+                    const txt = catEl.textContent.trim();
+                    if (txt && txt !== 'Uncategorized') categorySet.add(txt);
+                }
+            });
+            window._aiExistingCategories = Array.from(categorySet).join(', ');
+
+            // Reset UI to clean state
+            document.getElementById('aiIdeasResults').style.display = 'none';
+            document.getElementById('aiIdeasLoading').style.display = 'none';
+            document.getElementById('aiIdeasError').style.display = 'none';
+            document.getElementById('aiIdeasList').innerHTML = '';
+            document.getElementById('generateIdeasBtn').disabled = false;
+            document.getElementById('generateIdeasBtn').textContent = 'Generate Ideas';
+
+            document.getElementById('aiIdeasModal').style.display = 'flex';
+        }
+
+        function closeAiIdeasModal() {
+            document.getElementById('aiIdeasModal').style.display = 'none';
+        }
+
+        async function generateAiIdeas() {
+            const cuisineType    = document.getElementById('aiCuisineType').value.trim();
+            const restaurantType = document.getElementById('aiRestaurantType').value.trim();
+            const count          = parseInt(document.getElementById('aiIdeasCount').value) || 5;
+            const existingCategories = window._aiExistingCategories || '';
+
+            // Show loading, hide others
+            document.getElementById('aiIdeasResults').style.display = 'none';
+            document.getElementById('aiIdeasError').style.display = 'none';
+            document.getElementById('aiIdeasLoading').style.display = 'block';
+            const genBtn = document.getElementById('generateIdeasBtn');
+            genBtn.disabled = true;
+            genBtn.textContent = 'Generating...';
+
+            try {
+                const response = await fetch('/api/menu-ideas/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cuisineType, restaurantType, existingCategories, count })
+                });
+
+                if (response.status === 401 || response.redirected) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+
+                document.getElementById('aiIdeasLoading').style.display = 'none';
+                genBtn.disabled = false;
+                genBtn.textContent = 'Generate Ideas';
+
+                if (!response.ok || data.error) {
+                    const errDiv = document.getElementById('aiIdeasError');
+                    errDiv.textContent = data.error || 'Failed to generate ideas. Please try again.';
+                    errDiv.style.display = 'block';
+                    return;
+                }
+
+                const ideas = data.ideas || [];
+                if (ideas.length === 0) {
+                    const errDiv = document.getElementById('aiIdeasError');
+                    errDiv.textContent = 'No ideas were returned. Try adjusting your inputs.';
+                    errDiv.style.display = 'block';
+                    return;
+                }
+
+                renderAiIdeas(ideas);
+
+            } catch (err) {
+                document.getElementById('aiIdeasLoading').style.display = 'none';
+                genBtn.disabled = false;
+                genBtn.textContent = 'Generate Ideas';
+                const errDiv = document.getElementById('aiIdeasError');
+                errDiv.textContent = 'Network error. Please check your connection and try again.';
+                errDiv.style.display = 'block';
+            }
+        }
+
+        function renderAiIdeas(ideas) {
+            const list = document.getElementById('aiIdeasList');
+            list.innerHTML = '';
+
+            ideas.forEach(function (idea, idx) {
+                // Split "Dish Name: Description" if colon present
+                const colonIdx = idea.indexOf(':');
+                let name = idea;
+                let desc = '';
+                if (colonIdx > 0) {
+                    name = idea.substring(0, colonIdx).trim();
+                    desc = idea.substring(colonIdx + 1).trim();
+                }
+
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; ' +
+                    'border:1px solid #e8e8e8; border-radius:10px; cursor:pointer; transition:all 0.2s ease; background:#fafafa;';
+
+                item.addEventListener('mouseenter', function () {
+                    this.style.borderColor = '#ff6b35';
+                    this.style.background = '#fff8f5';
+                });
+                item.addEventListener('mouseleave', function () {
+                    const cb = this.querySelector('input[type="checkbox"]');
+                    if (cb && cb.checked) {
+                        this.style.borderColor = '#ff6b35';
+                        this.style.background = '#fff8f5';
+                    } else {
+                        this.style.borderColor = '#e8e8e8';
+                        this.style.background = '#fafafa';
+                    }
+                });
+
+                const checkId = 'ai-idea-' + idx;
+                item.innerHTML =
+                    '<input type="checkbox" id="' + checkId + '" ' +
+                    'data-name="' + escHtml(name) + '" data-desc="' + escHtml(desc) + '" ' +
+                    'style="margin-top:3px; accent-color:#ff6b35; width:16px; height:16px; flex-shrink:0;" />' +
+                    '<label for="' + checkId + '" style="cursor:pointer; flex:1;">' +
+                    '<div style="font-weight:600; color:#1a1a2e; font-size:0.97rem;">' + escHtml(name) + '</div>' +
+                    (desc ? '<div style="color:#666; font-size:0.87rem; margin-top:2px;">' + escHtml(desc) + '</div>' : '') +
+                    '</label>';
+
+                // Clicking the row (not the checkbox/label directly) also toggles
+                item.addEventListener('click', function (e) {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+                    const cb = this.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = !cb.checked;
+                });
+
+                list.appendChild(item);
+            });
+
+            document.getElementById('aiIdeasResults').style.display = 'block';
+        }
+
+        async function addSelectedAiIdeas() {
+            const checkboxes = document.querySelectorAll('#aiIdeasList input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                Swal.fire({
+                    title: 'Nothing selected',
+                    text: 'Please check at least one idea to add to your menu.',
+                    icon: 'info',
+                    target: document.body
+                });
+                return;
+            }
+
+            const addBtn = document.querySelector('#aiIdeasModal button[onclick="addSelectedAiIdeas()"]');
+            if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Adding...'; }
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const cb of checkboxes) {
+                const name = cb.getAttribute('data-name') || '';
+                const desc = cb.getAttribute('data-desc') || 'AI-generated menu item';
+                if (!name) continue;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('itemName', name);
+                    formData.append('itemPrice', '0.00');  // placeholder — admin sets price after
+                    formData.append('itemDescription', desc || 'AI-generated menu item');
+
+                    const response = await fetch('/api/items', { method: 'POST', body: formData });
+                    const data = await response.json();
+
+                    if (response.ok && (data.success === undefined || data.success)) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                        console.warn('Failed to add idea:', name, data.error);
+                    }
+                } catch (err) {
+                    failCount++;
+                    console.error('Network error adding idea:', name, err);
+                }
+            }
+
+            if (addBtn) { addBtn.disabled = false; addBtn.textContent = '+ Add Selected to Menu'; }
+
+            if (successCount > 0) {
+                closeAiIdeasModal();
+                Swal.fire({
+                    title: 'Added!',
+                    text: successCount + ' item' + (successCount > 1 ? 's' : '') + ' added to your menu. ' +
+                          (failCount > 0 ? failCount + ' failed. ' : '') +
+                          'Remember to set prices before publishing.',
+                    icon: 'success',
+                    timer: 3500,
+                    showConfirmButton: false,
+                    target: document.body
+                });
+                fetchItems();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to add items. Please try again.',
+                    icon: 'error',
+                    target: document.body
+                });
+            }
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#39;');
+        }
+
+        // =====================================================================
+        // END AI MENU IDEAS FEATURE
+        // =====================================================================
+
     </script>
 
 </body>
