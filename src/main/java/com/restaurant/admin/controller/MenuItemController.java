@@ -39,7 +39,6 @@ public class MenuItemController {
     @Autowired
     private SimpleUserService userService;
 
-
     // ✅ Works for BOTH password login and Google login
     private String resolveEmail(Principal principal) {
         if (principal == null) {
