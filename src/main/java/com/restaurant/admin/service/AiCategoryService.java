@@ -1,9 +1,11 @@
 package com.restaurant.admin.service;
 
 import com.restaurant.admin.model.MenuItem;
+import com.restaurant.admin.model.BranchMenuItem;
 import com.restaurant.admin.model.Category;
 import com.restaurant.admin.model.Restaurant;
 import com.restaurant.admin.repository.MenuItemRepository;
+import com.restaurant.admin.repository.BranchMenuItemRepository;
 import com.restaurant.admin.repository.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
-import java.time.LocalDateTime;
 
 /**
  * Service to integrate AI categorization with menu item management
@@ -31,6 +32,9 @@ public class AiCategoryService {
     
     @Autowired
     private MenuItemRepository menuItemRepository;
+    
+    @Autowired
+    private BranchMenuItemRepository branchMenuItemRepository;
     
     @Autowired
     private CategoryRepository categoryRepository;
@@ -183,5 +187,99 @@ public class AiCategoryService {
      */
     public boolean isAiServiceAvailable() {
         return aiServiceClient.isHealthy();
+    }
+
+    /**
+     * Categorize a BranchMenuItem using AI service
+     * Works with items in branch_menu_items table
+     * 
+     * @param branchItem The branch menu item to categorize
+     * @param restaurantId Restaurant ID for AI context
+     * @param branchId Branch ID for AI context
+     * @return result map with itemId, itemName, category, confidence, reasoning
+     */
+    @Transactional
+    public Map<String, Object> categorizeAndSaveBranchMenuItem(BranchMenuItem branchItem, Long restaurantId, Long branchId) {
+        try {
+            // Extract item data for AI categorization
+            String itemName = branchItem.getName();
+            String itemDescription = branchItem.getDescription();
+            Double itemPrice = branchItem.getPrice();
+            
+            if (itemName == null || itemName.trim().isEmpty()) {
+                logger.warn("Cannot categorize: item name is empty");
+                return Map.of(
+                    "itemId", branchItem.getId(),
+                    "itemName", itemName,
+                    "category", "UNKNOWN",
+                    "confidence", 0.0,
+                    "reasoning", "Item name is empty"
+                );
+            }
+            
+            // Call AI service with item details
+            AiServiceClient.CategorizeResponse response = aiServiceClient.categorizeMenuItem(
+                    itemName, 
+                    itemDescription, 
+                    itemPrice != null ? itemPrice : 0.0, 
+                    restaurantId.toString(), 
+                    branchId.toString()
+            );
+            
+            String category = "UNKNOWN";
+            Double confidence = 0.0;
+            String reasoning = "No response from AI service";
+            
+            if (response != null && response.category != null) {
+                category = response.category;
+                confidence = response.confidence != null ? response.confidence : 0.0;
+                reasoning = response.reasoning != null ? response.reasoning : "";
+                
+                // Save category to the BranchMenuItem
+                branchItem.setCategory(category);
+                branchMenuItemRepository.save(branchItem);
+                
+                logger.info("Categorized branch item '{}' -> '{}' (confidence: {})", 
+                    itemName, category, confidence);
+            }
+            
+            return Map.of(
+                "itemId", branchItem.getId(),
+                "itemName", itemName,
+                "category", category,
+                "confidence", confidence,
+                "reasoning", reasoning
+            );
+        } catch (Exception e) {
+            logger.error("Error categorizing branch item: ", e);
+            return Map.of(
+                "itemId", branchItem.getId(),
+                "itemName", branchItem.getName(),
+                "category", "ERROR",
+                "confidence", 0.0,
+                "reasoning", "Exception: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Batch categorize multiple BranchMenuItems
+     * 
+     * @param branchItems List of BranchMenuItems to categorize
+     * @param restaurantId Restaurant ID for AI context
+     * @param branchId Branch ID for AI context
+     * @return List of categorization results with details
+     */
+    @Transactional
+    public List<Map<String, Object>> categorizeBranchMenuItemsBatch(List<BranchMenuItem> branchItems, 
+                                              Long restaurantId, Long branchId) {
+        List<Map<String, Object>> results = new java.util.ArrayList<>();
+        for (BranchMenuItem item : branchItems) {
+            Map<String, Object> result = categorizeAndSaveBranchMenuItem(item, restaurantId, branchId);
+            results.add(result);
+        }
+        logger.info("Branch batch categorization complete: {}/{} items processed", 
+            results.size(), branchItems.size());
+        return results;
     }
 }

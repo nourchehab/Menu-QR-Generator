@@ -5,6 +5,7 @@ import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.BranchRepository;
 import com.restaurant.admin.repository.BranchMenuItemRepository;
 import com.restaurant.admin.model.BranchMenuItem;
+import com.restaurant.admin.service.AiCategoryService;
 import com.restaurant.admin.service.BranchService;
 import com.restaurant.admin.service.BranchService.EffectiveMenuItem;
 import com.restaurant.admin.service.MenuItemService;
@@ -33,6 +34,7 @@ public class BranchItemApiController {
     @Autowired private MenuItemImageStorageService imageStorageService;
     @Autowired private BranchRepository           branchRepository;
     @Autowired private BranchMenuItemRepository   branchMenuItemRepository;
+    @Autowired private AiCategoryService          aiCategoryService;
 
     // ── Auth helpers ──────────────────────────────────────────────────────────
 
@@ -234,6 +236,58 @@ public class BranchItemApiController {
                 branchMenuItemRepository.save(bmi);
             }
             return ResponseEntity.ok(Map.of("success", true, "message", "Image deleted"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/api/branch/{branchId}/batch-categorize")
+    public ResponseEntity<?> batchCategorizeBranchItems(
+            @PathVariable Long branchId,
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+
+        if (principal == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+
+        try {
+            SimpleUser user = getCurrentUser(principal);
+            if (user == null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
+
+            Branch branch = branchService.getBranchForUser(user, branchId);
+
+            // Extract itemIds from request body
+            @SuppressWarnings("unchecked")
+            List<Long> itemIds = (List<Long>) body.get("itemIds");
+            if (itemIds == null || itemIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "itemIds not provided"));
+            }
+
+            // Fetch BranchMenuItems for the given IDs
+            List<BranchMenuItem> items = new java.util.ArrayList<>();
+            for (Long itemId : itemIds) {
+                branchMenuItemRepository.findByIdAndBranch(itemId, branch).ifPresent(items::add);
+            }
+
+            if (items.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No valid items found"));
+            }
+
+            // Get restaurant ID
+            Long restaurantId = branch.getRestaurant().getId();
+
+            // Call AI categorization service for batch processing
+            List<Map<String, Object>> results = aiCategoryService.categorizeBranchMenuItemsBatch(items, restaurantId, branchId);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Items categorized successfully",
+                    "results", results
+            ));
+
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
         } catch (Exception e) {
