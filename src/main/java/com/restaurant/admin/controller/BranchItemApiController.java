@@ -290,11 +290,19 @@ public class BranchItemApiController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Branch does not belong to restaurant"));
             }
 
-            // Extract itemIds from request body
+            // Extract itemIds from request body and convert to Long
             @SuppressWarnings("unchecked")
-            List<Long> itemIds = (List<Long>) body.get("itemIds");
-            if (itemIds == null || itemIds.isEmpty()) {
+            List<Object> itemIdsRaw = (List<Object>) body.get("itemIds");
+            if (itemIdsRaw == null || itemIdsRaw.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "itemIds not provided"));
+            }
+
+            // Convert to List<Long> safely
+            List<Long> itemIds = new java.util.ArrayList<>();
+            for (Object id : itemIdsRaw) {
+                if (id instanceof Number) {
+                    itemIds.add(((Number) id).longValue());
+                }
             }
 
             // Fetch BranchMenuItems for the given IDs
