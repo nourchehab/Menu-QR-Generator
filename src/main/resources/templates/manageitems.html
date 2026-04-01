@@ -6,162 +6,75 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- FIX #5: DOMPurify added to sanitize user-controlled HTML content and prevent XSS -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
- 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
-            min-height: 100vh; padding: 2rem; position: relative; overflow-x: hidden;
-        }
- 
-        body::before {
-            content: ''; position: absolute; top: -50%; right: -50%;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px; animation: drift 60s linear infinite; pointer-events: none;
-        }
- 
+        body { font-family: 'DM Sans', sans-serif; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%); min-height: 100vh; padding: 2rem; position: relative; overflow-x: hidden; }
+        body::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 50px 50px; animation: drift 60s linear infinite; pointer-events: none; }
         @keyframes drift { 0% { transform: translate(0,0); } 100% { transform: translate(50px,50px); } }
- 
         .container { max-width: 1000px; margin: 0 auto; position: relative; }
- 
-        .header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;
-        }
- 
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
         .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
- 
         @keyframes fadeSlideIn { 0% { opacity:0; transform:translateY(20px); } 100% { opacity:1; transform:translateY(0); } }
- 
-        .back-btn {
-            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 12px; padding: 0.75rem 1rem; color: white;
-            font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease; text-decoration: none;
-            display: inline-flex; align-items: center; gap: 0.5rem; backdrop-filter: blur(10px);
-            width: fit-content;
-        }
- 
+        .back-btn { background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 0.75rem 1rem; color: white; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; backdrop-filter: blur(10px); width: fit-content; }
         .back-btn:hover { background: rgba(255,255,255,0.25); transform: translateX(-3px); }
- 
         .page-title { font-family: 'Fraunces', serif; font-size: 2.25rem; font-weight: 300; color: white; letter-spacing: -0.02em; }
         .branch-label { font-size: 0.85rem; color: rgba(255,255,255,0.75); font-weight: 500; }
- 
-        .add-btn, .categorise-btn {
-            background: white; color: #ff6b35; text-decoration: none; border-radius: 12px;
-            padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); white-space: nowrap; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif; font-size: 1rem;
-        }
- 
-        .add-btn:hover, .categorise-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
- 
-        .content-card {
-            background: rgba(255,255,255,0.98); border-radius: 24px; padding: 3rem;
-            box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-            animation: fadeSlideIn 0.8s ease-out 0.2s backwards;
-        }
- 
+        .add-btn { background: white; color: #ff6b35; text-decoration: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-categorise { background: white; color: #ff6b35; text-decoration: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; display: inline-block; font-family: inherit; font-size: inherit; cursor: pointer; }
+        .add-btn:hover, .btn-categorise:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .content-card { background: rgba(255,255,255,0.98); border-radius: 24px; padding: 3rem; box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); animation: fadeSlideIn 0.8s ease-out 0.2s backwards; }
         .items-list { display: flex; flex-direction: column; gap: 1.5rem; }
- 
-        .item-card {
-            display: flex; align-items: center; background: white;
-            border: 1px solid #e0e0e0; border-radius: 16px; padding: 1.5rem; gap: 1.5rem;
-            transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
- 
+        .item-card { display: flex; align-items: center; background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 1.5rem; gap: 1.5rem; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); animation: fadeSlideIn 0.5s ease-out backwards; }
         .item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #ffd0b8; }
- 
-        .item-image {
-            width: 100px; height: 100px; border-radius: 12px; object-fit: cover;
-            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-            flex-shrink: 0;
-        }
- 
-        .item-details { flex: 1; min-width: 0; }
+        .item-image { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; background: linear-gradient(135deg, #f0f0f0, #e0e0e0); flex-shrink: 0; }
+        .item-details { flex: 1; }
         .item-name { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 600; color: #1a1a2e; margin-bottom: 0.25rem; }
- 
-        .item-price {
-            font-weight: 600; color: #ff6b35; font-size: 1.1rem; margin-bottom: 0.5rem;
-            display: inline-block; background: rgba(255,107,53,0.1); padding: 0.25rem 0.75rem; border-radius: 20px;
-        }
- 
-        .item-category { margin-bottom: 0.5rem; color: #c47a1b; font-weight: 600; font-size: 0.9rem; }
+        .item-price { font-weight: 600; color: #ff6b35; font-size: 1.1rem; margin-bottom: 0.5rem; display: inline-block; background: rgba(255,107,53,0.1); padding: 0.25rem 0.75rem; border-radius: 20px; }
         .item-desc { color: #666; font-size: 0.95rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
- 
-        .item-actions { display: flex; gap: 0.75rem; flex-shrink: 0; }
- 
-        .btn-action {
-            padding: 0.5rem 1rem; border-radius: 8px; font-family: 'DM Sans', sans-serif;
-            font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;
-            border: none; display: inline-flex; align-items: center; gap: 0.5rem;
-        }
- 
+        .item-actions { display: flex; gap: 0.75rem; }
+        .btn-action { padding: 0.5rem 1rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); border: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-categorise-item { transition: all 0.18s ease; }
+        .btn-categorise-item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); background: #c47a1b !important; color: #ffffff !important; }
         .btn-edit { background: #f0f0f0; color: #1a1a2e; }
         .btn-edit:hover { background: #e0e0e0; transform: translateY(-2px); }
         .btn-delete { background: #fff0f0; color: #ff4444; }
         .btn-delete:hover { background: #ff4444; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,68,68,0.3); }
- 
-        /* FIX #2: Hover effects moved from broken inline onmouseover to proper CSS */
-        .categorise-modal-btn { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .categorise-modal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,140,66,0.4); }
- 
         .empty-state { text-align: center; padding: 3rem 0; color: #666; display: none; }
         .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
         .empty-state h3 { font-family: 'Fraunces', serif; color: #1a1a2e; font-size: 1.5rem; margin-bottom: 0.5rem; }
- 
         .loader { text-align: center; padding: 2rem; color: #666; font-weight: 500; }
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,107,53,0.2); border-radius: 50%; border-top-color: #ff6b35; animation: spin 1s ease-in-out infinite; margin: 0 auto 1rem; }
- 
         @keyframes spin { to { transform: rotate(360deg); } }
- 
-        .form-input, .form-textarea {
-            width: 100%; padding: 0.9rem 1rem; border: 2px solid #e0e0e0; border-radius: 12px;
-            font-family: 'DM Sans', sans-serif; font-size: 1rem; color: #1a1a2e;
-        }
- 
+        .form-input, .form-textarea { width: 100%; padding: 0.9rem 1rem; border: 2px solid #e0e0e0; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 1rem; color: #1a1a2e; }
         .form-input:focus, .form-textarea:focus { outline: none; border-color: #ff6b35; box-shadow: 0 0 0 4px rgba(255,107,53,0.1); }
- 
         .swal2-container { z-index: 20000 !important; }
- 
-        @media (max-width: 640px) {
-            .content-card { padding: 1.5rem; }
-            .item-card { flex-direction: column; align-items: flex-start; }
-            .item-image { width: 100%; height: 200px; }
-            .item-actions { width: 100%; justify-content: flex-end; }
-        }
+        @media (max-width: 640px) { .content-card { padding: 1.5rem; } .item-card { flex-direction: column; align-items: flex-start; } .item-image { width: 100%; height: 200px; } .item-actions { width: 100%; justify-content: flex-end; } .header { flex-direction: column; align-items: flex-start; } }
     </style>
 </head>
 <body>
- 
 <div class="container">
     <div class="header">
         <div class="header-left">
+            <!-- ✅ Back button set dynamically to branch dashboard -->
             <a id="backBtn" href="#" class="back-btn">← Back to Dashboard</a>
             <h1 class="page-title">Manage Items</h1>
             <div class="branch-label" id="branchLabel"></div>
         </div>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button id="categoriseBtn" class="categorise-btn">Categorise Items</button>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+            <button id="categoriseAllBtn" class="add-btn btn-categorise" type="button">Categorise</button>
+            <button id="aiIdeasBtn" class="add-btn btn-categorise" type="button">✨ AI Ideas</button>
+            <!-- ✅ Add Item link also branch-scoped -->
             <a id="addItemBtn" href="#" class="add-btn">+ Add Item</a>
         </div>
     </div>
- 
+
     <div class="content-card">
         <div class="empty-state" id="emptyState">
             <div class="empty-icon">🍽️</div>
             <h3>No items yet</h3>
             <p>You haven't added any menu items to this branch.</p>
-            <a id="addItemEmptyBtn" href="#" class="add-btn"
-               style="display:inline-block; margin-top:1.5rem; background:#ff6b35; color:white;">
-                Start Adding Items
-            </a>
+            <a id="addItemEmptyBtn" href="#" class="add-btn" style="display:inline-block; margin-top:1.5rem; background:#ff6b35; color:white;">Start Adding Items</a>
         </div>
- 
         <div class="items-list" id="itemsList">
             <div class="loader" id="loadingMsg">
                 <div class="spinner"></div>
@@ -170,597 +83,478 @@
         </div>
     </div>
 </div>
- 
+
 <!-- Edit Modal -->
-<div id="editModal"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
-    <div style="width:100%; max-width:520px; background:#fff; border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
+    <div style="width:100%; max-width:720px; background:#fff; border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
             <div style="font-family:'Fraunces',serif; font-size:1.35rem; color:#1a1a2e;">Edit Item</div>
             <button type="button" onclick="closeEditModal()" class="btn-action btn-edit" style="padding:.45rem .75rem;">✕</button>
         </div>
- 
-        <form id="editForm">
-            <input type="hidden" id="editItemId"/>
- 
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; font-weight:600; margin-bottom:.4rem;">Name</label>
-                <input id="editItemName" class="form-input" required maxlength="100"/>
+        <div style="display:flex; gap:1.25rem; flex-wrap:wrap;">
+            <div style="flex:0 0 220px;">
+                <img id="currentItemImage" src="/images/menu-item-placeholder.svg" alt="Current" style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid #eee;" />
+                <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+                    <button id="deleteImageBtn" type="button" class="btn-action btn-delete" style="display:none;" onclick="deleteItemImage()">Delete Image</button>
+                </div>
+                <div id="newImagePreviewWrap" style="display:none; margin-top:1rem;">
+                    <div style="font-weight:600; color:#1a1a2e; margin-bottom:.5rem;">New image preview</div>
+                    <img id="newImagePreview" src="" alt="Preview" style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid #eee;" />
+                </div>
             </div>
- 
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; font-weight:600; margin-bottom:.4rem;">Price</label>
-                <input id="editItemPrice" class="form-input" type="number" step="0.01" min="0" required/>
-            </div>
- 
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; font-weight:600; margin-bottom:.4rem;">Description</label>
-                <textarea id="editItemDescription" class="form-textarea" required maxlength="500" style="min-height:100px;"></textarea>
-            </div>
- 
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; font-weight:600; margin-bottom:.4rem;">Category</label>
-                <input id="editItemCategory" class="form-input" maxlength="100" placeholder="e.g. Starters, Mains, Desserts"/>
-            </div>
- 
-            <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem;">
-                <button type="button" class="btn-action btn-edit" onclick="closeEditModal()">Cancel</button>
-                <button id="saveEditBtn" type="submit" class="btn-action" style="background:#ff6b35; color:white;">Save Changes</button>
-            </div>
+            <form id="editForm" style="flex:1; min-width:260px;">
+                <input type="hidden" id="editItemId" />
+                <div style="margin-bottom:1rem;"><label style="display:block; font-weight:600; margin-bottom:.4rem;">Name</label><input id="editItemName" class="form-input" required maxlength="100" /></div>
+                <div style="margin-bottom:1rem;"><label style="display:block; font-weight:600; margin-bottom:.4rem;">Price</label><input id="editItemPrice" class="form-input" type="number" step="0.01" min="0" required /></div>
+                <div style="margin-bottom:1rem;"><label style="display:block; font-weight:600; margin-bottom:.4rem;">Description</label><textarea id="editItemDescription" class="form-textarea" required maxlength="500" style="min-height:110px;"></textarea></div>
+                <div style="margin-bottom:1rem;"><label style="display:block; font-weight:600; margin-bottom:.4rem;">Category</label><input id="editItemCategory" class="form-input" maxlength="100" placeholder="e.g., Appetizers, Main Courses, Desserts, Drinks" /></div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block; font-weight:600; margin-bottom:.4rem;">Replace image <span style="font-weight:400; color:#666;">(optional)</span></label>
+                    <input id="editItemPhoto" type="file" accept="image/png,image/jpeg,image/webp" />
+                    <div style="margin-top:.35rem; color:#666; font-size:.85rem;">Allowed: JPG/PNG/WEBP up to 5MB</div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem;">
+                    <button type="button" class="btn-action btn-edit" onclick="closeEditModal()">Cancel</button>
+                    <button id="saveEditBtn" type="submit" class="btn-action" style="background:#ff6b35; color:white;">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
- 
-<!-- Categorise Modal -->
-<div id="categoriseModal"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999; overflow-y:auto;">
-    <div style="width:100%; max-width:700px; background:linear-gradient(135deg, #D2691E 0%, #8B4513 50%, #A0522D 100%); border-radius:24px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.4); margin:auto; overflow:hidden;">
-        <!-- Header -->
-        <div style="background:rgba(0,0,0,0.1); padding:2rem 2rem 1rem; display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="flex:1;">
-                <div style="font-family:'Fraunces',serif; font-size:1.8rem; font-weight:700; color:white; margin-bottom:0.25rem;">🤖 AI Categorise Items</div>
-                <p style="color:rgba(255,255,255,0.8); font-size:0.95rem; margin:0;">Select items to categorise, then let AI suggest the best categories</p>
-            </div>
-            <!-- FIX #2: Removed broken inline onmouseover/onmouseout — replaced with CSS class -->
-            <button type="button" onclick="closeCategoriseModal()" id="closeCategoriseBtn" style="background:rgba(255,255,255,0.2); border:none; color:white; font-size:1.5rem; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease; flex-shrink:0; margin-left:1rem;">✕</button>
+
+<!-- AI Ideas Modal -->
+<div id="aiIdeasModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
+    <div style="width:100%; max-width:680px; background:#fff; border-radius:18px; padding:1.75rem; box-shadow:0 30px 90px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <div style="font-family:'Fraunces',serif; font-size:1.35rem; color:#1a1a2e;">✨ AI Menu Ideas</div>
+            <button type="button" onclick="closeAiIdeasModal()" class="btn-action btn-edit" style="padding:.45rem .75rem;">✕</button>
         </div>
- 
-        <!-- Content -->
-        <div style="padding:2rem;">
-            <div id="categoriseContent">
-                <!-- Step 1: Select Items -->
-                <div style="margin-bottom:1.5rem;">
-                    <label style="display:block; font-weight:700; margin-bottom:1rem; color:white; font-size:1.1rem;">Select Items to Categorise</label>
-                    <div id="categoriseItemsList" style="max-height:350px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:12px; padding:1.25rem; border:2px solid rgba(255,255,255,0.2);"></div>
-                </div>
- 
-                <!-- FIX #2: All inline onmouseover/onmouseout replaced with CSS class .categorise-modal-btn -->
-                <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-                    <div style="display:flex; gap:0.75rem;">
-                        <button type="button" class="categorise-modal-btn" style="background:rgba(255,255,255,0.25); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease;" onclick="selectAllItemsForCategorise(true)">Select All</button>
-                        <button type="button" class="categorise-modal-btn" style="background:rgba(255,255,255,0.25); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease;" onclick="selectAllItemsForCategorise(false)">Deselect All</button>
-                    </div>
-                    <div style="display:flex; gap:0.75rem;">
-                        <button type="button" class="categorise-modal-btn" style="background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease;" onclick="closeCategoriseModal()">Cancel</button>
-                        <button id="categoriseSubmitBtn" type="button" class="categorise-modal-btn" style="background:#FF8C42; border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="submitCategoriseRequest()">Generate Categories</button>
-                    </div>
-                </div>
-            </div>
- 
-            <!-- Results Section -->
-            <div id="categoriseResults" style="display:none;">
-                <div style="margin-bottom:1.5rem;">
-                    <div style="font-weight:700; margin-bottom:1rem; color:white; font-size:1.1rem;">✓ AI Suggested Categories — review and confirm:</div>
-                    <div style="max-height:420px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:12px; padding:1.25rem; border:2px solid rgba(255,255,255,0.2);" id="resultsContainer"></div>
-                </div>
- 
-                <!-- FIX #2: Inline hover handlers removed — CSS class used instead -->
-                <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-                    <button type="button" class="categorise-modal-btn" style="background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease;" onclick="closeCategoriseModal()">Done</button>
-                    <button type="button" class="categorise-modal-btn" style="background:#FF8C42; border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="categoriseAgain()">Categorise More</button>
-                </div>
-            </div>
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+            <div style="flex:1; min-width:160px;"><label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">Cuisine Type</label><input id="aiCuisineType" class="form-input" placeholder="e.g. Lebanese, Italian" style="font-size:0.92rem;" /></div>
+            <div style="flex:1; min-width:160px;"><label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">Restaurant Style</label><input id="aiRestaurantType" class="form-input" placeholder="e.g. cafe, fine dining" style="font-size:0.92rem;" /></div>
+            <div style="flex:1; min-width:160px;"><label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">How many ideas?</label><input id="aiIdeasCount" class="form-input" type="number" min="1" max="10" value="5" style="font-size:0.92rem;" /></div>
+        </div>
+        <button id="generateIdeasBtn" type="button" style="background:#ff6b35; color:white; border:none; border-radius:12px; padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600; font-size:1rem; cursor:pointer; width:100%; margin-bottom:1.25rem;" onclick="generateAiIdeas()">Generate Ideas</button>
+        <div id="aiIdeasLoading" style="display:none; text-align:center; padding:1.5rem 0;"><div class="spinner"></div><p style="color:#666; margin-top:0.5rem;">Generating ideas...</p></div>
+        <div id="aiIdeasError" style="display:none; color:#ff4444; padding:0.75rem; background:#fff0f0; border-radius:8px; font-size:0.93rem; margin-bottom:1rem;"></div>
+        <div id="aiIdeasResults" style="display:none;">
+            <div style="font-weight:600; color:#1a1a2e; margin-bottom:0.75rem; font-size:0.95rem;">Generated Ideas — check the ones you want to add:</div>
+            <div id="aiIdeasList" style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem; max-height:320px; overflow-y:auto;"></div>
+            <button type="button" onclick="addSelectedAiIdeas()" style="background:#1a1a2e; color:white; border:none; border-radius:12px; padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600; font-size:1rem; cursor:pointer; width:100%;">+ Add Selected to Menu</button>
         </div>
     </div>
 </div>
- 
+
 <script>
     // ── Read branchId from URL ────────────────────────────────────────────────
     const params     = new URLSearchParams(window.location.search);
     const branchId   = params.get('branchId');
     const branchName = params.get('branchName') || 'Branch';
-    let restaurantId = null;
- 
+
     if (!branchId) {
+        // No branchId — redirect to restaurants
         window.location.href = '/restaurants';
     }
- 
-    // Set navigation links
-    const dashUrl = `/branch/${branchId}/dashboard`;
-    const addUrl  = `/enteritems?branchId=${branchId}&branchName=${encodeURIComponent(branchName)}`;
- 
+
+    // ✅ All URLs are branch-scoped
+    const dashUrl    = `/branch/${branchId}/dashboard`;
+    const addUrl     = `/enteritems?branchId=${branchId}&branchName=${encodeURIComponent(branchName)}`;
+    const API        = `/api/branch/${branchId}/items`;
+
     document.getElementById('backBtn').href        = dashUrl;
-    document.getElementById('addItemBtn').href      = addUrl;
+    document.getElementById('addItemBtn').href     = addUrl;
     document.getElementById('addItemEmptyBtn').href = addUrl;
-    // FIX #6: branchLabel set via textContent — not innerHTML — so any injected HTML is inert
     document.getElementById('branchLabel').textContent = `Branch: ${branchName}`;
- 
-    // ── API base ──────────────────────────────────────────────────────────────
-    const API = `/api/branch/${branchId}/items`;
- 
-    // FIX #3: Single shared cache — fetchItems populates it; openCategoriseModal reuses it
-    let cachedItems = [];
- 
-    // ── Fetch restaurant ID ───────────────────────────────────────────────────
-    async function getRestaurantId() {
-        if (restaurantId) return restaurantId;
-        try {
-            const response = await fetch(`/api/branches/${branchId}`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.data && data.data.restaurantId) {
-                    restaurantId = data.data.restaurantId;
-                    return restaurantId;
-                } else if (data.restaurantId) {
-                    restaurantId = data.restaurantId;
-                    return restaurantId;
-                }
-            }
-        } catch (err) {
-            console.error('Failed to fetch restaurant ID:', err);
-        }
-        return null;
-    }
- 
-    // ── Fetch and render items ────────────────────────────────────────────────
-    // FIX #1: Guard against the DOMContentLoaded event having already fired before
-    // this script runs. At the bottom of <body> the DOM is already parsed, so the
-    // event has fired and a bare addEventListener would silently never call fetchItems.
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fetchItems);
-    } else {
-        fetchItems();
-    }
- 
+
+    // ── Fetch items ───────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', fetchItems);
+
     async function fetchItems() {
         try {
+            // ✅ Hits /api/branch/{branchId}/items — not /api/items
             const response = await fetch(API);
             if (response.status === 401) { window.location.href = '/login'; return; }
             const items = await response.json();
-            // FIX #3: Store fetched items in shared cache so categorise modal reuses them
-            cachedItems = items || [];
-            renderItems(cachedItems);
-        } catch (err) {
+            renderItems(items);
+        } catch (error) {
             document.getElementById('itemsList').innerHTML =
                 '<div class="loader"><p style="color:#ff4444">Error loading items. Please refresh.</p></div>';
         }
     }
- 
+
     function renderItems(items) {
         const list  = document.getElementById('itemsList');
         const empty = document.getElementById('emptyState');
         list.innerHTML = '';
- 
-        if (!items || items.length === 0) {
-            empty.style.display = 'block';
-            return;
-        }
+
+        if (!items || items.length === 0) { empty.style.display = 'block'; return; }
         empty.style.display = 'none';
- 
+
         items.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'item-card';
-            card.style.animationDelay = `${index * 0.08}s`;
- 
-            const id       = item.branchItemId;
-            const name     = item.name     || '';
-            const price    = parseFloat(item.price || 0).toFixed(2);
-            const desc     = item.description || '';
-            const category = item.category || '';
- 
-            // FIX #5 & #6: No data is placed into innerHTML via string interpolation.
-            // All user-controlled strings are written with textContent to prevent XSS.
-            // Buttons use data-* attributes; event listeners are attached in JS — no
-            // inline onclick with interpolated strings, eliminating quote-injection risk.
-            const img = document.createElement('img');
-            img.src       = '/images/menu-item-placeholder.svg';
-            img.alt       = name;
-            img.className = 'item-image';
-            img.onerror   = () => { img.src = '/images/menu-item-placeholder.svg'; };
- 
-            const details = document.createElement('div');
-            details.className = 'item-details';
- 
-            const nameEl = document.createElement('div');
-            nameEl.className = 'item-name';
-            nameEl.textContent = name;
- 
-            const priceEl = document.createElement('div');
-            priceEl.className = 'item-price';
-            priceEl.textContent = `$${price}`;
- 
-            const catEl = document.createElement('div');
-            catEl.className = 'item-category';
-            catEl.textContent = category || 'Uncategorized';
- 
-            const descEl = document.createElement('div');
-            descEl.className = 'item-desc';
-            descEl.textContent = desc;
- 
-            details.appendChild(nameEl);
-            details.appendChild(priceEl);
-            details.appendChild(catEl);
-            details.appendChild(descEl);
- 
-            const actions = document.createElement('div');
-            actions.className = 'item-actions';
- 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-action btn-delete';
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.dataset.itemId = id;
-            deleteBtn.addEventListener('click', () => deleteItem(id));
- 
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn-action btn-edit';
-            editBtn.textContent = 'Edit';
-            // FIX #6: Data passed via closure / dataset — no inline onclick string interpolation
-            editBtn.addEventListener('click', () => openEditModal(id, name, item.price, desc, category));
- 
-            actions.appendChild(deleteBtn);
-            actions.appendChild(editBtn);
- 
-            card.appendChild(img);
-            card.appendChild(details);
-            card.appendChild(actions);
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            // ✅ EffectiveMenuItem fields: name, price, description, category, photoUrl, branchItemId
+            const id       = item.branchItemId  ?? item.restaurantItemId ?? item.id;
+            const name     = item.name          ?? item.itemName         ?? '';
+            const price    = parseFloat(item.price ?? item.itemPrice ?? 0).toFixed(2);
+            const desc     = item.description   ?? item.itemDescription  ?? '';
+            const category = item.category      ?? '';
+            // ✅ photoUrl is now returned by EffectiveMenuItem
+            const photoUrl = item.photoUrl      ?? item.photoPath        ?? null;
+
+            const imageHtml = photoUrl
+                ? `<img src="${photoUrl}" alt="${escHtml(name)}" class="item-image" onerror="this.src='/images/menu-item-placeholder.svg';">`
+                : `<img src="/images/menu-item-placeholder.svg" alt="No image" class="item-image">`;
+
+            const safeName = name.replace(/'/g, "\\'");
+            const safeDesc = desc.replace(/'/g, "\\'");
+            const safeCat  = category.replace(/'/g, "\\'");
+            const safePhoto = photoUrl ? `'${photoUrl}'` : 'null';
+
+            card.innerHTML = `
+                ${imageHtml}
+                <div class="item-details">
+                    <div class="item-name">${escHtml(name)}</div>
+                    <div class="item-price">$${price}</div>
+                    <div style="margin-bottom:0.5rem; color:#c47a1b; font-weight:600; font-size:0.9rem;">
+                        ${category && category.trim() !== '' ? escHtml(category) : 'Uncategorized'}
+                    </div>
+                    <div class="item-desc">${escHtml(desc)}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-action btn-delete" onclick="deleteItem(${id})">Delete</button>
+                    <button class="btn-action btn-categorise-item" onclick="openCategoriseModal(${id})" style="background:#fff8e6; color:#c47a1b;">Categorise</button>
+                    <button class="btn-action btn-edit"
+                        onclick="openEditModal(${id}, '${safeName}', ${item.price ?? item.itemPrice ?? 0}, '${safeDesc}', '${safeCat}', ${safePhoto})">
+                        Edit
+                    </button>
+                </div>
+            `;
             list.appendChild(card);
         });
     }
- 
-    // ── Categorise Modal Functions ────────────────────────────────────────────
-    const categoriseModal = document.getElementById('categoriseModal');
- 
-    document.getElementById('categoriseBtn').addEventListener('click', openCategoriseModal);
- 
-    // FIX #3: No fetch here — reuse cachedItems populated by fetchItems()
-    function openCategoriseModal() {
-        if (cachedItems.length === 0) {
-            Swal.fire({ title: 'No items', text: 'There are no items to categorise yet.', icon: 'info', target: document.body });
-            return;
-        }
-        renderCategoriseItemsList();
-        categoriseModal.style.display = 'flex';
-    }
- 
-    function renderCategoriseItemsList() {
-        const list = document.getElementById('categoriseItemsList');
-        list.innerHTML = '';
- 
-        if (cachedItems.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; font-weight:500;">No items available</p>';
-            return;
-        }
- 
-        cachedItems.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.style.cssText = 'display:flex; align-items:flex-start; gap:1rem; padding:1rem; border-bottom:1px solid #f0f0f0; transition:all 0.3s ease;';
- 
-            // FIX #2: Hover handled via CSS (no inline onmouseover)
-            div.classList.add('categorise-item-row');
- 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id   = `cat-item-${item.branchItemId || item.restaurantItemId || index}`;
-            checkbox.checked = true;
-            checkbox.style.cssText = 'cursor:pointer; width:18px; height:18px; margin-top:3px; flex-shrink:0; accent-color:#FF8C42;';
-            checkbox.setAttribute('data-item-id', item.branchItemId || item.restaurantItemId);
- 
-            const label = document.createElement('label');
-            label.htmlFor = checkbox.id;
-            label.style.cssText = 'cursor:pointer; flex:1; display:flex; flex-direction:column; gap:0.5rem;';
- 
-            // FIX #5: textContent used for all user data — no innerHTML interpolation
-            const nameSpan = document.createElement('span');
-            nameSpan.style.cssText = 'font-weight:700; color:#1a1a2e; font-size:1rem;';
-            nameSpan.textContent = item.name;
- 
-            const descSpan = document.createElement('span');
-            descSpan.style.cssText = 'font-size:0.9rem; color:#666; line-height:1.4;';
-            const descText = item.description || 'No description';
-            descSpan.textContent = descText.length > 80 ? descText.substring(0, 80) + '...' : descText;
- 
-            const priceSpan = document.createElement('span');
-            priceSpan.style.cssText = 'font-size:0.95rem; color:#FF8C42; font-weight:700;';
-            priceSpan.textContent = `$${parseFloat(item.price || 0).toFixed(2)}`;
- 
-            label.appendChild(nameSpan);
-            label.appendChild(descSpan);
-            label.appendChild(priceSpan);
- 
-            div.appendChild(checkbox);
-            div.appendChild(label);
-            list.appendChild(div);
-        });
-    }
- 
-    function selectAllItemsForCategorise(select) {
-        document.querySelectorAll('#categoriseItemsList input[type="checkbox"]').forEach(cb => {
-            cb.checked = select;
-        });
-    }
- 
-    async function submitCategoriseRequest() {
-        const selected = Array.from(document.querySelectorAll('#categoriseItemsList input[type="checkbox"]:checked'))
-            .map(cb => parseInt(cb.getAttribute('data-item-id')));
- 
-        if (selected.length === 0) {
-            Swal.fire({ title: 'Warning!', text: 'Please select at least one item', icon: 'warning', target: document.body });
-            return;
-        }
- 
-        const submitBtn = document.getElementById('categoriseSubmitBtn');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Generating Categories...';
- 
-        try {
-            const restId = await getRestaurantId();
-            if (!restId) {
-                Swal.fire({ title: 'Error!', text: 'Could not determine restaurant', icon: 'error', target: document.body });
-                return;
-            }
- 
-            const response = await fetch(`/api/restaurants/${restId}/batch-categorize?branchId=${branchId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itemIds: selected })
-            });
- 
-            const data = await response.json();
- 
-            if (response.ok && data.success) {
-                displayCategoriseResults(data.results || []);
-            } else {
-                Swal.fire({ title: 'Error!', text: data.error || 'Categorisation failed', icon: 'error', target: document.body });
-            }
-        } catch (err) {
-            Swal.fire({ title: 'Error!', text: 'Network error: ' + err.message, icon: 'error', target: document.body });
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Generate Categories';
-        }
-    }
- 
-    function displayCategoriseResults(results) {
-        document.getElementById('categoriseContent').style.display = 'none';
-        document.getElementById('categoriseResults').style.display = 'block';
- 
-        const container = document.getElementById('resultsContainer');
-        container.innerHTML = '';
- 
-        if (!results || results.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#999; font-weight:500; padding:2rem;">No results available</p>';
-            return;
-        }
- 
-        results.forEach(result => {
-            const div = document.createElement('div');
-            div.style.cssText = 'padding:1.25rem; border:2px solid rgba(255,140,66,0.2); border-radius:10px; margin-bottom:1rem; background:rgba(255,255,255,0.98); transition:all 0.3s ease;';
-            div.classList.add('categorise-modal-btn');
- 
-            const statusColor = result.success ? '#4CAF50' : '#ff6b35';
-            const statusIcon  = result.success ? '✓' : '→';
- 
-            // Header row
-            const headerRow = document.createElement('div');
-            headerRow.style.cssText = 'display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;';
- 
-            const badge = document.createElement('span');
-            badge.style.cssText = `display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:${statusColor}; color:white; font-weight:bold; font-size:0.9rem;`;
-            badge.textContent = statusIcon;
- 
-            const itemNameSpan = document.createElement('span');
-            itemNameSpan.style.cssText = 'font-weight:600; color:#1a1a2e; flex:1;';
-            // FIX #5: textContent used — never innerHTML with user data
-            itemNameSpan.textContent = result.itemName;
- 
-            headerRow.appendChild(badge);
-            headerRow.appendChild(itemNameSpan);
-            div.appendChild(headerRow);
- 
-            if (result.success) {
-                const infoBlock = document.createElement('div');
-                infoBlock.style.cssText = 'margin-left:2rem; margin-bottom:0.5rem;';
- 
-                const catLine = document.createElement('div');
-                catLine.style.cssText = 'font-size:0.9rem; color:#666; margin-bottom:0.25rem;';
-                catLine.innerHTML = '<strong>Suggested Category:</strong> ';
-                const catVal = document.createElement('span');
-                catVal.style.cssText = 'color:#4CAF50; font-weight:600;';
-                catVal.textContent = result.category;
-                catLine.appendChild(catVal);
- 
-                const confLine = document.createElement('div');
-                confLine.style.cssText = 'font-size:0.9rem; color:#666; margin-bottom:0.25rem;';
-                confLine.innerHTML = '<strong>Confidence:</strong> ';
-                confLine.appendChild(document.createTextNode(`${(result.confidence * 100).toFixed(1)}%`));
- 
-                const reasonLine = document.createElement('div');
-                reasonLine.style.cssText = 'font-size:0.9rem; color:#666;';
-                reasonLine.innerHTML = '<strong>Reasoning:</strong> ';
-                // FIX #5: reasoning is user/AI-supplied — use textContent
-                reasonLine.appendChild(document.createTextNode(result.reasoning || 'N/A'));
- 
-                infoBlock.appendChild(catLine);
-                infoBlock.appendChild(confLine);
-                infoBlock.appendChild(reasonLine);
-                div.appendChild(infoBlock);
- 
-                const acceptBtn = document.createElement('button');
-                acceptBtn.className = 'btn-action';
-                acceptBtn.style.cssText = 'background:#4CAF50; color:white; margin-left:2rem; margin-top:0.5rem;';
-                acceptBtn.textContent = 'Accept & Save';
-                // FIX #6: Closure captures values directly — no inline string interpolation
-                acceptBtn.addEventListener('click', () => acceptCategoriseSuggestion(result.itemId, result.category));
-                div.appendChild(acceptBtn);
-            } else {
-                const errDiv = document.createElement('div');
-                errDiv.style.cssText = 'margin-left:2rem; color:#ff4444; font-size:0.9rem;';
-                // FIX #5: textContent for error message
-                errDiv.textContent = result.error || 'Failed to categorise';
-                div.appendChild(errDiv);
-            }
- 
-            container.appendChild(div);
-        });
-    }
- 
-    // FIX #4: Fetch the current item's full data before saving so we don't clobber
-    // name/price/description by only sending the category field to a full-update endpoint.
-    async function acceptCategoriseSuggestion(itemId, category) {
-        try {
-            // Look up current values from the cache using either restaurantItemId or branchItemId
-            const current = cachedItems.find(i => i.restaurantItemId === itemId || i.branchItemId === itemId);
-            if (!current) {
-                Swal.fire({ title: 'Error!', text: 'Item not found in cache', icon: 'error', target: document.body });
-                return;
-            }
- 
-            const formData = new FormData();
-            formData.append('itemName',        current.name        || '');
-            formData.append('itemPrice',       current.price       || 0);
-            formData.append('itemDescription', current.description || '');
-            formData.append('category',        category);
- 
-            const response = await fetch(`${API}/${itemId}`, {
-                method: 'POST',
-                body: formData
-            });
- 
-            const data = await response.json();
- 
-            if (response.ok && (data.success === undefined || data.success)) {
-                Swal.fire({ title: 'Saved!', text: 'Category updated.', icon: 'success', timer: 1200, showConfirmButton: false, target: document.body });
-                fetchItems();
-            } else {
-                Swal.fire({ title: 'Error!', text: data.error || 'Failed to save', icon: 'error', target: document.body });
-            }
-        } catch (err) {
-            Swal.fire({ title: 'Error!', text: 'Network error', icon: 'error', target: document.body });
-        }
-    }
- 
-    function categoriseAgain() {
-        document.getElementById('categoriseContent').style.display = 'block';
-        document.getElementById('categoriseResults').style.display = 'none';
-        renderCategoriseItemsList();
-    }
- 
-    function closeCategoriseModal() {
-        categoriseModal.style.display = 'none';
-        document.getElementById('categoriseContent').style.display = 'block';
-        document.getElementById('categoriseResults').style.display = 'none';
-    }
- 
-    categoriseModal.addEventListener('click', e => { if (e.target === categoriseModal) closeCategoriseModal(); });
- 
+
     // ── Edit modal ────────────────────────────────────────────────────────────
     const editModal = document.getElementById('editModal');
     const editForm  = document.getElementById('editForm');
- 
-    window.openEditModal = function(id, name, price, description, category) {
+
+    window.openEditModal = function(id, name, price, description, category, photoUrl) {
         document.getElementById('editItemId').value          = id;
         document.getElementById('editItemName').value        = name;
         document.getElementById('editItemPrice').value       = price;
         document.getElementById('editItemDescription').value = description;
         document.getElementById('editItemCategory').value    = category || '';
+        document.getElementById('editItemPhoto').value       = '';
+
+        const currentImg   = document.getElementById('currentItemImage');
+        const deleteImgBtn = document.getElementById('deleteImageBtn');
+        if (photoUrl) { currentImg.src = photoUrl; deleteImgBtn.style.display = 'inline-flex'; }
+        else          { currentImg.src = '/images/menu-item-placeholder.svg'; deleteImgBtn.style.display = 'none'; }
+
+        document.getElementById('newImagePreviewWrap').style.display = 'none';
+        document.getElementById('newImagePreview').src = '';
         editModal.style.display = 'flex';
         setTimeout(() => document.getElementById('editItemName').focus(), 100);
     };
- 
-    window.closeEditModal = function() {
-        editModal.style.display = 'none';
-        editForm.reset();
-    };
- 
+
+    window.closeEditModal = function() { editModal.style.display = 'none'; editForm.reset(); };
     editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
- 
+
+    document.getElementById('editItemPhoto').addEventListener('change', function() {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        if (!['image/png','image/jpeg','image/jpg','image/webp'].includes(file.type)) {
+            Swal.fire({ title:'Invalid file', text:'Please upload a PNG, JPG, or WEBP image.', icon:'error', target: document.body });
+            this.value = ''; return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({ title:'File too large', text:'Image must be less than 5MB.', icon:'error', target: document.body });
+            this.value = ''; return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => { document.getElementById('newImagePreview').src = e.target.result; document.getElementById('newImagePreviewWrap').style.display = 'block'; };
+        reader.readAsDataURL(file);
+    });
+
+    window.deleteItemImage = async function() {
+        const id = document.getElementById('editItemId').value;
+        if (!id) return;
+        const result = await Swal.fire({ title:'Delete this image?', text:"The item will keep its other details.", icon:'warning', showCancelButton:true, confirmButtonColor:'#ff4444', cancelButtonColor:'#1a1a2e', confirmButtonText:'Yes, delete image', target: document.body });
+        if (!result.isConfirmed) return;
+        try {
+            // For branch items use branch API; for main branch use the legacy /api/items endpoint
+            const url = `/api/branch/${branchId}/items/${id}/image`;
+            const response = await fetch(url, { method:'DELETE' });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                document.getElementById('currentItemImage').src = '/images/menu-item-placeholder.svg';
+                document.getElementById('deleteImageBtn').style.display = 'none';
+                Swal.fire({ title:'Deleted!', text:'Image removed.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
+                fetchItems();
+            } else {
+                Swal.fire({ title:'Error!', text: data.error || 'Failed to delete image', icon:'error', target: document.body });
+            }
+        } catch (err) { Swal.fire({ title:'Error!', text:'A network error occurred', icon:'error', target: document.body }); }
+    };
+
     editForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         if (!editForm.checkValidity()) { editForm.reportValidity(); return; }
- 
+
         const saveBtn = document.getElementById('saveEditBtn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
- 
+        saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+
         const id = document.getElementById('editItemId').value;
         const formData = new FormData();
         formData.append('itemName',        document.getElementById('editItemName').value.trim());
         formData.append('itemPrice',       document.getElementById('editItemPrice').value);
         formData.append('itemDescription', document.getElementById('editItemDescription').value.trim());
         formData.append('category',        document.getElementById('editItemCategory').value.trim());
- 
+        const photoInput = document.getElementById('editItemPhoto');
+        if (photoInput.files.length > 0) formData.append('itemPhoto', photoInput.files[0]);
+
         try {
-            const response = await fetch(`${API}/${id}`, { method: 'POST', body: formData });
-            const data = await response.json();
- 
+            // ✅ Branch-scoped edit endpoint
+            const response = await fetch(`${API}/${id}`, { method:'POST', body: formData });
+            const rawText  = await response.text();
+            let data = {};
+            try { data = JSON.parse(rawText); } catch(_) { data = { error: rawText }; }
+
             if (response.ok && (data.success === undefined || data.success)) {
                 closeEditModal();
-                Swal.fire({ title: 'Saved!', text: 'Item updated.', icon: 'success', timer: 1500, showConfirmButton: false, target: document.body });
+                Swal.fire({ title:'Saved!', text:'Your item has been updated.', icon:'success', timer:1500, showConfirmButton:false, target: document.body });
                 fetchItems();
             } else {
-                Swal.fire({ title: 'Error!', text: data.error || 'Failed to update', icon: 'error', target: document.body });
+                Swal.fire({ title:'Error!', text: data.error || `Failed (HTTP ${response.status})`, icon:'error', target: document.body });
             }
-        } catch (err) {
-            Swal.fire({ title: 'Error!', text: 'Network error', icon: 'error', target: document.body });
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Changes';
-        }
+        } catch (err) { Swal.fire({ title:'Error!', text:'A network error occurred', icon:'error', target: document.body }); }
+        finally { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
     });
- 
+
     // ── Delete ────────────────────────────────────────────────────────────────
     async function deleteItem(id) {
-        const result = await Swal.fire({
-            title: 'Delete this item?', text: "You won't be able to revert this!",
-            icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#ff4444', cancelButtonColor: '#1a1a2e',
-            confirmButtonText: 'Yes, delete it', target: document.body
-        });
- 
+        const result = await Swal.fire({ title:"Delete this item?", text:"You won't be able to revert this!", icon:'warning', showCancelButton:true, confirmButtonColor:'#ff4444', cancelButtonColor:'#1a1a2e', confirmButtonText:'Yes, delete it', target: document.body });
         if (!result.isConfirmed) return;
- 
         try {
-            const response = await fetch(`${API}/${id}`, { method: 'DELETE' });
+            // ✅ Branch-scoped delete
+            const response = await fetch(`${API}/${id}`, { method:'DELETE' });
             const data = await response.json();
+            if (response.ok && data.success) {
+                Swal.fire({ title:'Deleted!', text:'Your item has been removed.', icon:'success', timer:1500, showConfirmButton:false, target: document.body });
+                fetchItems();
+            } else { Swal.fire({ title:'Error!', text: data.error || 'Failed to delete item', icon:'error', target: document.body }); }
+        } catch (err) { Swal.fire({ title:'Error!', text:'A network error occurred while deleting the item', icon:'error', target: document.body }); }
+    }
 
-                if (response.ok && data.success) {
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Your item has been removed.',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        target: document.body
-                    });
-                    fetchItems();
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.error || 'Failed to delete item',
-                        icon: 'error',
-                        target: document.body
-                    });
-                }
-            } catch (error) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'A network error occurred while deleting the item',
-                    icon: 'error',
-                    target: document.body
-                });
+    // ── Categorise (unchanged logic, now uses branch API for apply) ───────────
+    const categoriseModal = document.createElement('div');
+    categoriseModal.id = 'categoriseModal';
+    categoriseModal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;';
+    categoriseModal.innerHTML = `
+        <div style="width:100%; max-width:760px; background:#fff; border-radius:18px; padding:1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem;">
+                <div style="font-family:'Fraunces',serif; font-size:1.25rem; color:#1a1a2e;">Categorise Items</div>
+                <div style="display:flex; gap:.5rem; align-items:center;">
+                    <button id="openAssistantBtn" type="button" class="btn-action btn-edit">Assistant</button>
+                    <button type="button" id="closeCategoriseBtn" class="btn-action btn-edit">✕</button>
+                </div>
+            </div>
+            <div id="categoriseMain">
+                <div id="categoriseBody"><div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div></div>
+                <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1rem;">
+                    <button id="applySuggestionBtn" class="btn-action" style="background:#ff6b35; color:white;">Apply Selected</button>
+                </div>
+            </div>
+            <div id="chatPanel" style="display:none; margin-top:1rem; border-top:1px solid #f0f0f0; padding-top:1rem;">
+                <div id="chatMessages" style="max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; padding:0.5rem;"></div>
+                <div style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem;">
+                    <button id="chatBackBtn" class="btn-action btn-edit">Back</button>
+                    <input id="chatInput" type="text" placeholder="Ask assistant about categories..." style="flex:1; padding:.6rem .75rem; border:1px solid #e6e6e9; border-radius:8px;"/>
+                    <button id="sendChatBtn" class="btn-action" style="background:#1a73e8; color:white;">Send</button>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(categoriseModal);
+
+    document.getElementById('categoriseAllBtn').addEventListener('click', () => openCategoriseModal());
+
+    let _cat = { itemId: null, suggestions: [], selectedIndex: 0, chatHistory: [] };
+
+    window.openCategoriseModal = async function(itemId) {
+        _cat.itemId = itemId; _cat.suggestions = []; _cat.selectedIndex = 0;
+        document.getElementById('categoriseBody').innerHTML = '<div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div>';
+        categoriseModal.style.display = 'flex';
+        try {
+            const resp = await fetch('/api/classify/suggest-schemas', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+            if (resp.status === 401 || resp.redirected) { categoriseModal.style.display='none'; window.location.href='/login'; return; }
+            if (!resp.ok) throw new Error('Server error ' + resp.status);
+            _cat.suggestions = await resp.json();
+            renderCategoriseSuggestions();
+        } catch(err) { document.getElementById('categoriseBody').innerHTML = '<div style="color:#ff4444;">Failed to load suggestions.</div>'; }
+    };
+
+    function renderCategoriseSuggestions() {
+        const body = document.getElementById('categoriseBody');
+        if (!_cat.suggestions.length) { body.innerHTML = '<div style="padding:1rem;">No suggestions available.</div>'; return; }
+        body.innerHTML = _cat.suggestions.map((s, idx) => {
+            const groups = s.groups || {};
+            const groupHtml = Object.keys(groups).slice(0,10).map(g => `<li><strong>${g}</strong>: ${(groups[g]||[]).slice(0,6).join(', ')}</li>`).join('');
+            return `<div style="border:1px dashed #eee; padding:.75rem; margin-bottom:.5rem; border-radius:8px;">
+                <label style="display:flex; gap:1rem; align-items:center;"><input type="radio" name="suggestionSel" value="${idx}" ${idx===0?'checked':''}/> <strong>${s.title||'Suggestion '+(idx+1)}</strong> <span style="margin-left:8px; color:#888;">(${Math.round((s.confidence||0)*100)}%)</span></label>
+                <ul style="margin-top:.5rem; color:#444;">${groupHtml}</ul>
+            </div>`;
+        }).join('');
+        document.querySelectorAll('input[name="suggestionSel"]').forEach(r => r.addEventListener('change', () => { _cat.selectedIndex = parseInt(r.value); }));
+    }
+
+    function appendChatMsg(text, who) {
+        const c = document.getElementById('chatMessages'); if (!c) return;
+        const el = document.createElement('div');
+        el.style.cssText = who === 'user'
+            ? 'background:#111827; color:#f9fafb; padding:.7rem 1rem; border-radius:10px; font-weight:600; max-width:86%;'
+            : 'color:#333; padding:.4rem 0; max-width:86%; align-self:center; margin:0 auto;';
+        el.textContent = text;
+        c.appendChild(el); c.scrollTop = c.scrollHeight;
+    }
+
+    document.addEventListener('click', async function(e) {
+        if (e.target?.id === 'openAssistantBtn') {
+            document.getElementById('categoriseMain').style.display = 'none';
+            document.getElementById('chatPanel').style.display = 'block';
+            const c = document.getElementById('chatMessages');
+            if (c && c.children.length === 0) {
+                _cat.chatHistory = [];
+                appendChatMsg('Thinking...', 'assistant');
+                try {
+                    const resp = await fetch('/api/classify/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message:'Please provide a short, friendly greeting to an admin using the categorisation assistant.', history:[] }) });
+                    const data = await resp.json();
+                    if (c.lastChild) c.lastChild.textContent = data.reply || 'Hello! How can I help with categories today?';
+                } catch(_) { if (c.lastChild) c.lastChild.textContent = 'Assistant: (network error)'; }
             }
         }
-    </script>
+        if (e.target?.id === 'chatBackBtn') {
+            document.getElementById('chatPanel').style.display = 'none';
+            document.getElementById('categoriseMain').style.display = 'block';
+            document.getElementById('chatMessages').innerHTML = '';
+            _cat.chatHistory = [];
+        }
+        if (e.target?.id === 'sendChatBtn') {
+            const input = document.getElementById('chatInput');
+            const msg = input?.value?.trim(); if (!msg) return;
+            appendChatMsg(msg, 'user'); input.value = '';
+            try {
+                const resp = await fetch('/api/classify/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: msg, history: _cat.chatHistory }) });
+                const data = await resp.json();
+                const reply = data.reply || 'No reply';
+                appendChatMsg(reply, 'assistant');
+                _cat.chatHistory.push('User: ' + msg, 'Assistant: ' + reply);
+                if (_cat.chatHistory.length > 20) _cat.chatHistory = _cat.chatHistory.slice(-20);
+            } catch(_) { appendChatMsg('Assistant: network error', 'assistant'); }
+        }
+    });
 
+    document.getElementById('closeCategoriseBtn').addEventListener('click', () => { categoriseModal.style.display = 'none'; });
+    document.getElementById('applySuggestionBtn').addEventListener('click', async () => {
+        try {
+            const resp = await fetch('/api/classify/apply-suggestion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ suggestionIndex: _cat.selectedIndex || 0 }) });
+            const data = await resp.json();
+            if (resp.ok && data.success) { Swal.fire({ title:'Applied', text:'Suggestion applied.', icon:'success', timer:1300, showConfirmButton:false, target: document.body }); categoriseModal.style.display='none'; fetchItems(); }
+            else Swal.fire({ title:'Error', text: data.error||'Failed', icon:'error', target: document.body });
+        } catch(err) { Swal.fire({ title:'Error', text:'Network error', icon:'error', target: document.body }); }
+    });
+
+    // ── AI Ideas ──────────────────────────────────────────────────────────────
+    document.getElementById('aiIdeasBtn').addEventListener('click', openAiIdeasModal);
+    document.getElementById('aiIdeasModal').addEventListener('click', e => { if (e.target === document.getElementById('aiIdeasModal')) closeAiIdeasModal(); });
+
+    function openAiIdeasModal() {
+        document.getElementById('aiIdeasResults').style.display = 'none';
+        document.getElementById('aiIdeasLoading').style.display = 'none';
+        document.getElementById('aiIdeasError').style.display = 'none';
+        document.getElementById('aiIdeasList').innerHTML = '';
+        document.getElementById('generateIdeasBtn').disabled = false;
+        document.getElementById('generateIdeasBtn').textContent = 'Generate Ideas';
+        document.getElementById('aiIdeasModal').style.display = 'flex';
+    }
+
+    function closeAiIdeasModal() { document.getElementById('aiIdeasModal').style.display = 'none'; }
+
+    async function generateAiIdeas() {
+        const cuisineType    = document.getElementById('aiCuisineType').value.trim();
+        const restaurantType = document.getElementById('aiRestaurantType').value.trim();
+        const count          = parseInt(document.getElementById('aiIdeasCount').value) || 5;
+        document.getElementById('aiIdeasResults').style.display = 'none';
+        document.getElementById('aiIdeasError').style.display = 'none';
+        document.getElementById('aiIdeasLoading').style.display = 'block';
+        const genBtn = document.getElementById('generateIdeasBtn');
+        genBtn.disabled = true; genBtn.textContent = 'Generating...';
+        try {
+            const response = await fetch('/api/menu-ideas/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ cuisineType, restaurantType, count }) });
+            if (response.status === 401 || response.redirected) { window.location.href = '/login'; return; }
+            const data = await response.json();
+            document.getElementById('aiIdeasLoading').style.display = 'none';
+            genBtn.disabled = false; genBtn.textContent = 'Generate Ideas';
+            if (!response.ok || data.error) { const e = document.getElementById('aiIdeasError'); e.textContent = data.error || 'Failed to generate ideas.'; e.style.display = 'block'; return; }
+            const ideas = data.ideas || [];
+            if (!ideas.length) { const e = document.getElementById('aiIdeasError'); e.textContent = 'No ideas returned. Try adjusting your inputs.'; e.style.display = 'block'; return; }
+            renderAiIdeas(ideas);
+        } catch(err) {
+            document.getElementById('aiIdeasLoading').style.display = 'none';
+            genBtn.disabled = false; genBtn.textContent = 'Generate Ideas';
+            const e = document.getElementById('aiIdeasError'); e.textContent = 'Network error. Please try again.'; e.style.display = 'block';
+        }
+    }
+
+    function renderAiIdeas(ideas) {
+        const list = document.getElementById('aiIdeasList');
+        list.innerHTML = '';
+        ideas.forEach((idea, idx) => {
+            const colon = idea.indexOf(':');
+            let name = idea, desc = '';
+            if (colon > 0) { name = idea.substring(0, colon).trim(); desc = idea.substring(colon+1).trim(); }
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; border:1px solid #e8e8e8; border-radius:10px; cursor:pointer; background:#fafafa;';
+            const checkId = 'ai-idea-' + idx;
+            item.innerHTML = `<input type="checkbox" id="${checkId}" data-name="${escHtml(name)}" data-desc="${escHtml(desc)}" style="margin-top:3px; accent-color:#ff6b35; width:16px; height:16px; flex-shrink:0;" /><label for="${checkId}" style="cursor:pointer; flex:1;"><div style="font-weight:600; color:#1a1a2e;">${escHtml(name)}</div>${desc?`<div style="color:#666; font-size:0.87rem;">${escHtml(desc)}</div>`:''}</label>`;
+            item.addEventListener('click', e => { if (e.target.tagName==='INPUT'||e.target.tagName==='LABEL') return; const cb = item.querySelector('input'); if(cb) cb.checked=!cb.checked; });
+            list.appendChild(item);
+        });
+        document.getElementById('aiIdeasResults').style.display = 'block';
+    }
+
+    async function addSelectedAiIdeas() {
+        const checkboxes = document.querySelectorAll('#aiIdeasList input[type="checkbox"]:checked');
+        if (!checkboxes.length) { Swal.fire({ title:'Nothing selected', text:'Please check at least one idea.', icon:'info', target: document.body }); return; }
+        let successCount = 0, failCount = 0;
+        for (const cb of checkboxes) {
+            const name = cb.getAttribute('data-name') || '';
+            const desc = cb.getAttribute('data-desc') || 'AI-generated menu item';
+            if (!name) continue;
+            try {
+                const formData = new FormData();
+                formData.append('itemName', name);
+                formData.append('itemPrice', '0.00');
+                formData.append('itemDescription', desc);
+                // ✅ Add via branch API
+                const response = await fetch(API, { method:'POST', body: formData });
+                const data = await response.json();
+                if (response.ok && (data.success === undefined || data.success)) successCount++;
+                else failCount++;
+            } catch(err) { failCount++; }
+        }
+        if (successCount > 0) {
+            closeAiIdeasModal();
+            Swal.fire({ title:'Added!', text: `${successCount} item${successCount>1?'s':''} added. ${failCount>0?failCount+' failed. ':''}Remember to set prices.`, icon:'success', timer:3500, showConfirmButton:false, target: document.body });
+            fetchItems();
+        } else { Swal.fire({ title:'Error', text:'Failed to add items. Please try again.', icon:'error', target: document.body }); }
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+</script>
 </body>
 </html>
