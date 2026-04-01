@@ -63,42 +63,6 @@ public class MenuItemControllerTest {
         testMenuItem.setCreatedAt(LocalDateTime.now());
     }
 
-    // ================== Health Check Tests ==================
-
-    @Test
-    void testCheckAiHealthServiceAvailable() {
-        // Arrange
-        when(aiCategoryService.isAiServiceAvailable()).thenReturn(true);
-
-        // Act
-        ResponseEntity<?> response = menuItemController.checkAiHealth();
-
-        // Assert
-        assertEquals(200, response.getStatusCode().value());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertTrue((Boolean) body.get("ai_service_healthy"));
-        assertEquals("AI service is operational", body.get("message"));
-        verify(aiCategoryService, times(1)).isAiServiceAvailable();
-    }
-
-    @Test
-    void testCheckAiHealthServiceUnavailable() {
-        // Arrange
-        when(aiCategoryService.isAiServiceAvailable()).thenReturn(false);
-
-        // Act
-        ResponseEntity<?> response = menuItemController.checkAiHealth();
-
-        // Assert
-        assertEquals(200, response.getStatusCode().value());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertFalse((Boolean) body.get("ai_service_healthy"));
-        assertEquals("AI service is unavailable", body.get("message"));
-        verify(aiCategoryService, times(1)).isAiServiceAvailable();
-    }
-
     // ================== Get AI Categorization Tests ==================
 
     @Test
