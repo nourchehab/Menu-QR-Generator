@@ -115,7 +115,7 @@ public class SignupController {
         session.removeAttribute("signupEmail");
         session.removeAttribute("signupPassword");
 
-        return "redirect:/choose-option";
+        return "redirect:/details";
     }
 
     @PostMapping("/signup/verify/resend")
@@ -144,7 +144,7 @@ public class SignupController {
     }
 
     @GetMapping("/details")
-    public String restaurantDetails(@RequestParam String option, Model model) {
+    public String restaurantDetails(@RequestParam(required = false) String option, Model model) {
         model.addAttribute("formAction", "/signup/restaurant/setup");
         return "restaurant-details";
     }
