@@ -33,7 +33,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         if (user != null && user.isRestaurantSetupComplete()) {
             response.sendRedirect("/restaurants");
         } else {
-            response.sendRedirect("/choose-option");
+            response.sendRedirect("/details");
         }
     }
 }
