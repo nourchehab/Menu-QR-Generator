@@ -83,6 +83,31 @@ public class BranchItemApiController {
         }
     }
 
+    // ── GET branch details ────────────────────────────────────────────────────
+
+    @GetMapping("/api/branches/{branchId}")
+    public ResponseEntity<?> getBranchDetails(@PathVariable Long branchId, Principal principal) {
+        if (principal == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+        try {
+            SimpleUser user = getCurrentUser(principal);
+            if (user == null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
+
+            Branch branch = branchService.getBranchForUser(user, branchId);
+            
+            return ResponseEntity.ok(Map.of(
+                    "branchId", branch.getId(),
+                    "branchName", branch.getBranchName(),
+                    "restaurantId", branch.getRestaurant().getId()
+            ));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // ── GET items ─────────────────────────────────────────────────────────────
 
     @GetMapping("/api/branch/{branchId}/items")
