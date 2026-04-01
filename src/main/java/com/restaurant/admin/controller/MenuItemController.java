@@ -42,9 +42,8 @@ public class MenuItemController {
 
     // ✅ Works for BOTH password login and Google login
     private String resolveEmail(Principal principal) {
-        if (principal == null) {
+        if (principal == null)
             return null;
-        }
 
         if (principal instanceof Authentication auth) {
             Object p = auth.getPrincipal();
@@ -68,13 +67,11 @@ public class MenuItemController {
     }
 
     private String normalizeEmail(String email) {
-        if (email == null) {
+        if (email == null)
             return null;
-        }
         String e = email.trim();
-        if (e.isEmpty()) {
+        if (e.isEmpty())
             return null;
-        }
         return e.toLowerCase();
     }
 
@@ -104,9 +101,9 @@ public class MenuItemController {
     }
 
     private void assertItemBelongsToRestaurant(MenuItem item, Restaurant restaurant) {
-        if (item.getRestaurant() == null
-                || item.getRestaurant().getId() == null
-                || !item.getRestaurant().getId().equals(restaurant.getId())) {
+        if (item.getRestaurant() == null ||
+                item.getRestaurant().getId() == null ||
+                !item.getRestaurant().getId().equals(restaurant.getId())) {
             throw new SecurityException("Not allowed to modify this menu item");
         }
     }
@@ -121,9 +118,8 @@ public class MenuItemController {
         }
 
         String email = resolveEmail(principal);
-        if (email == null) {
+        if (email == null)
             return "redirect:/login";
-        }
 
         SimpleUser currentUser = userService.findByEmail(email);
         if (currentUser == null) {
@@ -196,8 +192,7 @@ public class MenuItemController {
             if (itemName == null || itemName.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Item name is required"));
             }
-            // ✅ FIXED: allow 0.00 price for AI-generated placeholder items
-            if (itemPrice == null || itemPrice.compareTo(BigDecimal.ZERO) < 0) {
+            if (itemPrice == null || itemPrice.compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Valid price is required"));
             }
             if (itemDescription == null || itemDescription.trim().isEmpty()) {
@@ -228,8 +223,8 @@ public class MenuItemController {
     }
 
     /**
-     * ✅ Get all menu items for current user's restaurant IMPORTANT: must return
-     * photoUrl because manageitems.html uses it.
+     * ✅ Get all menu items for current user's restaurant
+     * IMPORTANT: must return photoUrl because manageitems.html uses it.
      */
     @GetMapping("/api/items")
     @ResponseBody
@@ -253,7 +248,7 @@ public class MenuItemController {
 
                 String photoPath = item.getPhotoPath() == null ? "" : item.getPhotoPath();
                 m.put("photoPath", photoPath);
-                m.put("photoUrl", imageStorageService.toPublicUrl(photoPath));
+                m.put("photoUrl", imageStorageService.toPublicUrl(photoPath)); // ✅ THIS fixes images on manage page
                 m.put("thumbUrl", imageStorageService.toThumbPublicUrl(
                         item.getThumbPath() == null ? "" : item.getThumbPath()));
                 m.put("category", item.getCategory() == null ? "" : item.getCategory());
@@ -369,7 +364,7 @@ public class MenuItemController {
             // image validation errors land here
             return ResponseEntity.badRequest().body(Map.of("error", iae.getMessage()));
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // ✅ leave this so you see the real cause in console
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }

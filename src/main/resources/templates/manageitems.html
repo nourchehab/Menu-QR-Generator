@@ -27,27 +27,11 @@
         .container { max-width: 1000px; margin: 0 auto; position: relative; }
 
         .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2.5rem;
-            /* Chat panel layout: fixed, larger, scrollable */
-            #chatPanel { display:flex; flex-direction:column; height:60vh; max-height:70vh; min-height:360px; }
-            .chat-messages { flex:1; overflow:auto; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; align-items:flex-start; }
-
-            /* User query box (left-aligned boxed bubble) */
-            .chat-message.user { align-self:flex-start; max-width:86%; background:#111827; color:#f9fafb; padding:0.8rem 1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.6); font-weight:600; }
-
-            /* Assistant response: centered block (not aligned to left or right) */
-            .chat-message.assistant { align-self:center; max-width:86%; margin:0 auto; background:transparent; border:none; color:#0f1724; padding:0; font-weight:400; line-height:1.45; }
-            .chat-message.assistant p { margin:0 0 .6rem 0; text-align:left; }
-
-            /* Spacer inserted between a user message and the assistant reply (two-line gap) */
-            .chat-spacer { height:2.2rem; }
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;
         }
+
+        .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
 
         @keyframes fadeSlideIn { 0% { opacity:0; transform:translateY(20px); } 100% { opacity:1; transform:translateY(0); } }
 
@@ -147,17 +131,15 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
-                <h1 class="page-title">Manage Items</h1>
-            </div>
-               <div style="display:flex; gap:0.75rem; align-items:center;">
-                   <button id="categoriseAllBtn" class="add-btn btn-categorise" type="button">Categorise</button>
-                   <a href="/enteritems" class="add-btn">+ Add Item</a>
-               </div>
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <a id="backBtn" href="#" class="back-btn">← Back to Dashboard</a>
+            <h1 class="page-title">Manage Items</h1>
+            <div class="branch-label" id="branchLabel"></div>
         </div>
+        <a id="addItemBtn" href="#" class="add-btn">+ Add Item</a>
+    </div>
 
     <div class="content-card">
         <div class="empty-state" id="emptyState">
@@ -179,16 +161,14 @@
     </div>
 </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal"
-        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
-        <div
-            style="width:100%; max-width:720px; background:#fff; border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
-                <div style="font-family:'Fraunces', serif; font-size:1.35rem; color:#1a1a2e;">Edit Item</div>
-                <button type="button" onclick="closeEditModal()" class="btn-action btn-edit"
-                    style="padding:.45rem .75rem;">✕</button>
-            </div>
+<!-- Edit Modal -->
+<div id="editModal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
+    <div style="width:100%; max-width:520px; background:#fff; border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div style="font-family:'Fraunces',serif; font-size:1.35rem; color:#1a1a2e;">Edit Item</div>
+            <button type="button" onclick="closeEditModal()" class="btn-action btn-edit" style="padding:.45rem .75rem;">✕</button>
+        </div>
 
         <form id="editForm">
             <input type="hidden" id="editItemId"/>
@@ -213,15 +193,13 @@
                 <input id="editItemCategory" class="form-input" maxlength="100" placeholder="e.g. Starters, Mains, Desserts"/>
             </div>
 
-                    <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem;">
-                        <button type="button" class="btn-action btn-edit" onclick="closeEditModal()">Cancel</button>
-                        <button id="saveEditBtn" type="submit" class="btn-action"
-                            style="background:#ff6b35; color:white;">Save Changes</button>
-                    </div>
-                </form>
+            <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem;">
+                <button type="button" class="btn-action btn-edit" onclick="closeEditModal()">Cancel</button>
+                <button id="saveEditBtn" type="submit" class="btn-action" style="background:#ff6b35; color:white;">Save Changes</button>
             </div>
-        </div>
+        </form>
     </div>
+</div>
 
 <script>
     // ── Read branchId from URL ────────────────────────────────────────────────
@@ -324,387 +302,16 @@
         setTimeout(() => document.getElementById('editItemName').focus(), 100);
     };
 
-        window.closeEditModal = function () {
-            editModal.style.display = 'none';
-            editForm.reset();
-        }
+    window.closeEditModal = function() {
+        editModal.style.display = 'none';
+        editForm.reset();
+    };
 
-        editModal.addEventListener('click', function (e) {
-            if (e.target === editModal) closeEditModal();
-        });
+    editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
 
-        const editPhotoInput = document.getElementById('editItemPhoto');
-        editPhotoInput.addEventListener('change', () => {
-            const file = editPhotoInput.files && editPhotoInput.files[0];
-            if (!file) return;
-
-            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-
-            if (!validTypes.includes(file.type)) {
-                Swal.fire({
-                    title: 'Invalid file',
-                    text: 'Please upload a PNG, JPG, or WEBP image.',
-                    icon: 'error',
-                    target: document.body
-                });
-                editPhotoInput.value = '';
-                return;
-            }
-
-            if (file.size > 5 * 1024 * 1024) {
-                Swal.fire({
-                    title: 'File too large',
-                    text: 'Image must be less than 5MB.',
-                    icon: 'error',
-                    target: document.body
-                });
-                editPhotoInput.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('newImagePreview').src = e.target.result;
-                document.getElementById('newImagePreviewWrap').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        });
-
-        window.deleteItemImage = async function () {
-            const id = document.getElementById('editItemId').value;
-            if (!id) return;
-
-            const result = await Swal.fire({
-                title: 'Delete this image?',
-                text: "The item will keep its name/price/description.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ff4444',
-                cancelButtonColor: '#1a1a2e',
-                confirmButtonText: 'Yes, delete image',
-                allowOutsideClick: false,
-                target: document.body
-            });
-            if (!result.isConfirmed) return;
-
-            try {
-                const response = await fetch('/api/items/' + id + '/image', { method: 'DELETE' });
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    document.getElementById('currentItemImage').src = '/images/menu-item-placeholder.svg';
-                    document.getElementById('deleteImageBtn').style.display = 'none';
-
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Image removed.',
-                        icon: 'success',
-                        timer: 1200,
-                        showConfirmButton: false,
-                        target: document.body
-                    });
-                    fetchItems();
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.error || 'Failed to delete image',
-                        icon: 'error',
-                        target: document.body
-                    });
-                }
-            } catch (err) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'A network error occurred',
-                    icon: 'error',
-                    target: document.body
-                });
-            }
-        }
-
-        // Categorise modal and functions
-        const categoriseModal = document.createElement('div');
-        categoriseModal.id = 'categoriseModal';
-        categoriseModal.style.display = 'none';
-        categoriseModal.style.position = 'fixed';
-        categoriseModal.style.inset = '0';
-        categoriseModal.style.background = 'rgba(0,0,0,0.55)';
-        categoriseModal.style.alignItems = 'center';
-        categoriseModal.style.justifyContent = 'center';
-        categoriseModal.style.padding = '1.5rem';
-        categoriseModal.style.zIndex = '9999';
-        categoriseModal.innerHTML = `
-            <div style="width:100%; max-width:760px; background:#fff; border-radius:18px; padding:1.25rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem;">
-                    <div style="font-family:'Fraunces', serif; font-size:1.25rem; color:#1a1a2e;">Categorise Items</div>
-                    <div style="display:flex; gap:.5rem; align-items:center;">
-                        <button id="openAssistantBtn" type="button" class="btn-action btn-edit">Assistant</button>
-                        <button type="button" id="closeCategoriseBtn" class="btn-action btn-edit">✕</button>
-                    </div>
-                </div>
-                <div id="categoriseMain">
-                    <div id="categoriseBody"><div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div></div>
-                    <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1rem;">
-                        <button id="applySuggestionBtn" class="btn-action" style="background:#ff6b35; color:white;">Apply Selected</button>
-                    </div>
-                </div>
-                <div id="chatPanel" style="display:none; margin-top:1rem; border-top:1px solid #f0f0f0; padding-top:1rem;">
-                    <div id="chatMessages" class="chat-messages"></div>
-                    <div class="chat-controls" style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem;">
-                        <button id="chatBackBtn" class="btn-action btn-edit">Back</button>
-                        <input id="chatInput" type="text" placeholder="Ask assistant about categories or suggestions..." style="flex:1; padding:.6rem .75rem; border:1px solid #e6e6e9; border-radius:8px;"/>
-                        <button id="sendChatBtn" class="btn-action send" style="background:#1a73e8; color:white;">Send</button>
-                    </div>
-                </div>
-            </div>`;
-        document.body.appendChild(categoriseModal);
-
-        // Wire header Categorise button (bulk) to open modal
-        const headerCatBtn = document.getElementById('categoriseAllBtn');
-        if (headerCatBtn) headerCatBtn.addEventListener('click', () => openCategoriseModal());
-
-        let _categoriseState = { itemId: null, suggestions: [], selectedIndex: 0, chatHistory: [] };
-
-        window.openCategoriseModal = async function (itemId) {
-            _categoriseState.itemId = itemId;
-            _categoriseState.suggestions = [];
-            _categoriseState.selectedIndex = 0;
-            document.getElementById('categoriseBody').innerHTML = '<div class="loader"><div class="spinner"></div><div>Loading suggestions...</div></div>';
-            categoriseModal.style.display = 'flex';
-
-            try {
-                const resp = await fetch('/api/classify/suggest-schemas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-                if (resp.status === 401 || resp.redirected) {
-                    categoriseModal.style.display = 'none';
-                    Swal.fire({ title: 'Sign in required', text: 'Please sign in to use categorisation.', icon: 'warning', confirmButtonText: 'Sign in', target: document.body })
-                        .then(() => { window.location.href = '/login'; });
-                    return;
-                }
-                if (!resp.ok) throw new Error('Server error ' + resp.status);
-                const suggestions = await resp.json();
-                _categoriseState.suggestions = suggestions;
-                renderCategoriseSuggestions();
-            } catch (err) {
-                console.error('Categorise error', err);
-                document.getElementById('categoriseBody').innerHTML = '<div style="color:#ff4444;">Failed to load suggestions.</div>';
-            }
-        }
-
-        function renderCategoriseSuggestions() {
-            const body = document.getElementById('categoriseBody');
-            const suggestions = _categoriseState.suggestions || [];
-            if (!suggestions.length) {
-                body.innerHTML = '<div style="padding:1rem;">No suggestions available.</div>';
-                return;
-            }
-            const html = suggestions.map((s, idx) => {
-                const title = s.title || ('Suggestion ' + (idx+1));
-                const groups = s.groups || {};
-                const groupHtml = Object.keys(groups).slice(0,10).map(g => `<li><strong>${g}</strong>: ${(groups[g]||[]).slice(0,6).join(', ')}</li>`).join('');
-                return `<div style="border:1px dashed #eee; padding:.75rem; margin-bottom:.5rem; border-radius:8px;">
-                    <label style="display:flex; gap:1rem; align-items:center;"><input type="radio" name="suggestionSel" value="${idx}" ${idx===0? 'checked' : ''}/> <strong style="margin-left:.25rem;">${title}</strong> <span style="margin-left:8px; color:#888;">(${Math.round((s.confidence||0)*100)}%)</span></label>
-                    <ul style="margin-top:.5rem; color:#444;">${groupHtml}</ul>
-                </div>`;
-            }).join('');
-            body.innerHTML = html;
-            document.querySelectorAll('input[name="suggestionSel"]').forEach(r => r.addEventListener('change', () => {
-                _categoriseState.selectedIndex = parseInt(r.value);
-            }));
-        }
-
-        // Chat assistant handlers inside modal
-        function appendChatMessage(text, who) {
-            const container = document.getElementById('chatMessages');
-            if (!container) return;
-
-            if (who === 'user') {
-                const userBox = document.createElement('div');
-                userBox.className = 'chat-message user';
-                // put user query in a bold-ish box
-                userBox.innerText = text;
-                container.appendChild(userBox);
-                container.scrollTop = container.scrollHeight;
-                return;
-            }
-
-            // assistant reply: if the last element was a user message, insert a spacer of two lines
-            const last = container.lastElementChild;
-            if (last && last.classList && last.classList.contains('user')) {
-                const spacer = document.createElement('div');
-                spacer.className = 'chat-spacer';
-                container.appendChild(spacer);
-            }
-
-            const bot = document.createElement('div');
-            bot.className = 'chat-message assistant';
-            // allow multi-paragraph assistant replies
-            const paragraphs = (text || '').split('\n').filter(Boolean);
-            paragraphs.forEach(p => {
-                const pp = document.createElement('p');
-                pp.innerText = p;
-                bot.appendChild(pp);
-            });
-            container.appendChild(bot);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        document.addEventListener('click', async function (e) {
-            if (e.target && e.target.id === 'openAssistantBtn') {
-                document.getElementById('categoriseMain').style.display = 'none';
-                document.getElementById('chatPanel').style.display = 'block';
-
-                // Auto-generate a greeting from the assistant when opened (only once)
-                const container = document.getElementById('chatMessages');
-                if (container && container.children.length === 0) {
-                    // Reset history for a fresh session
-                    _categoriseState.chatHistory = [];
-                    const greetingMsg = 'Please provide a short, friendly greeting to an admin using the categorisation assistant.';
-                    appendChatMessage('Thinking...', 'assistant');
-                    try {
-                        const resp = await fetch('/api/classify/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                message: greetingMsg,
-                                history: _categoriseState.chatHistory
-                            })
-                        });
-
-                        // Handle redirect to login (auth) explicitly
-                        if (resp.redirected || resp.status === 302) {
-                            const msg = 'Assistant: sign in required';
-                            if (container.lastChild) container.lastChild.textContent = msg;
-                            // skip pushing to history and exit handler
-                            return;
-                        }
-
-                        let reply = null;
-                        if (!resp.ok) {
-                            // Try to extract text error for debugging
-                            try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error fetching greeting'; }
-                        } else {
-                            const ct = resp.headers.get('content-type') || '';
-                            if (ct.includes('application/json')) {
-                                try {
-                                    const data = await resp.json();
-                                    if (data) reply = data.reply || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
-                                } catch (e) {
-                                    try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error parsing response'; }
-                                }
-                            } else {
-                                // Non-JSON success response
-                                try { reply = await resp.text(); } catch (_) { reply = 'Assistant: (no reply)'; }
-                            }
-                        }
-
-                        reply = reply || 'Hello — how can I help you with categorising your menu today?';
-                        if (container.lastChild) container.lastChild.textContent = reply;
-                        // Push greeting exchange to history so follow-ups have context
-                        _categoriseState.chatHistory.push('User: ' + greetingMsg);
-                        _categoriseState.chatHistory.push('Assistant: ' + reply);
-                    } catch (err) {
-                        if (container.lastChild) container.lastChild.textContent = 'Assistant: (network error)';
-                    }
-                }
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (e.target && e.target.id === 'chatBackBtn') {
-                document.getElementById('chatPanel').style.display = 'none';
-                document.getElementById('categoriseMain').style.display = 'block';
-                // Clear messages & history so next open starts fresh
-                const container = document.getElementById('chatMessages');
-                if (container) container.innerHTML = '';
-                _categoriseState.chatHistory = [];
-            }
-        });
-
-        document.addEventListener('click', async function (e) {
-            if (e.target && e.target.id === 'sendChatBtn') {
-                const input = document.getElementById('chatInput');
-                const msg = input && input.value && input.value.trim();
-                if (!msg) return;
-                appendChatMessage(msg, 'user');
-                input.value = '';
-                try {
-                    const resp = await fetch('/api/classify/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: msg,
-                            history: _categoriseState.chatHistory
-                        })
-                    });
-
-                    if (resp.redirected || resp.status === 302) {
-                        appendChatMessage('Assistant: sign in required', 'assistant');
-                        return;
-                    }
-
-                    let reply = null;
-                    if (!resp.ok) {
-                        try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error contacting server'; }
-                        appendChatMessage(reply, 'assistant');
-                        return;
-                    }
-
-                    const ct = resp.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) {
-                        try {
-                            const data = await resp.json();
-                            reply = data.reply || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
-                        } catch (e) {
-                            try { reply = await resp.text(); } catch (_) { reply = 'Assistant: error parsing response'; }
-                        }
-                    } else {
-                        try { reply = await resp.text(); } catch (_) { reply = 'Assistant: no reply'; }
-                    }
-
-                    reply = reply || 'No reply';
-                    appendChatMessage(reply, 'assistant');
-                    // Update history so each new message has full prior context
-                    _categoriseState.chatHistory.push('User: ' + msg);
-                    _categoriseState.chatHistory.push('Assistant: ' + reply);
-                    // Cap history at last 10 turns to keep prompt size manageable
-                    if (_categoriseState.chatHistory.length > 20) {
-                        _categoriseState.chatHistory = _categoriseState.chatHistory.slice(-20);
-                    }
-                } catch (err) { appendChatMessage('Assistant: network error', 'assistant'); }
-            }
-        });
-
-        document.getElementById('closeCategoriseBtn').addEventListener('click', () => { categoriseModal.style.display = 'none'; });
-        document.getElementById('applySuggestionBtn').addEventListener('click', async () => {
-            const idx = _categoriseState.selectedIndex || 0;
-            try {
-                const resp = await fetch('/api/classify/apply-suggestion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ suggestionIndex: idx }) });
-                if (resp.status === 401 || resp.redirected) {
-                    categoriseModal.style.display = 'none';
-                    Swal.fire({ title: 'Sign in required', text: 'Please sign in to apply suggestions.', icon: 'warning', confirmButtonText: 'Sign in', target: document.body })
-                        .then(() => { window.location.href = '/login'; });
-                    return;
-                }
-                const data = await resp.json();
-                if (resp.ok && data.success) {
-                    Swal.fire({ title: 'Applied', text: 'Suggestion applied to your items.', icon: 'success', timer: 1300, showConfirmButton: false, target: document.body });
-                    categoriseModal.style.display = 'none';
-                    fetchItems();
-                } else {
-                    Swal.fire({ title: 'Error', text: data.error || 'Failed to apply suggestion', icon: 'error', target: document.body });
-                }
-            } catch (err) {
-                Swal.fire({ title: 'Error', text: 'Network error while applying suggestion', icon: 'error', target: document.body });
-            }
-        });
-
-        editForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            if (!editForm.checkValidity()) {
-                editForm.reportValidity();
-                return;
-            }
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!editForm.checkValidity()) { editForm.reportValidity(); return; }
 
         const saveBtn = document.getElementById('saveEditBtn');
         saveBtn.disabled = true;
@@ -751,34 +358,16 @@
             const response = await fetch(`${API}/${id}`, { method: 'DELETE' });
             const data = await response.json();
 
-                if (response.ok && data.success) {
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Your item has been removed.',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        target: document.body
-                    });
-                    fetchItems();
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.error || 'Failed to delete item',
-                        icon: 'error',
-                        target: document.body
-                    });
-                }
-            } catch (error) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'A network error occurred while deleting the item',
-                    icon: 'error',
-                    target: document.body
-                });
+            if (response.ok && data.success) {
+                Swal.fire({ title: 'Deleted!', text: 'Item removed.', icon: 'success', timer: 1500, showConfirmButton: false, target: document.body });
+                fetchItems();
+            } else {
+                Swal.fire({ title: 'Error!', text: data.error || 'Failed to delete', icon: 'error', target: document.body });
             }
+        } catch (err) {
+            Swal.fire({ title: 'Error!', text: 'Network error', icon: 'error', target: document.body });
         }
-    </script>
-
+    }
+</script>
 </body>
 </html>
