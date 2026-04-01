@@ -243,9 +243,10 @@ public class BranchItemApiController {
         }
     }
 
-    @PostMapping("/api/branch/{branchId}/batch-categorize")
+    @PostMapping("/api/restaurants/{restaurantId}/batch-categorize")
     public ResponseEntity<?> batchCategorizeBranchItems(
-            @PathVariable Long branchId,
+            @PathVariable Long restaurantId,
+            @RequestParam Long branchId,
             @RequestBody Map<String, Object> body,
             Principal principal) {
 
@@ -258,6 +259,11 @@ public class BranchItemApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
             Branch branch = branchService.getBranchForUser(user, branchId);
+            
+            // Verify branch belongs to the specified restaurant
+            if (!branch.getRestaurant().getId().equals(restaurantId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Branch does not belong to restaurant"));
+            }
 
             // Extract itemIds from request body
             @SuppressWarnings("unchecked")
@@ -275,9 +281,6 @@ public class BranchItemApiController {
             if (items.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "No valid items found"));
             }
-
-            // Get restaurant ID
-            Long restaurantId = branch.getRestaurant().getId();
 
             // Call AI categorization service for batch processing
             List<Map<String, Object>> results = aiCategoryService.categorizeBranchMenuItemsBatch(items, restaurantId, branchId);
