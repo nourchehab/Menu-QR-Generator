@@ -207,6 +207,7 @@ public class AiCategoryService {
             if (itemName == null || itemName.trim().isEmpty()) {
                 logger.warn("Cannot categorize: item name is empty");
                 return Map.of(
+                    "success", false,
                     "itemId", menuItem.getId(),
                     "itemName", itemName,
                     "category", "UNKNOWN",
@@ -227,6 +228,7 @@ public class AiCategoryService {
             String category = "UNKNOWN";
             Double confidence = 0.0;
             String reasoning = "No response from AI service";
+            boolean success = false;
             
             if (response != null && response.category != null) {
                 category = response.category;
@@ -244,12 +246,14 @@ public class AiCategoryService {
                 menuItem.setAiReasoning(reasoning);
                 menuItem.setAiAnalyzedAt(LocalDateTime.now());
                 menuItemRepository.save(menuItem);
+                success = true;
                 
                 logger.info("Categorized menu item '{}' -> '{}' (confidence: {})", 
                     itemName, category, confidence);
             }
             
             return Map.of(
+                "success", success,
                 "itemId", menuItem.getId(),
                 "itemName", itemName,
                 "category", category,
@@ -259,6 +263,7 @@ public class AiCategoryService {
         } catch (Exception e) {
             logger.error("Error categorizing menu item: ", e);
             return Map.of(
+                "success", false,
                 "itemId", menuItem.getId(),
                 "itemName", menuItem.getItemName(),
                 "category", "ERROR",
@@ -288,6 +293,7 @@ public class AiCategoryService {
             if (itemName == null || itemName.trim().isEmpty()) {
                 logger.warn("Cannot categorize: item name is empty");
                 return Map.of(
+                    "success", false,
                     "itemId", branchItem.getId(),
                     "itemName", itemName,
                     "category", "UNKNOWN",
@@ -308,6 +314,7 @@ public class AiCategoryService {
             String category = "UNKNOWN";
             Double confidence = 0.0;
             String reasoning = "No response from AI service";
+            boolean success = false;
             
             if (response != null && response.category != null) {
                 category = response.category;
@@ -317,12 +324,14 @@ public class AiCategoryService {
                 // Save category to the BranchMenuItem
                 branchItem.setCategory(category);
                 branchMenuItemRepository.save(branchItem);
+                success = true;
                 
                 logger.info("Categorized branch item '{}' -> '{}' (confidence: {})", 
                     itemName, category, confidence);
             }
             
             return Map.of(
+                "success", success,
                 "itemId", branchItem.getId(),
                 "itemName", itemName,
                 "category", category,
@@ -332,6 +341,7 @@ public class AiCategoryService {
         } catch (Exception e) {
             logger.error("Error categorizing branch item: ", e);
             return Map.of(
+                "success", false,
                 "itemId", branchItem.getId(),
                 "itemName", branchItem.getName(),
                 "category", "ERROR",
