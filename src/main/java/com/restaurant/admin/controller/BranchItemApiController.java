@@ -1,9 +1,11 @@
 package com.restaurant.admin.controller;
 
 import com.restaurant.admin.model.Branch;
+import com.restaurant.admin.model.MenuItem;
 import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.repository.BranchRepository;
 import com.restaurant.admin.repository.BranchMenuItemRepository;
+import com.restaurant.admin.repository.MenuItemRepository;
 import com.restaurant.admin.model.BranchMenuItem;
 import com.restaurant.admin.service.AiCategoryService;
 import com.restaurant.admin.service.BranchService;
@@ -33,6 +35,7 @@ public class BranchItemApiController {
     @Autowired private MenuItemService            menuItemService;
     @Autowired private MenuItemImageStorageService imageStorageService;
     @Autowired private BranchRepository           branchRepository;
+    @Autowired private MenuItemRepository         menuItemRepository;
     @Autowired private BranchMenuItemRepository   branchMenuItemRepository;
     @Autowired private AiCategoryService          aiCategoryService;
 
@@ -305,18 +308,34 @@ public class BranchItemApiController {
                 }
             }
 
-            // Fetch BranchMenuItems for the given IDs
-            List<BranchMenuItem> items = new java.util.ArrayList<>();
-            for (Long itemId : itemIds) {
-                branchMenuItemRepository.findByIdAndBranch(itemId, branch).ifPresent(items::add);
+            if (itemIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No valid item IDs provided"));
             }
 
-            if (items.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No valid items found"));
+            // Fetch items based on branch type and categorize
+            List<Map<String, Object>> results = new java.util.ArrayList<>();
+            
+            if (branch.isMainBranch()) {
+                // Main branch uses restaurant-level items (MenuItem table)
+                for (Long itemId : itemIds) {
+                    menuItemRepository.findById(itemId).ifPresent(item -> {
+                        Map<String, Object> result = aiCategoryService.categorizeAndSaveMenuItemForBatch(item, restaurantId);
+                        results.add(result);
+                    });
+                }
+            } else {
+                // Non-main branches use branch-specific items (BranchMenuItem table)
+                for (Long itemId : itemIds) {
+                    branchMenuItemRepository.findByIdAndBranch(itemId, branch).ifPresent(item -> {
+                        Map<String, Object> result = aiCategoryService.categorizeAndSaveBranchMenuItem(item, restaurantId, branchId);
+                        results.add(result);
+                    });
+                }
             }
 
-            // Call AI categorization service for batch processing
-            List<Map<String, Object>> results = aiCategoryService.categorizeBranchMenuItemsBatch(items, restaurantId, branchId);
+            if (results.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No valid items found in database"));
+            }
 
             return ResponseEntity.ok(Map.of(
                     "success", true,

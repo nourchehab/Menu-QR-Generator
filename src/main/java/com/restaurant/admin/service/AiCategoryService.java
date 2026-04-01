@@ -190,6 +190,85 @@ public class AiCategoryService {
     }
 
     /**
+     * Categorize a MenuItem and return detailed result for batch processing
+     * For use with main branch items (restaurant-level)
+     * 
+     * @param menuItem The menu item to categorize
+     * @param restaurantId Restaurant ID for AI context
+     * @return result map with itemId, itemName, category, confidence, reasoning
+     */
+    @Transactional
+    public Map<String, Object> categorizeAndSaveMenuItemForBatch(MenuItem menuItem, Long restaurantId) {
+        try {
+            String itemName = menuItem.getItemName();
+            String itemDescription = menuItem.getItemDescription();
+            Double itemPrice = menuItem.getItemPrice() != null ? menuItem.getItemPrice().doubleValue() : 0.0;
+            
+            if (itemName == null || itemName.trim().isEmpty()) {
+                logger.warn("Cannot categorize: item name is empty");
+                return Map.of(
+                    "itemId", menuItem.getId(),
+                    "itemName", itemName,
+                    "category", "UNKNOWN",
+                    "confidence", 0.0,
+                    "reasoning", "Item name is empty"
+                );
+            }
+            
+            // Call AI service
+            AiServiceClient.CategorizeResponse response = aiServiceClient.categorizeMenuItem(
+                    itemName, 
+                    itemDescription, 
+                    itemPrice, 
+                    restaurantId.toString(), 
+                    "main"
+            );
+            
+            String category = "UNKNOWN";
+            Double confidence = 0.0;
+            String reasoning = "No response from AI service";
+            
+            if (response != null && response.category != null) {
+                category = response.category;
+                confidence = response.confidence != null ? response.confidence : 0.0;
+                reasoning = response.reasoning != null ? response.reasoning : "";
+                
+                // Save category to MenuItem
+                menuItem.setCategory(category);
+                menuItem.setSuggestedCategory(response.category);
+                menuItem.setAiConfidence(confidence);
+                // Truncate reasoning to fit in database (max 990 chars)
+                if (reasoning != null && reasoning.length() > 990) {
+                    reasoning = reasoning.substring(0, 987) + "...";
+                }
+                menuItem.setAiReasoning(reasoning);
+                menuItem.setAiAnalyzedAt(LocalDateTime.now());
+                menuItemRepository.save(menuItem);
+                
+                logger.info("Categorized menu item '{}' -> '{}' (confidence: {})", 
+                    itemName, category, confidence);
+            }
+            
+            return Map.of(
+                "itemId", menuItem.getId(),
+                "itemName", itemName,
+                "category", category,
+                "confidence", confidence,
+                "reasoning", reasoning
+            );
+        } catch (Exception e) {
+            logger.error("Error categorizing menu item: ", e);
+            return Map.of(
+                "itemId", menuItem.getId(),
+                "itemName", menuItem.getItemName(),
+                "category", "ERROR",
+                "confidence", 0.0,
+                "reasoning", "Exception: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
      * Categorize a BranchMenuItem using AI service
      * Works with items in branch_menu_items table
      * 
