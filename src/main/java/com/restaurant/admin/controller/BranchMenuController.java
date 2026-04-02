@@ -21,11 +21,8 @@ import java.util.List;
 @RequestMapping("/branch/{branchId}/menu")
 public class BranchMenuController {
 
-    @Autowired
-    private BranchService branchService;
-
-    @Autowired
-    private SimpleUserService userService;
+    @Autowired private BranchService     branchService;
+    @Autowired private SimpleUserService userService;
 
     // ── Auth helpers ──────────────────────────────────────────────────────────
 
@@ -38,7 +35,7 @@ public class BranchMenuController {
     private String resolveEmail(Authentication auth) {
         if (auth == null) return null;
         Object principal = auth.getPrincipal();
-        if (principal instanceof OidcUser oidcUser) return normalizeEmail(oidcUser.getEmail());
+        if (principal instanceof OidcUser oidcUser)     return normalizeEmail(oidcUser.getEmail());
         if (principal instanceof OAuth2User oauth2User) {
             Object email = oauth2User.getAttributes().get("email");
             return normalizeEmail(email != null ? email.toString() : null);
@@ -63,9 +60,7 @@ public class BranchMenuController {
     // ── View menu ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    public String viewBranchMenu(@PathVariable Long branchId,
-                                 Principal principal,
-                                 Model model) {
+    public String viewBranchMenu(@PathVariable Long branchId, Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
@@ -73,43 +68,41 @@ public class BranchMenuController {
         Branch branch = branchService.getBranchForUser(user, branchId);
         List<EffectiveMenuItem> effectiveMenu = branchService.buildEffectiveMenu(branch);
 
-        model.addAttribute("branch", branch);
-        model.addAttribute("restaurant", branch.getRestaurant());
+        model.addAttribute("branch",       branch);
+        model.addAttribute("restaurant",   branch.getRestaurant());
         model.addAttribute("effectiveMenu", effectiveMenu);
-        model.addAttribute("hasItems", !effectiveMenu.isEmpty());
+        model.addAttribute("hasItems",     !effectiveMenu.isEmpty());
         return "branch-menu-manage";
     }
 
     // ── Add item ──────────────────────────────────────────────────────────────
 
     @GetMapping("/add")
-    public String showAddItemForm(@PathVariable Long branchId,
-                                  Principal principal,
-                                  Model model) {
+    public String showAddItemForm(@PathVariable Long branchId, Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
 
         Branch branch = branchService.getBranchForUser(user, branchId);
-        model.addAttribute("branch", branch);
+        model.addAttribute("branch",     branch);
         model.addAttribute("restaurant", branch.getRestaurant());
         return "branch-item-add";
     }
 
     @PostMapping("/add")
     public String addItem(@PathVariable Long branchId,
-                          @RequestParam("name") String name,
+                          @RequestParam("name")        String name,
                           @RequestParam("description") String description,
-                          @RequestParam("price") Double price,
-                          @RequestParam("category") String category,
+                          @RequestParam("price")       Double price,
+                          @RequestParam("category")    String category,
                           Principal principal,
                           RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
-
         try {
-            branchService.addBranchOnlyItem(user, branchId, name, description, price, category);
+            // ✅ Uses unified addItem — writes to BranchMenuItem regardless of branch type
+            branchService.addItem(user, branchId, name, description, price, category);
             redirectAttributes.addFlashAttribute("success", "Item added!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to add item: " + e.getMessage());
@@ -122,8 +115,7 @@ public class BranchMenuController {
     @GetMapping("/edit")
     public String showEditForm(@PathVariable Long branchId,
                                @RequestParam("itemId") Long itemId,
-                               Principal principal,
-                               Model model) {
+                               Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
@@ -131,32 +123,30 @@ public class BranchMenuController {
         Branch branch = branchService.getBranchForUser(user, branchId);
         List<EffectiveMenuItem> menu = branchService.buildEffectiveMenu(branch);
 
-        // Find the item by branchItemId or restaurantItemId
         EffectiveMenuItem target = menu.stream()
-                .filter(e -> itemId.equals(e.getBranchItemId()) || itemId.equals(e.getRestaurantItemId()))
+                .filter(e -> itemId.equals(e.getBranchItemId()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        model.addAttribute("branch", branch);
+        model.addAttribute("branch",     branch);
         model.addAttribute("restaurant", branch.getRestaurant());
-        model.addAttribute("item", target);
-        model.addAttribute("itemId", itemId);
+        model.addAttribute("item",       target);
+        model.addAttribute("itemId",     itemId);
         return "branch-item-edit";
     }
 
     @PostMapping("/edit")
     public String saveEdit(@PathVariable Long branchId,
-                           @RequestParam("itemId") Long itemId,
-                           @RequestParam("name") String name,
+                           @RequestParam("itemId")      Long   itemId,
+                           @RequestParam("name")        String name,
                            @RequestParam("description") String description,
-                           @RequestParam("price") Double price,
-                           @RequestParam("category") String category,
+                           @RequestParam("price")       Double price,
+                           @RequestParam("category")    String category,
                            Principal principal,
                            RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
-
         try {
             branchService.editItem(user, branchId, itemId, name, description, price, category);
             redirectAttributes.addFlashAttribute("success", "Item updated!");
@@ -176,7 +166,6 @@ public class BranchMenuController {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
-
         try {
             branchService.deleteItem(user, branchId, itemId);
             redirectAttributes.addFlashAttribute("success", "Item deleted.");
@@ -186,19 +175,30 @@ public class BranchMenuController {
         return "redirect:/branch/" + branchId + "/menu";
     }
 
-    // ── Legacy endpoints (kept for template compatibility) ────────────────────
+    // ── Legacy endpoints ──────────────────────────────────────────────────────
 
+    /**
+     * /hide — with the flat BranchMenuItem model, hiding = deleting from this branch.
+     * Accepts both "itemId" and the old "parentItemId" param name for template compat.
+     */
     @PostMapping("/hide")
     public String hideItem(@PathVariable Long branchId,
-                           @RequestParam("parentItemId") Long parentItemId,
+                           @RequestParam(value = "itemId",       required = false) Long itemId,
+                           @RequestParam(value = "parentItemId", required = false) Long parentItemId,
                            Principal principal,
                            RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
 
+        Long id = itemId != null ? itemId : parentItemId;
+        if (id == null) {
+            redirectAttributes.addFlashAttribute("error", "No item specified.");
+            return "redirect:/branch/" + branchId + "/menu";
+        }
         try {
-            branchService.hideInheritedItem(user, branchId, parentItemId);
+            // ✅ hideInheritedItem now delegates to deleteItem in BranchService
+            branchService.hideInheritedItem(user, branchId, id);
             redirectAttributes.addFlashAttribute("success", "Item hidden.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed: " + e.getMessage());
@@ -206,21 +206,26 @@ public class BranchMenuController {
         return "redirect:/branch/" + branchId + "/menu";
     }
 
+    /**
+     * /restore — no-op in the flat model (item simply doesn't exist in branch).
+     * Kept so existing templates don't get 404s.
+     */
     @PostMapping("/restore")
     public String restoreItem(@PathVariable Long branchId,
-                              @RequestParam("parentItemId") Long parentItemId,
+                              @RequestParam(value = "itemId",       required = false) Long itemId,
+                              @RequestParam(value = "parentItemId", required = false) Long parentItemId,
                               Principal principal,
                               RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
         SimpleUser user = getCurrentUser(principal);
         if (user == null) return "redirect:/login";
 
-        try {
-            branchService.restoreInheritedItem(user, branchId, parentItemId);
-            redirectAttributes.addFlashAttribute("success", "Item restored.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed: " + e.getMessage());
+        Long id = itemId != null ? itemId : parentItemId;
+        if (id != null) {
+            try { branchService.restoreInheritedItem(user, branchId, id); }
+            catch (Exception ignored) {}
         }
+        redirectAttributes.addFlashAttribute("success", "Item restored.");
         return "redirect:/branch/" + branchId + "/menu";
     }
 }

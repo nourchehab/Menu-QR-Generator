@@ -14,16 +14,18 @@ public interface BranchMenuItemRepository extends JpaRepository<BranchMenuItem, 
 
     List<BranchMenuItem> findByBranch(Branch branch);
 
-    /** Used for snapshot branches — returns all visible (non-hidden) items. */
     List<BranchMenuItem> findByBranchAndHiddenFalse(Branch branch);
 
     Optional<BranchMenuItem> findByBranchAndParentItem(Branch branch, MenuItem parentItem);
 
-    List<BranchMenuItem> findByBranchAndParentItemIsNullAndHiddenFalse(Branch branch);
-
-    boolean existsByBranchAndParentItem(Branch branch, MenuItem parentItem);
-
     Optional<BranchMenuItem> findByIdAndBranch(Long id, Branch branch);
 
     void deleteAllByBranch(Branch branch);
+
+    /**
+     * ✅ Counts how many BranchMenuItem rows still reference a given photoPath.
+     * Used before deleting from S3 — only delete if count drops to 0,
+     * so snapshot branches that share the same photo URL are never broken.
+     */
+    long countByPhotoPath(String photoPath);
 }

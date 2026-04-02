@@ -5,13 +5,12 @@ import com.restaurant.admin.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,7 +18,6 @@ public class BranchService {
 
     @Autowired private BranchRepository            branchRepository;
     @Autowired private RestaurantRepository        restaurantRepository;
-    @Autowired private MenuItemRepository          menuItemRepository;
     @Autowired private BranchMenuItemRepository    branchMenuItemRepository;
     @Autowired private MenuItemImageStorageService imageStorageService;
 
@@ -28,10 +26,7 @@ public class BranchService {
     @Transactional
     public Branch ensureMainBranch(Restaurant restaurant) {
         return branchRepository.findFirstByRestaurantAndIsMainBranchTrue(restaurant)
-                .orElseGet(() -> {
-                    Branch main = new Branch("Main Branch", restaurant, true);
-                    return branchRepository.save(main);
-                });
+                .orElseGet(() -> branchRepository.save(new Branch("Main Branch", restaurant, true)));
     }
 
     // ── Branch CRUD ───────────────────────────────────────────────────────────
@@ -42,19 +37,19 @@ public class BranchService {
         Branch branch = new Branch(branchName, restaurant, false);
         branch = branchRepository.save(branch);
 
-        // Snapshot current restaurant menu items as independent BranchMenuItems
-        List<MenuItem> currentItems = menuItemRepository.findByRestaurant(restaurant);
-        for (MenuItem item : currentItems) {
+        // Snapshot current main branch items into the new branch
+        Branch mainBranch = ensureMainBranch(restaurant);
+        List<BranchMenuItem> mainItems = branchMenuItemRepository.findByBranchAndHiddenFalse(mainBranch);
+        for (BranchMenuItem item : mainItems) {
             BranchMenuItem snapshot = new BranchMenuItem();
             snapshot.setBranch(branch);
             snapshot.setParentItem(null);
             snapshot.setHidden(false);
-            snapshot.setName(item.getItemName());
-            snapshot.setDescription(item.getItemDescription());
-            snapshot.setPrice(item.getItemPrice() != null ? item.getItemPrice().doubleValue() : null);
+            snapshot.setName(item.getName());
+            snapshot.setDescription(item.getDescription());
+            snapshot.setPrice(item.getPrice());
             snapshot.setCategory(item.getCategory());
-            // Copy photo path so snapshot items show images immediately
-            snapshot.setPhotoPath(item.getPhotoPath());
+            snapshot.setPhotoPath(item.getPhotoPath()); // reference copy — not a new S3 object
             branchMenuItemRepository.save(snapshot);
         }
         return branch;
@@ -76,18 +71,11 @@ public class BranchService {
         return all;
     }
 
-    public List<Branch> getActiveBranchesForUser(SimpleUser user) {
-        Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
-                .orElseThrow(() -> new SecurityException("User has no restaurant"));
-        return branchRepository.findByRestaurantAndIsActiveTrue(restaurant);
-    }
-
     public Branch getBranchForUser(SimpleUser user, Long branchId) {
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(() -> new SecurityException("Branch not found"));
-        if (!branch.getRestaurant().getUser().getId().equals(user.getId())) {
+        if (!branch.getRestaurant().getUser().getId().equals(user.getId()))
             throw new SecurityException("Branch not owned by user");
-        }
         return branch;
     }
 
@@ -134,6 +122,12 @@ public class BranchService {
         return branchRepository.countByRestaurant(restaurant) > 1;
     }
 
+    public List<Branch> getNonMainBranchesForRestaurant(SimpleUser user, Long restaurantId) {
+        Restaurant restaurant = getOwnedRestaurant(user, restaurantId);
+        return branchRepository.findByRestaurantOrderByIsMainBranchDescCreatedAtAsc(restaurant)
+                .stream().filter(b -> !b.isMainBranch()).toList();
+    }
+
     // ── Menu resolution ───────────────────────────────────────────────────────
 
     public List<EffectiveMenuItem> getEffectiveMenu(SimpleUser user, Long branchId) {
@@ -141,34 +135,10 @@ public class BranchService {
         return buildEffectiveMenu(branch);
     }
 
+    /**
+     * All branches (including main) read from BranchMenuItem table only.
+     */
     public List<EffectiveMenuItem> buildEffectiveMenu(Branch branch) {
-        return branch.isMainBranch()
-                ? buildMainBranchMenu(branch)
-                : buildSnapshotMenu(branch);
-    }
-
-    /** Main branch reads live from the restaurant MenuItem table. */
-    private List<EffectiveMenuItem> buildMainBranchMenu(Branch branch) {
-        List<MenuItem> items = menuItemRepository.findByRestaurant(branch.getRestaurant());
-        List<EffectiveMenuItem> result = new ArrayList<>();
-        for (MenuItem item : items) {
-            EffectiveMenuItem emi = new EffectiveMenuItem();
-            emi.setRestaurantItemId(item.getId());
-            emi.setName(item.getItemName());
-            emi.setDescription(item.getItemDescription());
-            emi.setPrice(item.getItemPrice());
-            emi.setCategory(item.getCategory());
-            // ✅ Resolve full S3 / public URL for photo
-            emi.setPhotoUrl(imageStorageService.toPublicUrl(item.getPhotoPath()));
-            emi.setOverridden(false);
-            emi.setBranchOnly(false);
-            result.add(emi);
-        }
-        return result;
-    }
-
-    /** Non-main branches read their own independent snapshot rows. */
-    private List<EffectiveMenuItem> buildSnapshotMenu(Branch branch) {
         List<BranchMenuItem> rows = branchMenuItemRepository.findByBranchAndHiddenFalse(branch);
         List<EffectiveMenuItem> result = new ArrayList<>();
         for (BranchMenuItem bmi : rows) {
@@ -179,25 +149,25 @@ public class BranchService {
             emi.setDescription(bmi.getDescription());
             emi.setPrice(bmi.getPrice() != null ? BigDecimal.valueOf(bmi.getPrice()) : null);
             emi.setCategory(bmi.getCategory());
-            // ✅ Resolve full S3 / public URL for photo
             emi.setPhotoUrl(imageStorageService.toPublicUrl(bmi.getPhotoPath()));
             emi.setOverridden(false);
-            emi.setBranchOnly(true);
+            emi.setBranchOnly(!branch.isMainBranch());
             result.add(emi);
         }
         return result;
     }
 
-    // ── Branch menu item operations ───────────────────────────────────────────
+    // ── Add item ──────────────────────────────────────────────────────────────
 
     /**
-     * Add a branch-only item, with optional photo upload to S3.
+     * ✅ ALL branches (including main) store items in BranchMenuItem only.
+     * No MenuItem table involved.
      */
     @Transactional
-    public BranchMenuItem addBranchOnlyItem(SimpleUser user, Long branchId,
-                                            String name, String description,
-                                            Double price, String category,
-                                            org.springframework.web.multipart.MultipartFile photo) {
+    public BranchMenuItem addItem(SimpleUser user, Long branchId,
+                                  String name, String description,
+                                  Double price, String category,
+                                  MultipartFile photo) {
         Branch branch = getBranchForUser(user, branchId);
         BranchMenuItem bmi = new BranchMenuItem();
         bmi.setBranch(branch);
@@ -207,145 +177,219 @@ public class BranchService {
         bmi.setDescription(description);
         bmi.setPrice(price);
         bmi.setCategory(category);
-
-        // ✅ Upload photo to S3 if provided
         if (photo != null && !photo.isEmpty()) {
-            try {
-                String photoUrl = imageStorageService.storePhoto(photo);
-                bmi.setPhotoPath(photoUrl);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to upload photo: " + e.getMessage(), e);
-            }
+            try { bmi.setPhotoPath(imageStorageService.storePhoto(photo)); }
+            catch (Exception e) { throw new RuntimeException("Failed to upload photo: " + e.getMessage(), e); }
         }
-
         return branchMenuItemRepository.save(bmi);
     }
 
-    /** Overload without photo — kept for callers that don't have a file. */
+    /** Overload without photo. */
+    @Transactional
+    public BranchMenuItem addItem(SimpleUser user, Long branchId,
+                                  String name, String description,
+                                  Double price, String category) {
+        return addItem(user, branchId, name, description, price, category, null);
+    }
+
+    // ── Legacy methods (kept for BranchMenuController compatibility) ─────────
+
+    /**
+     * Legacy: hide an inherited item. Since all items are now independent
+     * BranchMenuItem rows, "hiding" means deleting from this branch only.
+     */
+    @Transactional
+    public void hideInheritedItem(SimpleUser user, Long branchId, Long itemId) {
+        deleteItem(user, branchId, itemId);
+    }
+
+    /**
+     * Legacy: restore a hidden item. With the flat BranchMenuItem model there
+     * is nothing to restore — the item simply no longer exists in this branch.
+     * This is intentionally a no-op; callers won't get an error.
+     */
+    @Transactional
+    public void restoreInheritedItem(SimpleUser user, Long branchId, Long itemId) {
+        // No-op: flat model has no hidden/parent concept.
+        // If needed in future, re-copy from main branch here.
+    }
+
+    /** Legacy name kept for callers that still use addBranchOnlyItem. */
+    @Transactional
+    public BranchMenuItem addBranchOnlyItem(SimpleUser user, Long branchId,
+                                            String name, String description,
+                                            Double price, String category,
+                                            MultipartFile photo) {
+        return addItem(user, branchId, name, description, price, category, photo);
+    }
+
     @Transactional
     public BranchMenuItem addBranchOnlyItem(SimpleUser user, Long branchId,
                                             String name, String description,
                                             Double price, String category) {
-        return addBranchOnlyItem(user, branchId, name, description, price, category, null);
+        return addItem(user, branchId, name, description, price, category, null);
     }
 
+    // ── Edit item ─────────────────────────────────────────────────────────────
+
     /**
-     * Edit an item — works for both main branch (restaurant MenuItem)
-     * and snapshot branches (BranchMenuItem rows).
-     * Photo upload is handled in the controller layer via MenuItemService / this method.
+     * ✅ All branches edit BranchMenuItem rows. No MenuItem table involved.
      */
     @Transactional
-    public BranchMenuItem editBranchItem(SimpleUser user, Long branchId,
-                                         Long itemId,
-                                         String name, String description,
-                                         Double price, String category,
-                                         org.springframework.web.multipart.MultipartFile photo) {
+    public BranchMenuItem editItem(SimpleUser user, Long branchId, Long itemId,
+                                   String name, String description,
+                                   Double price, String category,
+                                   MultipartFile photo) {
         Branch branch = getBranchForUser(user, branchId);
-
         BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(itemId, branch)
                 .orElseThrow(() -> new RuntimeException("Item not found in this branch"));
         bmi.setName(name);
         bmi.setDescription(description);
         bmi.setPrice(price);
         bmi.setCategory(category);
-
         if (photo != null && !photo.isEmpty()) {
             try {
-                // Delete old photo from S3 if it exists
+                // ✅ Only delete old photo from S3 if no other branch uses the same path
                 if (bmi.getPhotoPath() != null) {
-                    imageStorageService.deleteIfExists(bmi.getPhotoPath());
+                    deletePhotoIfUnshared(bmi.getPhotoPath(), bmi.getId());
                 }
-                String photoUrl = imageStorageService.storePhoto(photo);
-                bmi.setPhotoPath(photoUrl);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to upload photo: " + e.getMessage(), e);
-            }
+                bmi.setPhotoPath(imageStorageService.storePhoto(photo));
+            } catch (Exception e) { throw new RuntimeException("Failed to upload photo: " + e.getMessage(), e); }
         }
-
         return branchMenuItemRepository.save(bmi);
     }
 
-    /**
-     * Unified edit — routes to the right path based on branch type.
-     * For main branch: delegates to MenuItemService (handled in controller).
-     * For snapshot branches: updates BranchMenuItem row directly.
-     */
+    /** Overload without photo — used by text-only edits and categorise. */
     @Transactional
     public void editItem(SimpleUser user, Long branchId, Long itemId,
                          String name, String description, Double price, String category) {
-        Branch branch = getBranchForUser(user, branchId);
-
-        if (branch.isMainBranch()) {
-            // Main branch items are real MenuItems — update via MenuItemService
-            // Controller handles this path directly
-            MenuItem parent = menuItemRepository.findById(itemId)
-                    .orElseThrow(() -> new RuntimeException("Item not found"));
-            parent.setItemName(name);
-            parent.setItemDescription(description);
-            if (price != null) parent.setItemPrice(BigDecimal.valueOf(price));
-            parent.setCategory(category);
-            menuItemRepository.save(parent);
-        } else {
-            // Snapshot branch — update BranchMenuItem row
-            BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(itemId, branch)
-                    .orElseThrow(() -> new RuntimeException("Item not found"));
-            bmi.setName(name);
-            bmi.setDescription(description);
-            bmi.setPrice(price);
-            bmi.setCategory(category);
-            branchMenuItemRepository.save(bmi);
-        }
+        editItem(user, branchId, itemId, name, description, price, category, null);
     }
 
+    /** Legacy name. */
+    @Transactional
+    public BranchMenuItem editBranchItem(SimpleUser user, Long branchId, Long itemId,
+                                         String name, String description,
+                                         Double price, String category,
+                                         MultipartFile photo) {
+        return editItem(user, branchId, itemId, name, description, price, category, photo);
+    }
+
+    // ── Delete item ───────────────────────────────────────────────────────────
+
+    /**
+     * Deletes a BranchMenuItem.
+     * ✅ S3 photo is only deleted if NO other BranchMenuItem references the same path.
+     *    This protects snapshot branches that copied the same photo URL.
+     */
     @Transactional
     public void deleteItem(SimpleUser user, Long branchId, Long itemId) {
         Branch branch = getBranchForUser(user, branchId);
+        BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(itemId, branch)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+        String photoPath = bmi.getPhotoPath();
+        branchMenuItemRepository.delete(bmi);
 
-        if (branch.isMainBranch()) {
-            MenuItem item = menuItemRepository.findById(itemId)
-                    .orElseThrow(() -> new RuntimeException("Item not found"));
-            // Delete photo from S3
-            imageStorageService.deleteIfExists(item.getPhotoPath());
-            menuItemRepository.delete(item);
-        } else {
-            BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(itemId, branch)
-                    .orElseThrow(() -> new RuntimeException("Item not found"));
-            imageStorageService.deleteIfExists(bmi.getPhotoPath());
-            branchMenuItemRepository.delete(bmi);
+        // ✅ Only delete from S3 if no other BranchMenuItem still references this photo
+        if (photoPath != null) {
+            deletePhotoIfUnshared(photoPath, null);
         }
     }
 
-    // ── Legacy compatibility methods ──────────────────────────────────────────
+    // ── Copy item to selected branches ────────────────────────────────────────
 
+    /**
+     * Copies a BranchMenuItem (from any branch) to the given list of other branches.
+     * Photo path is copied by reference — no new S3 upload.
+     */
     @Transactional
-    public BranchMenuItem overrideInheritedItem(SimpleUser user, Long branchId, Long parentItemId,
-                                                String name, String description,
-                                                Double price, String category) {
-        editItem(user, branchId, parentItemId, name, description, price, category);
-        return null;
+    public void copyItemToBranches(SimpleUser user, Long sourceItemId, List<Long> targetBranchIds) {
+        BranchMenuItem source = branchMenuItemRepository.findById(sourceItemId)
+                .orElseThrow(() -> new RuntimeException("Source item not found"));
+
+        if (!source.getBranch().getRestaurant().getUser().getId().equals(user.getId()))
+            throw new SecurityException("Not authorised");
+
+        for (Long targetBranchId : targetBranchIds) {
+            Branch target = branchRepository.findById(targetBranchId)
+                    .orElseThrow(() -> new RuntimeException("Branch not found: " + targetBranchId));
+
+            if (!target.getRestaurant().getUser().getId().equals(user.getId())) continue;
+
+            // Avoid duplicates by name
+            boolean exists = branchMenuItemRepository.findByBranch(target).stream()
+                    .anyMatch(bmi -> source.getName().equalsIgnoreCase(bmi.getName()));
+            if (exists) continue;
+
+            BranchMenuItem copy = new BranchMenuItem();
+            copy.setBranch(target);
+            copy.setParentItem(null);
+            copy.setHidden(false);
+            copy.setName(source.getName());
+            copy.setDescription(source.getDescription());
+            copy.setPrice(source.getPrice());
+            copy.setCategory(source.getCategory());
+            copy.setPhotoPath(source.getPhotoPath()); // shared reference — safe
+            branchMenuItemRepository.save(copy);
+        }
     }
 
+    // ── Delete item from selected branches ────────────────────────────────────
+
+    /**
+     * Removes BranchMenuItem rows matching itemName from the given branches.
+     * ✅ Does NOT delete S3 photos.
+     */
     @Transactional
-    public void hideInheritedItem(SimpleUser user, Long branchId, Long parentItemId) {
-        deleteItem(user, branchId, parentItemId);
+    public void deleteItemFromBranches(SimpleUser user, String itemName, List<Long> targetBranchIds) {
+        for (Long targetBranchId : targetBranchIds) {
+            Branch branch = branchRepository.findById(targetBranchId)
+                    .orElseThrow(() -> new RuntimeException("Branch not found: " + targetBranchId));
+            if (!branch.getRestaurant().getUser().getId().equals(user.getId())) continue;
+
+            branchMenuItemRepository.findByBranch(branch).stream()
+                    .filter(bmi -> itemName.equalsIgnoreCase(bmi.getName()))
+                    .forEach(branchMenuItemRepository::delete);
+            // ✅ No S3 delete — other branches may still use the photo
+        }
     }
 
+    // ── Delete image only ─────────────────────────────────────────────────────
+
+    /**
+     * Removes the photo from a BranchMenuItem.
+     * ✅ Only deletes from S3 if no other BranchMenuItem shares the same path.
+     */
     @Transactional
-    public void restoreInheritedItem(SimpleUser user, Long branchId, Long parentItemId) {
+    public void deleteItemImage(SimpleUser user, Long branchId, Long itemId) {
         Branch branch = getBranchForUser(user, branchId);
-        MenuItem parent = menuItemRepository.findById(parentItemId)
-                .orElseThrow(() -> new RuntimeException("Parent item not found"));
-        branchMenuItemRepository.findByBranchAndParentItem(branch, parent)
-                .ifPresent(branchMenuItemRepository::delete);
+        BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(itemId, branch)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+        String photoPath = bmi.getPhotoPath();
+        bmi.setPhotoPath(null);
+        branchMenuItemRepository.save(bmi);
+
+        if (photoPath != null) {
+            deletePhotoIfUnshared(photoPath, itemId);
+        }
     }
 
-    @Transactional
-    public void deleteBranchMenuItem(SimpleUser user, Long branchId, Long branchMenuItemId) {
-        Branch branch = getBranchForUser(user, branchId);
-        BranchMenuItem bmi = branchMenuItemRepository.findByIdAndBranch(branchMenuItemId, branch)
-                .orElseThrow(() -> new SecurityException("Branch menu item not found"));
-        imageStorageService.deleteIfExists(bmi.getPhotoPath());
-        branchMenuItemRepository.delete(bmi);
+    // ── Photo safety helper ───────────────────────────────────────────────────
+
+    /**
+     * Deletes a photo from S3 only if no other BranchMenuItem (excluding excludeItemId)
+     * still references the same photoPath.
+     * This prevents deleting a photo that snapshot branches copied.
+     */
+    private void deletePhotoIfUnshared(String photoPath, Long excludeItemId) {
+        long refCount = branchMenuItemRepository.countByPhotoPath(photoPath);
+        // If excludeItemId is null, we already deleted the row so refCount should be 0 to delete
+        // If excludeItemId is not null, we're about to update so subtract 1 for the current row
+        long threshold = excludeItemId != null ? 1 : 0;
+        if (refCount <= threshold) {
+            imageStorageService.deleteIfExists(photoPath);
+        }
+        // else: other rows still use this photo — leave S3 object alone
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -353,9 +397,8 @@ public class BranchService {
     private Restaurant getOwnedRestaurant(SimpleUser user, Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        if (!restaurant.getUser().getId().equals(user.getId())) {
+        if (!restaurant.getUser().getId().equals(user.getId()))
             throw new SecurityException("Restaurant not owned by user");
-        }
         return restaurant;
     }
 
@@ -368,7 +411,7 @@ public class BranchService {
         private String description;
         private BigDecimal price;
         private String category;
-        private String photoUrl;      // ✅ full S3 / public URL
+        private String photoUrl;
         private boolean overridden;
         private boolean branchOnly;
 
@@ -384,7 +427,7 @@ public class BranchService {
         public void setPrice(BigDecimal price)        { this.price = price; }
         public String getCategory()                   { return category; }
         public void setCategory(String cat)           { this.category = cat; }
-        public String getPhotoUrl()                   { return photoUrl; }   // ✅
+        public String getPhotoUrl()                   { return photoUrl; }
         public void setPhotoUrl(String photoUrl)      { this.photoUrl = photoUrl; }
         public boolean isOverridden()                 { return overridden; }
         public void setOverridden(boolean overridden) { this.overridden = overridden; }
