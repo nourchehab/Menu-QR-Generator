@@ -402,6 +402,26 @@ public class BranchService {
         return restaurant;
     }
 
+    // ── AI Categorization helpers ─────────────────────────────────────────────
+
+    /**
+     * Get a BranchMenuItem by ID and Branch ID for categorization
+     * Returns null if not found
+     */
+    public BranchMenuItem getBranchMenuItemById(Long itemId, Long branchId) {
+        return branchRepository.findById(branchId)
+                .flatMap(branch -> branchMenuItemRepository.findByIdAndBranch(itemId, branch))
+                .orElse(null);
+    }
+
+    /**
+     * Save a BranchMenuItem with categorization data
+     */
+    @Transactional
+    public BranchMenuItem saveBranchMenuItem(BranchMenuItem item) {
+        return branchMenuItemRepository.save(item);
+    }
+
     // ── EffectiveMenuItem DTO ─────────────────────────────────────────────────
 
     public static class EffectiveMenuItem {

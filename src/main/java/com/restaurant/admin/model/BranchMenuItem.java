@@ -43,6 +43,31 @@ public class BranchMenuItem {
     @Column
     private String photoPath;
 
+    // ── AI Categorization fields ──────────────────────────────────────────────
+    /**
+     * AI-suggested category from the Python Groq service
+     */
+    @Column(length = 100)
+    private String suggestedCategory;
+    
+    /**
+     * Confidence score (0.0-1.0) from AI model for the suggestion
+     */
+    @Column
+    private Double aiConfidence;
+    
+    /**
+     * Reasoning from AI for why this category was suggested
+     */
+    @Column(columnDefinition = "TEXT")
+    private String aiReasoning;
+    
+    /**
+     * Timestamp when AI last analyzed this item
+     */
+    @Column
+    private java.time.LocalDateTime aiAnalyzedAt;
+
     // ── Constructors ──────────────────────────────────────────────────────────
     public BranchMenuItem() {}
 
@@ -112,6 +137,18 @@ public class BranchMenuItem {
 
     public String getPhotoPath()               { return photoPath; }
     public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
+
+    public String getSuggestedCategory()                { return suggestedCategory; }
+    public void setSuggestedCategory(String cat)       { this.suggestedCategory = cat; }
+
+    public Double getAiConfidence()                    { return aiConfidence; }
+    public void setAiConfidence(Double conf)          { this.aiConfidence = conf; }
+
+    public String getAiReasoning()                     { return aiReasoning; }
+    public void setAiReasoning(String reason)         { this.aiReasoning = reason; }
+
+    public java.time.LocalDateTime getAiAnalyzedAt()  { return aiAnalyzedAt; }
+    public void setAiAnalyzedAt(java.time.LocalDateTime at) { this.aiAnalyzedAt = at; }
 
     /** Convenience: is this an override of an inherited item? */
     public boolean isOverride()  { return parentItem != null && !hidden; }
