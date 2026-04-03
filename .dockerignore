@@ -28,3 +28,5 @@ tmp/
 venv/
 __pycache__/
 .mypy_cache/
+# Ignore Python microservice from Spring Boot build
+ai-service-python/
