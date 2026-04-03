@@ -8,8 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +40,51 @@ public class SignupController {
 
     @Autowired
     private RestaurantService restaurantService;
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? null : trimmed.toLowerCase();
+    }
+
+    private String resolveEmail(Authentication auth) {
+        if (auth == null) {
+            return null;
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof OidcUser oidcUser) {
+            return normalizeEmail(oidcUser.getEmail());
+        }
+        if (principal instanceof OAuth2User oauth2User) {
+            Object emailAttr = oauth2User.getAttributes().get("email");
+            return normalizeEmail(emailAttr == null ? null : emailAttr.toString());
+        }
+        return normalizeEmail(auth.getName());
+    }
+
+    private String resolveEmail(Principal principal) {
+        if (principal == null) {
+            return null;
+        }
+        if (principal instanceof Authentication auth) {
+            return resolveEmail(auth);
+        }
+        return normalizeEmail(principal.getName());
+    }
+
+    private SimpleUser getCurrentUser(Principal principal) {
+        String email = resolveEmail(principal);
+        if (email == null) {
+            return null;
+        }
+        SimpleUser user = userService.findByEmail(email);
+        if (user == null && principal != null) {
+            user = userService.findByEmail(principal.getName());
+        }
+        return user;
+    }
 
     @PostMapping("/signup")
     public String signup(
@@ -139,12 +187,30 @@ public class SignupController {
     }
 
     @GetMapping("/choose-option")
-    public String chooseOption() {
-        return "choose-option";
+    public String chooseOption(Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        return "redirect:/details";
     }
 
     @GetMapping("/details")
-    public String restaurantDetails(@RequestParam(required = false) String option, Model model) {
+    public String restaurantDetails(@RequestParam(required = false) String option,
+                                    Principal principal,
+                                    Model model) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        SimpleUser user = getCurrentUser(principal);
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
+            return "redirect:/restaurants";
+        }
+
         model.addAttribute("formAction", "/signup/restaurant/setup");
         return "restaurant-details";
     }
@@ -161,36 +227,36 @@ public class SignupController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
-        String email = principal.getName();
-        SimpleUser user = userService.findByEmail(email);
-
+        SimpleUser user = getCurrentUser(principal);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
         }
 
         try {
+            if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Restaurant already exists",
+                        "redirectUrl", "/restaurants"
+                ));
+            }
+
             Restaurant restaurant = restaurantService.setupRestaurant(
                     user.getId(),
                     restaurantName,
                     restaurantType,
                     logoFile
             );
-            if (restaurant != null) {
-                user.setRestaurantSetupComplete(true);
-                userService.save(user);
-                
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "Restaurant created successfully",
-                        "restaurantId", restaurant.getId()
-                ));
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to create restaurant"));
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Restaurant created successfully",
+                    "restaurantId", restaurant.getId(),
+                    "redirectUrl", "/restaurants"
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
     }
-
 }

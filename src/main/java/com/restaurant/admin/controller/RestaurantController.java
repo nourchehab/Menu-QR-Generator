@@ -69,6 +69,16 @@ public class RestaurantController {
     @GetMapping("/restaurant/setup")
     public String setupPage(Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
+
+        SimpleUser user = getCurrentUser(principal);
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
+            return "redirect:/restaurants";
+        }
+
         model.addAttribute("formAction", "/restaurant/setup");
         return "restaurant-details";
     }
@@ -90,6 +100,14 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
+            if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Restaurant already exists",
+                        "redirectUrl", "/restaurants"
+                ));
+            }
+
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
             Restaurant restaurant = restaurantService.setupRestaurant(
                     user.getId(), restaurantName, restaurantType, effectiveLogo);
@@ -97,7 +115,8 @@ public class RestaurantController {
             return ResponseEntity.ok(Map.of(
                     "success",      true,
                     "message",      "Restaurant saved successfully",
-                    "restaurantId", restaurant.getId()
+                    "restaurantId", restaurant.getId(),
+                    "redirectUrl",  "/restaurants"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));

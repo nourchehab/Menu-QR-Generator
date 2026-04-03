@@ -1,6 +1,7 @@
 package com.restaurant.admin.config;
 
 import com.restaurant.admin.model.SimpleUser;
+import com.restaurant.admin.security.AuthRedirectService;
 import com.restaurant.admin.service.SimpleUserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,9 +16,12 @@ import java.io.IOException;
 public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final SimpleUserService userService;
+    private final AuthRedirectService authRedirectService;
 
-    public CustomLoginSuccessHandler(SimpleUserService userService) {
+    public CustomLoginSuccessHandler(SimpleUserService userService,
+                                     AuthRedirectService authRedirectService) {
         this.userService = userService;
+        this.authRedirectService = authRedirectService;
     }
 
     @Override
@@ -26,14 +30,13 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String email = authentication.getName();
+        SimpleUser user = userService.findByEmail(authentication.getName());
 
-        SimpleUser user = userService.findByEmail(email);
-
-        if (user != null && user.isRestaurantSetupComplete()) {
-            response.sendRedirect("/restaurants");
-        } else {
-            response.sendRedirect("/details");
+        if (user == null) {
+            response.sendRedirect("/login?error=true");
+            return;
         }
+
+        response.sendRedirect(authRedirectService.resolvePostLoginRedirect(user));
     }
 }

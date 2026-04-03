@@ -1,5 +1,3 @@
-
-
 package com.restaurant.admin.config;
 
 import org.springframework.context.annotation.Bean;
@@ -33,8 +31,8 @@ public class SecurityConfig {
             OAuth2LoginSuccessHandler successHandler,
             OAuth2LoginFailureHandler failureHandler,
             CustomAuthenticationProvider customAuthenticationProvider,
-            CustomLoginSuccessHandler formLoginSuccessHandler
-            , @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile
+            CustomLoginSuccessHandler formLoginSuccessHandler,
+            @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
@@ -48,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
-            http.getSharedObject(AuthenticationManagerBuilder.class);
+                http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
         return authenticationManagerBuilder.build();
     }
@@ -56,54 +54,52 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-    .csrf(csrf -> csrf.disable())
-    .headers(headers -> headers
-        .frameOptions(frame -> frame.disable())
-    )
-            .authorizeHttpRequests(auth -> {
-                // Allow unauthenticated access to signup endpoints
-                auth.requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll();
-                // Public assets and selected API endpoints
-                auth.requestMatchers(
-                    "/", "/login", "/signup",
-                    "/css/**", "/js/**", "/images/**",
-                    "/uploads/**",
-                    "/m/**",
-                    "/api/public/**",
-                    "/oauth2/**", "/login/oauth2/**", "/choose-option", "/details", "/otp.html", "/reset-password.html",
-                    "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**", "/restaurants", "/r/**",
-                    "/b/**", "/api/restaurant/branch/**",
-                    "/api/public/branch/**"
-                ).permitAll();
-
-                // During local development allow anonymous access to assistant endpoints
-                if ("local".equalsIgnoreCase(this.activeProfile)) {
-                    auth.requestMatchers("/api/classify/chat", "/api/classify/suggest").permitAll();
-                }
-
-                auth.anyRequest().authenticated();
-            })
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler(formLoginSuccessHandler)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
-            )
-            //OAuth2 login disabled until Google credentials are added to application-local.properties
-            .oauth2Login(oauth -> oauth
-                .loginPage("/login")
-                .userInfoEndpoint(userInfo -> userInfo
-                .userService(customOAuth2UserService)
-                .oidcUserService(customOidcUserService)
+                .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.disable())
                 )
-            .successHandler(successHandler)
-            .failureHandler(failureHandler)
-            );
+                .authorizeHttpRequests(auth -> {
+                    // Allow unauthenticated access to signup endpoints
+                    auth.requestMatchers("/signup", "/signup/verify", "/signup/verify/resend").permitAll();
+                    // Public assets and selected API endpoints
+                    auth.requestMatchers(
+                            "/", "/login", "/signup",
+                            "/css/**", "/js/**", "/images/**",
+                            "/uploads/**",
+                            "/m/**",
+                            "/api/public/**",
+                            "/oauth2/**", "/login/oauth2/**", "/otp.html", "/reset-password.html",
+                            "/auth/**", "/menu/**", "/api/public/**", "/api/qr/**", "/api/login/**", "/r/**",
+                            "/b/**", "/api/restaurant/branch/**",
+                            "/api/public/branch/**"
+                    ).permitAll();
+
+                    // During local development allow anonymous access to assistant endpoints
+                    if ("local".equalsIgnoreCase(this.activeProfile)) {
+                        auth.requestMatchers("/api/classify/chat", "/api/classify/suggest").permitAll();
+                    }
+
+                    auth.anyRequest().authenticated();
+                })
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .successHandler(formLoginSuccessHandler)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                )
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService)
+                        )
+                        .successHandler(successHandler)
+                        .failureHandler(failureHandler)
+                );
 
         return http.build();
     }
-
 }

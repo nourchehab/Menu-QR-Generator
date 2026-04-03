@@ -137,6 +137,10 @@ public class PageController {
             SimpleUser user = getCurrentUser(principal);
             if (user == null) return "redirect:/login";
 
+            if (!user.isRestaurantSetupComplete() || !restaurantService.userHasRestaurant(user)) {
+                return "redirect:/details";
+            }
+
             List<Restaurant> restaurants = restaurantService.getRestaurantsByUser(user);
             if (restaurants == null) restaurants = new ArrayList<>();
 
