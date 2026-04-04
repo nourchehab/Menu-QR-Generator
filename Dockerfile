@@ -14,16 +14,17 @@ COPY src ./src
 # Build the application (skip tests for faster build)
 RUN mvn clean package -DskipTests -q
 
-# Stage 2: Runtime - Java execution
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Runtime - Java execution (Debian-based for better runtime compatibility)
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl and CA certificates for health checks and outbound TLS
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
-RUN adduser -D -u 1000 appuser
+RUN useradd -u 1000 -m appuser
 
 # Copy JAR from builder stage
 COPY --from=builder /build/target/*.jar /app/app.jar
@@ -31,12 +32,15 @@ RUN chown -R appuser:appuser /app
 
 USER appuser
 
+# Prefer IPv4 in containerized environments where IPv6 routing can be flaky
+ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true"
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8081}/users/health || exit 1
+    CMD sh -c 'curl -fsS "http://localhost:${PORT:-8081}/users/health" || exit 1'
 
 # Expose port
 EXPOSE 8081
 
 # Run the Spring Boot application
-ENTRYPOINT ["sh", "-c", "java -jar /app/app.jar --server.port=${PORT:-8081}"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar --server.port=${PORT:-8081}"]
