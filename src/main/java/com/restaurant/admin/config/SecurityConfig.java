@@ -24,6 +24,7 @@ public class SecurityConfig {
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final CustomLoginSuccessHandler formLoginSuccessHandler;
     private final String activeProfile;
+        private final boolean oauth2Enabled;
 
     public SecurityConfig(
             CustomOAuth2UserService customOAuth2UserService,
@@ -32,7 +33,8 @@ public class SecurityConfig {
             OAuth2LoginFailureHandler failureHandler,
             CustomAuthenticationProvider customAuthenticationProvider,
             CustomLoginSuccessHandler formLoginSuccessHandler,
-            @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile
+                        @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
+                        @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
@@ -41,6 +43,7 @@ public class SecurityConfig {
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
         this.activeProfile = activeProfile == null ? "" : activeProfile;
+                this.oauth2Enabled = oauth2Enabled;
     }
 
     @Bean
@@ -89,16 +92,19 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
-                )
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                                .oidcUserService(customOidcUserService)
-                        )
-                        .successHandler(successHandler)
-                        .failureHandler(failureHandler)
                 );
+
+        if (oauth2Enabled) {
+            http.oauth2Login(oauth -> oauth
+                    .loginPage("/login")
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(customOAuth2UserService)
+                            .oidcUserService(customOidcUserService)
+                    )
+                    .successHandler(successHandler)
+                    .failureHandler(failureHandler)
+            );
+        }
 
         return http.build();
     }
