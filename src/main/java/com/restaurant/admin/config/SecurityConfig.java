@@ -34,7 +34,8 @@ public class SecurityConfig {
             CustomAuthenticationProvider customAuthenticationProvider,
             CustomLoginSuccessHandler formLoginSuccessHandler,
                         @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
-                        @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled
+                        @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled,
+                        @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId
     ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
@@ -43,7 +44,7 @@ public class SecurityConfig {
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
         this.activeProfile = activeProfile == null ? "" : activeProfile;
-                this.oauth2Enabled = oauth2Enabled;
+                this.oauth2Enabled = oauth2Enabled || (googleClientId != null && !googleClientId.isBlank());
     }
 
     @Bean
