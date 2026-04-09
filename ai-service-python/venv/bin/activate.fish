@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/mohdkat/projects/backend-servicex/src/main/ai-service-python/venv
+set -gx VIRTUAL_ENV /home/mohdkat/projects/backend-servicex/ai-service-python/venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

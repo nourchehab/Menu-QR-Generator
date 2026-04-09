@@ -1,4 +1,4 @@
-#!/home/mohdkat/projects/backend-servicex/src/main/ai-service-python/venv/bin/python3.12
+#!/home/mohdkat/projects/backend-servicex/ai-service-python/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

@@ -20,8 +20,8 @@ class TestCategoryAssistantInit:
 
     def test_init_with_valid_api_key(self):
         """Test successful initialization with valid API key"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key-123'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key-123'}):
+            with patch('app.ai_service.ChatGroq'):
                 assistant = CategoryAssistant()
                 
                 assert assistant is not None
@@ -32,27 +32,27 @@ class TestCategoryAssistantInit:
     def test_init_with_custom_model(self):
         """Test initialization with custom model name"""
         with patch.dict(os.environ, {
-            'GEMINI_API_KEY': 'test-key-123',
-            'AI_MODEL': 'gemini-2.5-pro'
+            'GROQ_API_KEY': 'test-key-123',
+            'AI_MODEL': 'llama-3.3-70b-versatile'
         }):
-            with patch('app.ai_service.ChatGoogleGenerativeAI') as mock_chat:
+            with patch('app.ai_service.ChatGroq') as mock_chat:
                 assistant = CategoryAssistant()
                 
-                # Verify that ChatGoogleGenerativeAI was called with correct model
+                # Verify that ChatGroq was called with correct model
                 mock_chat.assert_called_once()
                 call_kwargs = mock_chat.call_args[1]
-                assert call_kwargs['model'] == 'gemini-2.5-pro'
+                assert call_kwargs['model'] == 'llama-3.3-70b-versatile'
 
     def test_init_missing_api_key(self):
         """Test that initialization fails without API key"""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValueError, match="GEMINI_API_KEY not set"):
+            with pytest.raises(ValueError, match="GROQ_API_KEY not set in .env file"):
                 CategoryAssistant()
 
     def test_predefined_categories(self):
         """Test that predefined categories are populated"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 assistant = CategoryAssistant()
                 
                 assert len(assistant.predefined_categories) > 0
@@ -64,10 +64,10 @@ class TestCategoryAssistantInit:
     def test_custom_spring_boot_url(self):
         """Test initialization with custom Spring Boot URL"""
         with patch.dict(os.environ, {
-            'GEMINI_API_KEY': 'test-key',
+            'GROQ_API_KEY': 'test-key',
             'SPRING_BOOT_BASE_URL': 'https://production-server.com'
         }):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+            with patch('app.ai_service.ChatGroq'):
                 assistant = CategoryAssistant()
                 
                 assert assistant.spring_boot_url == 'https://production-server.com'
@@ -79,8 +79,8 @@ class TestGetKey:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_get_key_format(self, assistant):
@@ -110,8 +110,8 @@ class TestMemoryManagement:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_get_memory_creates_new(self, assistant):
@@ -151,8 +151,8 @@ class TestLoadRestaurantData:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_load_restaurant_data_success(self, assistant, sample_menu_items):
@@ -189,8 +189,8 @@ class TestCategorizeMenuItem:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI') as mock_chat:
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq') as mock_chat:
                 return CategoryAssistant()
 
     def test_categorize_success(self, assistant, sample_categorization_response):
@@ -287,8 +287,8 @@ class TestChatAboutCategories:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_chat_success(self, assistant):
@@ -348,8 +348,8 @@ class TestGetFewerShotExamples:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_get_few_shot_with_items(self, assistant, sample_menu_items):
@@ -383,8 +383,8 @@ class TestGetRestaurantContext:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     def test_get_restaurant_context_no_data(self, assistant):
@@ -418,8 +418,8 @@ class TestFetchRestaurantContext:
     @pytest.fixture
     def assistant(self):
         """Create a test assistant instance"""
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-key'}):
-            with patch('app.ai_service.ChatGoogleGenerativeAI'):
+        with patch.dict(os.environ, {'GROQ_API_KEY': 'test-key'}):
+            with patch('app.ai_service.ChatGroq'):
                 return CategoryAssistant()
 
     @pytest.mark.asyncio
