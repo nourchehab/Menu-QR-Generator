@@ -11,15 +11,25 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile; 
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 import java.math.BigDecimal;
+import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -42,10 +52,30 @@ public class MenuItemImageApiIntegrationTest {
     @Autowired
     private MenuItemRepository menuItemRepository;
 
+        @Autowired
+        private S3Client s3Client;
+
+        @TestConfiguration
+        static class TestS3Config {
+                @Bean
+                @Primary
+                S3Client s3Client() {
+                        return mock(S3Client.class);
+                }
+        }
+
     private MenuItem item;
 
     @BeforeEach
     void setup() {
+                S3Utilities s3Utilities = org.mockito.Mockito.mock(S3Utilities.class);
+                when(s3Client.utilities()).thenReturn(s3Utilities);
+                try {
+                        when(s3Utilities.getUrl(any(GetUrlRequest.class))).thenReturn(new URL("https://example-bucket.s3.amazonaws.com/test-image.png"));
+                } catch (Exception e) {
+                        throw new RuntimeException(e);
+                }
+
         menuItemRepository.deleteAll();
         restaurantRepository.deleteAll();
         userRepository.deleteAll();
