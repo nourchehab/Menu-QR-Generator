@@ -136,7 +136,6 @@ public class BranchItemApiController {
             @RequestParam(value = "category",  required = false) String category,
             @RequestParam(value = "itemPhoto", required = false) MultipartFile photo,
             Principal principal) {
-
         if (principal == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         try {
