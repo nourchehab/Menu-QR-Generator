@@ -12,6 +12,9 @@ import com.restaurant.admin.security.oauth.CustomOAuth2UserService;
 import com.restaurant.admin.security.oauth.CustomOidcUserService;
 import com.restaurant.admin.security.oauth.OAuth2LoginFailureHandler;
 import com.restaurant.admin.security.oauth.OAuth2LoginSuccessHandler;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 @Configuration
 @EnableWebSecurity
@@ -23,23 +26,27 @@ public class SecurityConfig {
     private final OAuth2LoginFailureHandler failureHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final CustomLoginSuccessHandler formLoginSuccessHandler;
+    private final UserDetailsService userDetailsService;
+    
     private final String activeProfile;
         private final boolean oauth2Enabled;
 
-    public SecurityConfig(
-            CustomOAuth2UserService customOAuth2UserService,
-            CustomOidcUserService customOidcUserService,
-            OAuth2LoginSuccessHandler successHandler,
-            OAuth2LoginFailureHandler failureHandler,
-            CustomAuthenticationProvider customAuthenticationProvider,
-            CustomLoginSuccessHandler formLoginSuccessHandler,
-                        @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
-                        @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled,
-                        @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId
-    ) {
+        public SecurityConfig(
+                CustomOAuth2UserService customOAuth2UserService,
+                CustomOidcUserService customOidcUserService,
+                OAuth2LoginSuccessHandler successHandler,
+                OAuth2LoginFailureHandler failureHandler,
+                CustomAuthenticationProvider customAuthenticationProvider,
+                CustomLoginSuccessHandler formLoginSuccessHandler,
+                UserDetailsService userDetailsService,
+                @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
+                @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled,
+                @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId
+        ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.successHandler = successHandler;
+        this.userDetailsService = userDetailsService;
         this.failureHandler = failureHandler;
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
@@ -90,9 +97,18 @@ public class SecurityConfig {
                         .successHandler(formLoginSuccessHandler)
                         .permitAll()
                 )
+                .rememberMe(remember -> remember
+                        .rememberMeParameter("remember-me")
+                        .key("flavorframe-remember-me-key-2026")
+                        .tokenValiditySeconds(60 * 60 * 24 * 30)
+                        .userDetailsService(userDetailsService)
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
+                        .deleteCookies("JSESSIONID", "remember-me")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                 );
 
         if (oauth2Enabled) {
