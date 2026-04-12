@@ -59,6 +59,8 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
 
       - name: Print app log on failure
         if: failure()
