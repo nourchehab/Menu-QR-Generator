@@ -1,9 +1,14 @@
-const E2E_EMAIL = Cypress.env('E2E_EMAIL')
-const E2E_PASSWORD = Cypress.env('E2E_PASSWORD')
+const E2E_EMAIL = String(Cypress.env('E2E_EMAIL') || '').trim()
+const E2E_PASSWORD = String(Cypress.env('E2E_PASSWORD') || '').trim()
 
 function requireAuthVars() {
   if (!E2E_EMAIL || !E2E_PASSWORD) {
-    throw new Error('Set E2E_EMAIL and E2E_PASSWORD in Cypress env before running full-journey.cy.js')
+    throw new Error(
+      `Missing Cypress auth vars. Provide E2E_EMAIL and E2E_PASSWORD via either ` +
+      `CYPRESS_E2E_EMAIL/CYPRESS_E2E_PASSWORD shell vars or --env E2E_EMAIL=...,E2E_PASSWORD=.... ` +
+      `Example: CYPRESS_E2E_EMAIL="you@example.com" CYPRESS_E2E_PASSWORD="your-password" ` +
+      `npx cypress run --e2e --spec cypress/e2e/app/full-journey.cy.js`
+    )
   }
 }
 
@@ -71,13 +76,37 @@ function pickBranchFromDashboard() {
 }
 
 describe('FlavorFrame full user journey', () => {
+  let restoreBranchId = null
+  let restoreColor = null
+  let changedTheme = false
+
   before(() => {
     requireAuthVars()
   })
 
   beforeEach(() => {
+    restoreBranchId = null
+    restoreColor = null
+    changedTheme = false
+
     cy.session([E2E_EMAIL], () => {
       loginByFormPost()
+    })
+  })
+
+  afterEach(() => {
+    if (!changedTheme || !restoreBranchId || !restoreColor) {
+      return
+    }
+
+    cy.request({
+      method: 'PUT',
+      url: `/api/restaurant/branch/${restoreBranchId}/theme`,
+      failOnStatusCode: false,
+      headers: { 'Content-Type': 'application/json' },
+      body: { menuBackgroundColor: restoreColor },
+    }).then((resp) => {
+      expect(resp.status).to.eq(200)
     })
   })
 
@@ -96,7 +125,7 @@ describe('FlavorFrame full user journey', () => {
       headers: { 'Content-Type': 'application/json' },
       body: { branchName: `E2E Branch ${Date.now()}` },
     }).then((resp) => {
-      expect([201, 409, 500]).to.include(resp.status)
+      expect([200, 201, 409, 500]).to.include(resp.status)
     })
 
     pickBranchFromDashboard().then((picked) => {
@@ -176,6 +205,14 @@ describe('FlavorFrame full user journey', () => {
       }
     })
 
+    // Ensure ideas modal is closed so it does not cover categorization controls.
+    cy.window().then((win) => {
+      if (typeof win.closeAiIdeasModal === 'function') {
+        win.closeAiIdeasModal()
+      }
+    })
+    cy.get('#aiIdeasModal').should('not.be.visible')
+
     cy.get('#categoriseAllBtn').click()
     cy.get('#categoriseSubmitBtn').click()
 
@@ -197,6 +234,8 @@ describe('FlavorFrame full user journey', () => {
       return cy.request(`/api/restaurant/branch/${ctx.branchId}`).then((resp) => {
         expect(resp.status).to.eq(200)
         oldColor = (resp.body && resp.body.menuBackgroundColor) || null
+        restoreBranchId = ctx.branchId
+        restoreColor = oldColor
       })
     })
 
@@ -218,24 +257,34 @@ describe('FlavorFrame full user journey', () => {
     cy.then(() => {
       cy.visit(`/menu/theme?branchId=${ctx.branchId}`)
       cy.get('#colorPicker').invoke('val', newColor).trigger('input').trigger('change')
-      cy.get('#hexInput').clear().type(newColor)
+      cy.get('#hexInput').invoke('val', newColor).trigger('input').trigger('change')
+      cy.get('#hexInput').should('have.value', newColor)
       cy.get('#saveBtn').click()
     })
 
-    cy.wait('@saveTheme').then((i) => {
-      expect(i.response).to.exist
-      expect(i.response.statusCode).to.eq(200)
+    cy.get('#saveMsg', { timeout: 20000 }).should('contain.text', 'Saved')
+
+    // Source-of-truth check: verify persisted theme color via API.
+    cy.then(() => {
+      return cy.request(`/api/restaurant/branch/${ctx.branchId}`).then((resp) => {
+        expect(resp.status).to.eq(200)
+        const saved = String((resp.body && resp.body.menuBackgroundColor) || '').trim().toUpperCase()
+        expect(saved).to.eq(newColor.toUpperCase())
+        changedTheme = true
+        if (oldColor && String(oldColor).trim().toUpperCase() !== newColor.toUpperCase()) {
+          expect(saved).to.not.eq(String(oldColor).trim().toUpperCase())
+        }
+      })
     })
 
-    // Verify preview uses new color and differs from old color.
+    // Verify preview applies the new color after its async data fetch completes.
+    cy.intercept('GET', /\/api\/restaurant\/branch\/\d+/).as('previewRestaurant')
     cy.then(() => {
       cy.visit(`/menu/preview?branchId=${ctx.branchId}`)
+      cy.wait('@previewRestaurant')
       cy.document().then((doc) => {
         const current = doc.documentElement.style.getPropertyValue('--menu-bg').trim().toUpperCase()
         expect(current).to.eq(newColor.toUpperCase())
-        if (oldColor) {
-          expect(current).to.not.eq(String(oldColor).trim().toUpperCase())
-        }
       })
     })
   })

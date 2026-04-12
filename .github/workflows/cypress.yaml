@@ -6,6 +6,10 @@ on:
       - "**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
