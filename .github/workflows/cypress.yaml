@@ -65,7 +65,12 @@ jobs:
       - name: Start AI Python microservice
         env:
           SPRING_BOOT_BASE_URL: http://localhost:8081
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
+          if [ -z "${GROQ_API_KEY}" ]; then
+            echo "Missing required GitHub secret: GROQ_API_KEY"
+            exit 1
+          fi
           cd ai-service-python
           nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 > ../ai-service.log 2>&1 &
 
