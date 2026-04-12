@@ -149,7 +149,7 @@ describe('FlavorFrame full user journey', () => {
 
     // Manage page interactions: AI ideas + categorization.
     cy.intercept('POST', '/api/menu-ideas/generate').as('aiIdeasGenerate')
-    cy.intercept('POST', `/api/restaurants/${ctx?.restaurantId || '*'}/batch-categorize*`).as('batchCategorize')
+    cy.intercept('POST', /\/api\/restaurants\/\d+\/batch-categorize.*/).as('batchCategorize')
 
     cy.then(() => {
       cy.visit(`/manageitems?branchId=${ctx.branchId}&branchName=${encodeURIComponent(ctx.branchName)}`)
@@ -214,7 +214,7 @@ describe('FlavorFrame full user journey', () => {
     })
 
     // Change theme color.
-    cy.intercept('PUT', `/api/restaurant/branch/${ctx.branchId}/theme`).as('saveTheme')
+    cy.intercept('PUT', /\/api\/restaurant\/branch\/\d+\/theme/).as('saveTheme')
     cy.then(() => {
       cy.visit(`/menu/theme?branchId=${ctx.branchId}`)
       cy.get('#colorPicker').invoke('val', newColor).trigger('input').trigger('change')
