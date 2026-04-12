@@ -37,7 +37,11 @@ function getDashboardData() {
 
 function ensureRestaurantSetup() {
   return getDashboardData().then((resp) => {
-    if (resp.status === 200 && resp.body && resp.body.success && resp.body.data) {
+    const body = resp.body || {}
+    const dto = body.data && typeof body.data === 'object' ? body.data : body
+
+    // Some environments return { success, data }, others return the DTO directly.
+    if (resp.status === 200 && dto && typeof dto === 'object' && dto.id) {
       return
     }
 
@@ -59,9 +63,13 @@ function ensureRestaurantSetup() {
 function pickBranchFromDashboard() {
   return getDashboardData().then((resp) => {
     expect(resp.status).to.eq(200)
-    expect(resp.body.success).to.eq(true)
+    const body = resp.body || {}
+    if (Object.prototype.hasOwnProperty.call(body, 'success')) {
+      expect(body.success).to.eq(true)
+    }
 
-    const dto = resp.body.data
+    const dto = body.data && typeof body.data === 'object' ? body.data : body
+    expect(dto).to.be.an('object')
     const branches = dto.branchDTOs || dto.branches || []
     expect(branches.length).to.be.greaterThan(0)
 

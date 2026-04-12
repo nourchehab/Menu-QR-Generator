@@ -36,6 +36,16 @@ jobs:
           node-version: "20"
           cache: npm
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ai-service-python/requirements.txt
+
+      - name: Install Python microservice dependencies
+        run: pip install -r ai-service-python/requirements.txt
+
       - name: Install Cypress dependencies
         run: npm ci
 
@@ -52,19 +62,32 @@ jobs:
           GOOGLE_CALLBACK_URL: http://localhost:8081/login/oauth2/code/google
         run: nohup java -jar target/backend-servicex-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
 
+      - name: Start AI Python microservice
+        env:
+          SPRING_BOOT_BASE_URL: http://localhost:8081
+        run: |
+          cd ai-service-python
+          nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 > ../ai-service.log 2>&1 &
+
       - name: Run Cypress and record to Cloud
         uses: cypress-io/github-action@v6
         with:
           install: false
           record: true
           browser: chrome
-          wait-on: "http://localhost:8081/login"
+          wait-on: "http://localhost:8081/login,http://localhost:8001/health"
           wait-on-timeout: 300
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
           CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
+      - name: Print AI service log on failure
+        if: failure()
+        run: |
+          echo "===== ai-service.log (tail) ====="
+          tail -n 200 ai-service.log || true
 
       - name: Print app log on failure
         if: failure()
@@ -78,4 +101,12 @@ jobs:
         with:
           name: cypress-app-log
           path: app.log
+          if-no-files-found: ignore
+
+      - name: Upload AI service log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-ai-service-log
+          path: ai-service.log
           if-no-files-found: ignore
