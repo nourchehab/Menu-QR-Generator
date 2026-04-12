@@ -5,38 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Menu Theme — FlavorFrame</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { margin:0; font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#f7f7fb; color:#151525; padding:32px 18px; }
-        .wrap { max-width:920px; margin:0 auto; }
-        .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:18px; }
-        .title h1 { margin:0; font-size:1.6rem; }
-        .title p { margin:6px 0 0; color:#5b5b73; }
-        .branch-sub { font-size:.82rem; color:#c8622a; font-weight:600; margin-top:4px; }
-        .btn { border:0; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; }
-        .btn.primary { background:#ff6b35; color:#fff; }
-        .btn.ghost { background:transparent; border:1px solid #d8d8e8; color:#151525; text-decoration:none; }
-        .grid { display:grid; grid-template-columns:360px 1fr; gap:16px; }
-        @media(max-width:860px){ .grid{grid-template-columns:1fr;} }
-        .card { background:#fff; border:1px solid #ececf6; border-radius:18px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,0.06); }
-        label { display:block; font-size:.88rem; font-weight:600; margin-top:10px; margin-bottom:6px; }
-        .row { display:flex; gap:10px; align-items:center; }
-        input[type="color"] { width:54px; height:44px; border:0; padding:0; background:transparent; cursor:pointer; }
-        input[type="text"] { flex:1; height:44px; border-radius:12px; border:1px solid #d8d8e8; padding:0 12px; font-size:.95rem; }
-        .help { color:#5b5b73; font-size:.85rem; margin-top:8px; line-height:1.4; }
-        .status { margin-top:12px; padding:10px 12px; border-radius:12px; background:#f6f6ff; border:1px solid #ececf6; }
-        .status b { font-weight:700; }
-        .preview { border-radius:18px; overflow:hidden; border:1px solid #ececf6; }
-        .preview-header { padding:18px; display:flex; align-items:center; justify-content:space-between; }
-        .preview-title { font-size:1.1rem; font-weight:700; }
-        .pill { font-size:.72rem; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.25); }
-        .preview-body { padding:18px; background:rgba(255,255,255,0.85); }
-        .preview-item { background:#fff; border:1px solid #ececf6; border-radius:14px; padding:14px; margin-bottom:10px; }
-        .preview-item:last-child { margin-bottom:0; }
-        .preview-item .name { font-weight:700; margin-bottom:6px; }
-        .preview-item .desc { color:#5b5b73; font-size:.9rem; margin-bottom:10px; }
-        .preview-item .price { font-weight:700; }
+
+        * { box-sizing:border-box; }
+        :root { --bg:#050505; --surface:#0d0d0d; --surface-2:#121212; --surface-3:#181818; --text:#f7efe8; --muted:#b8a79d; --line:rgba(255,255,255,0.08); --line-strong:rgba(255,255,255,0.12); --orange:#ff7a1a; --orange-2:#ff9a4d; }
+        body { margin:0; font-family:'Inter',system-ui,sans-serif; background:radial-gradient(circle at top right, rgba(255,122,26,.10), transparent 20%), radial-gradient(circle at bottom left, rgba(255,122,26,.06), transparent 18%), var(--bg); color:var(--text); padding:32px 18px; }
+        .wrap { max-width:920px; margin:0 auto; } .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:18px; }
+        .title h1 { margin:0; font-size:2rem; font-family:'Sora',sans-serif; letter-spacing:-.04em; } .title p { margin:6px 0 0; color:var(--muted); line-height:1.7; } .branch-sub { font-size:.84rem; color:var(--orange-2); font-weight:700; margin-top:6px; }
+        .btn { border-radius:999px; padding:11px 15px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; transition:.22s ease; } .btn.primary { background:linear-gradient(135deg, var(--orange-2), var(--orange)); color:#fff; border:none; box-shadow:0 0 0 1px rgba(255,122,26,.18),0 0 24px rgba(255,122,26,.22),0 10px 24px rgba(255,122,26,.18); } .btn.ghost { background:rgba(255,255,255,.03); border:1px solid var(--line-strong); color:var(--muted); text-decoration:none; } .btn.ghost:hover { background:rgba(255,255,255,.05); color:var(--text); border-color:rgba(255,255,255,.18); }
+        .grid { display:grid; grid-template-columns:360px 1fr; gap:16px; } @media(max-width:860px){ .grid{grid-template-columns:1fr;} }
+        .card { background:linear-gradient(180deg, rgba(255,255,255,.015), transparent 100%), var(--surface); border:1px solid var(--line); border-radius:22px; padding:18px; box-shadow:0 22px 50px rgba(0,0,0,.36); }
+        label { display:block; font-size:.88rem; font-weight:700; margin-top:10px; margin-bottom:6px; color:var(--text); } .row { display:flex; gap:10px; align-items:center; }
+        input[type='color'] { width:54px; height:44px; border:0; padding:0; background:transparent; cursor:pointer; }
+        input[type='text'] { flex:1; height:44px; border-radius:14px; border:1px solid var(--line-strong); padding:0 12px; font-size:.95rem; background:var(--surface-2); color:var(--text); }
+        input[type='text']:focus { outline:none; border-color:rgba(255,122,26,.45); box-shadow:0 0 0 4px rgba(255,122,26,.10); background:var(--surface-3); }
+        .help { color:var(--muted); font-size:.85rem; margin-top:8px; line-height:1.5; } .status { margin-top:12px; padding:12px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--line); color:var(--muted); } .status b { font-weight:800; color:var(--text); }
+        .preview { border-radius:18px; overflow:hidden; border:1px solid var(--line); } .preview-header { padding:18px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,.12); } .preview-title { font-size:1.1rem; font-weight:800; font-family:'Sora',sans-serif; } .pill { font-size:.72rem; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); } .preview-body { padding:18px; background:rgba(0,0,0,.14); } .preview-item { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px; margin-bottom:10px; } .preview-item:last-child{margin-bottom:0;} .preview-item .name{font-weight:700; margin-bottom:6px; font-family:'Sora',sans-serif;} .preview-item .desc{color:rgba(247,239,232,.78); font-size:.9rem; margin-bottom:10px;} .preview-item .price{font-weight:800; color:#ff9a4d;}
+
     </style>
 </head>
 <body>
@@ -74,7 +60,7 @@
         </div>
 
         <div class="card" style="padding:0;">
-            <div class="preview" id="miniPreview" style="background:#F9F5EF; color:#1a1208;">
+            <div class="preview" id="miniPreview" style="background:#0d0d0d; color:#f7efe8;">
                 <div class="preview-header">
                     <div>
                         <div class="preview-title" id="previewName">Your Restaurant</div>
@@ -239,3 +225,6 @@
 </script>
 </body>
 </html>
+
+
+

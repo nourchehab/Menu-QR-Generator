@@ -3,178 +3,118 @@
 <head>
     <link rel="stylesheet" href="/css/effects.css">
     <title>Login – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/auth.css">
 
     <style>
-    .remember-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 10px 0 20px;
-        font-size: 14px;
-    }
+        .remember-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin: 4px 0 6px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
 
-    .forgot-password {
-        text-decoration: none;
-        color: #1a73e8;
-        font-weight: 500;
-    }
+        .remember-me__label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
 
-    .forgot-password:hover {
-        text-decoration: underline;
-    }
+        .remember-me__checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--orange);
+        }
 
-    .google-btn {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 12px;
-        border: 1px solid #ddd;
-        background: #fff;
-        cursor: pointer;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
+        .remember-me__text {
+            line-height: 1;
+        }
 
-    .google-btn img {
-        width: 18px;
-        height: 18px;
-    }
+        .forgot-password {
+            text-decoration: none;
+            color: #ff9a4d;
+            font-weight: 700;
+        }
 
-    .google-btn:hover {
-        background: #f7f7f7;
-    }
+        .forgot-password:hover {
+            color: #fff;
+        }
 
-    /* Verification Code Styles */
-    .verification-section {
-        display: none;
-        margin: 20px 0;
-    }
+        .google-btn {
+            width: 100%;
+            padding: 13px 16px;
+            margin-bottom: 2px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.92rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-dark);
+            font-family: inherit;
+        }
 
-    .verification-section.active {
-        display: block;
-    }
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+        }
 
-    .code-inputs {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        margin: 20px 0;
-    }
+        .google-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.18);
+        }
 
-    .code-input {
-        width: 45px;
-        height: 55px;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
+        .resend-btn {
+            background: none;
+            border: none;
+            color: #ff9a4d;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            font-size: 0.92rem;
+        }
 
-    .code-input:focus {
-        border-color: #1a73e8;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
-    }
+        .resend-btn:hover {
+            color: #fff;
+        }
 
-    .code-input.error {
-        border-color: #e74c3c;
-        animation: shake 0.3s;
-    }
+        .resend-btn:disabled {
+            color: var(--text-faint);
+            cursor: not-allowed;
+            text-decoration: none;
+        }
 
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-    }
-
-    .verification-info {
-        text-align: center;
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 16px;
-    }
-
-    .verification-info strong {
-        color: #1a73e8;
-    }
-
-    .resend-section {
-        text-align: center;
-        margin-top: 16px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .resend-btn {
-        background: none;
-        border: none;
-        color: #1a73e8;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: underline;
-        padding: 0;
-        font-size: 14px;
-    }
-
-    .resend-btn:hover {
-        color: #0d47a1;
-    }
-
-    .resend-btn:disabled {
-        color: #999;
-        cursor: not-allowed;
-        text-decoration: none;
-    }
-
-    .countdown {
-        color: #e74c3c;
-        font-weight: 500;
-    }
-
-    .step-indicator {
-        text-align: center;
-        font-size: 12px;
-        color: #999;
-        margin-bottom: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .success-message {
-        background: #d4edda;
-        color: #155724;
-        padding: 10px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    .login-section, .verification-section {
-        transition: opacity 0.3s ease;
-    }
-
-    .error-message {
-        background: #fdecea;
-        color: #e74c3c;
-        padding: 10px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        font-size: 14px;
-        text-align: center;
-    }
-</style>
+        .countdown {
+            color: var(--orange);
+            font-weight: 700;
+        }
+    </style>
 </head>
 <body>
 
 <div class="auth-container">
     <div class="auth-card">
+        <div class="auth-brand">
+    <img src="/images/logo.png" alt="FlavorFrame logo">
+</div>
         <h2>Welcome Back!</h2>
         <p>Log in to manage your restaurant</p>
 
@@ -185,10 +125,9 @@
         <div class="error-message" id="errorMessage" style="display: none;"></div>
         <div class="success-message" id="successMessage" style="display: none;"></div>
 
-        <!-- Step 1: Login Credentials -->
         <div class="login-section" id="loginSection">
             <div class="step-indicator">Step 1 of 2</div>
-            
+
             <form id="loginForm" class="auth-form">
                 <input type="email" id="email" name="username" placeholder="Email" required>
                 <input type="password" id="password" name="password" placeholder="Password" required>
@@ -201,7 +140,7 @@
                     <a href="/otp.html" class="forgot-password">Forgot password?</a>
                 </div>
 
-                <a href="/oauth2/authorization/google" class="google-btn" style="text-decoration:none;">
+                <a href="/oauth2/authorization/google" class="google-btn">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
                     Continue with Google
                 </a>
@@ -216,10 +155,9 @@
             </span>
         </div>
 
-        <!-- Step 2: Email Verification Code -->
         <div class="verification-section" id="verificationSection">
-            <div class="step-indicator">Step 2 of 2 - Verify Email</div>
-            
+            <div class="step-indicator">Step 2 of 2 · Verify Email</div>
+
             <div class="verification-info">
                 We've sent a verification code to<br>
                 <strong id="displayEmail"></strong>
@@ -284,13 +222,11 @@
     let userPassword = '';
     let countdown = 60;
     let countdownInterval;
-    let isSubmitting = false; // ✅ FIX 1: Prevent multiple submissions
+    let isSubmitting = false;
 
-    // Step 1: Submit credentials and request verification code
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // ✅ FIX 1: Prevent multiple clicks
         if (isSubmitting) {
             return;
         }
@@ -299,11 +235,10 @@
         loginBtn.disabled = true;
         loginBtn.textContent = 'Verifying...';
 
-        userEmail = emailInput.value.trim().toLowerCase(); // ✅ Normalize email
+        userEmail = emailInput.value.trim().toLowerCase();
         userPassword = passwordInput.value;
 
         try {
-            // Validate credentials first
             const response = await fetch('/api/login/verify-credentials', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -322,7 +257,6 @@
                 return;
             }
 
-            // Credentials valid - send verification code
             const codeResponse = await fetch('/api/login/send-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -337,12 +271,10 @@
                 return;
             }
 
-            // Show verification section
             showVerificationStep();
             isSubmitting = false;
             loginBtn.disabled = false;
             loginBtn.textContent = 'Continue';
-            
         } catch (error) {
             showError('An error occurred. Please try again.');
             console.error(error);
@@ -352,11 +284,9 @@
         }
     });
 
-    // Step 2: Verify code and complete login
     verifyForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // ✅ Prevent multiple submissions
         if (isSubmitting) {
             return;
         }
@@ -365,16 +295,14 @@
         verifyBtn.disabled = true;
         verifyBtn.textContent = 'Verifying...';
 
-        const code = verificationCode.value.trim(); // ✅ FIX 2: Trim the code
-
-        console.log('Verifying code:', code, 'for email:', userEmail); // Debug
+        const code = verificationCode.value.trim();
 
         try {
             const response = await fetch('/api/login/verify-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: userEmail, // ✅ Using normalized email
+                    email: userEmail,
                     code: code
                 })
             });
@@ -387,9 +315,7 @@
                 return;
             }
 
-            // Success! Complete login by submitting actual form
             completeLogin();
-
         } catch (error) {
             showError('Verification failed. Please try again.');
             console.error(error);
@@ -399,26 +325,23 @@
         }
     });
 
-    // ✅ Complete login after successful verification
     async function completeLogin() {
-        // Create a hidden form and submit it
-        // This allows Spring Security's CustomLoginSuccessHandler to determine the redirect
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/login';
-        
+
         const usernameInput = document.createElement('input');
         usernameInput.type = 'hidden';
         usernameInput.name = 'username';
         usernameInput.value = userEmail;
         form.appendChild(usernameInput);
-        
+
         const passwordInput = document.createElement('input');
         passwordInput.type = 'hidden';
         passwordInput.name = 'password';
         passwordInput.value = userPassword;
         form.appendChild(passwordInput);
-        
+
         if (rememberMe.checked) {
             const rememberInput = document.createElement('input');
             rememberInput.type = 'hidden';
@@ -426,16 +349,15 @@
             rememberInput.value = 'on';
             form.appendChild(rememberInput);
         }
-        
+
         document.body.appendChild(form);
         form.submit();
     }
 
-    // Handle code input
     codeInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
             const value = e.target.value;
-            
+
             if (!/^\d*$/.test(value)) {
                 e.target.value = '';
                 return;
@@ -453,7 +375,6 @@
                 codeInputs[index - 1].focus();
             }
 
-            // Handle paste
             if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 navigator.clipboard.readText().then(text => {
@@ -488,7 +409,7 @@
         loginSection.style.display = 'block';
         clearCodeInputs();
         stopCountdown();
-        isSubmitting = false; // ✅ Reset flag
+        isSubmitting = false;
     }
 
     function clearCodeInputs() {
@@ -550,9 +471,8 @@
         }
     }
 
-    // Resend code
     resendBtn.addEventListener('click', async () => {
-        if (isSubmitting) return; // ✅ Prevent spam
+        if (isSubmitting) return;
 
         isSubmitting = true;
         resendBtn.disabled = true;
@@ -579,7 +499,6 @@
         }
     });
 
-    // Back button
     backBtn.addEventListener('click', () => {
         showLoginStep();
     });
@@ -587,3 +506,6 @@
 
 </body>
 </html>
+
+
+

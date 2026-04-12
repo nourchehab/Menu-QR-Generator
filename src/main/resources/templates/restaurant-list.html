@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Restaurants – FlavorFrame</title>
-    <link rel="stylesheet" href="/css/base.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,402 +14,922 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #050505;
+            --bg-soft: #090909;
+            --sidebar: #040404;
+            --panel: #0d0d0d;
+            --panel-2: #121212;
+            --panel-3: #181818;
+            --line: rgba(255, 255, 255, 0.08);
+            --line-strong: rgba(255, 255, 255, 0.12);
+            --text: #f7efe8;
+            --muted: #b8a79d;
+            --faint: #8f7d73;
+            --orange: #ff7a1a;
+            --orange-2: #ff9a4d;
+            --orange-soft: rgba(255, 122, 26, 0.14);
+            --shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+            --orange-glow: 0 0 0 1px rgba(255, 122, 26, 0.18), 0 0 24px rgba(255, 122, 26, 0.22), 0 10px 24px rgba(255, 122, 26, 0.18);
+            --orange-glow-strong: 0 0 0 1px rgba(255, 122, 26, 0.28), 0 0 34px rgba(255, 122, 26, 0.32), 0 14px 30px rgba(255, 122, 26, 0.24);
+        }
+
         body {
             font-family: 'DM Sans', sans-serif;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            background:
+                radial-gradient(circle at top right, rgba(255, 122, 26, 0.10), transparent 20%),
+                radial-gradient(circle at bottom left, rgba(255, 122, 26, 0.06), transparent 18%),
+                #050505;
+            color: var(--text);
             min-height: 100vh;
-            padding: 2rem 1rem;
-            position: relative;
-            overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 270px 1fr;
+        }
+
+        .sidebar {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.015), transparent 18%),
+                var(--sidebar);
+            border-right: 1px solid var(--line);
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            pointer-events: none;
-            z-index: 0;
+            height: 100vh;
         }
 
-        .restaurant-list-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .page-header {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            padding: 3rem 2.5rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            margin-bottom: 3rem;
+        .brand {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .page-header-left {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .page-header h1 {
-            font-family: 'Fraunces', serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.5px;
-        }
-
-        .page-header-subtitle {
-            font-size: 0.95rem;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
             align-items: center;
+            gap: 12px;
+            padding: 4px 6px 18px;
+            border-bottom: 1px solid var(--line);
         }
+        .sidebar-logo {
+    display: block;
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(255, 122, 26, 0.12));
+}
 
-        .btn-primary {
-            padding: 0.85rem 1.75rem;
-            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--orange-2), var(--orange));
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.95rem;
-            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.2);
+            color: #fff;
+            font-size: 1.05rem;
+            box-shadow: var(--orange-glow);
+            flex-shrink: 0;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(255, 107, 53, 0.3);
+        .brand strong {
+            display: block;
+            font-family: 'Fraunces', serif;
+            font-size: 1.28rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--text);
         }
 
-        .logout-btn {
-            background: #f0f0f0;
-            color: #666;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        .brand span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 2px;
         }
 
-        .logout-btn:hover {
-            background: #e0e0e0;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        .sidebar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--faint);
+            padding: 0 8px;
+            margin-bottom: 2px;
+        }
+
+        .nav-link,
+        .nav-btn {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 14px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.22s ease;
+        }
+
+        .nav-link:hover,
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(255,122,26,0.18), rgba(255,122,26,0.08));
+            color: #fff;
+            border: 1px solid rgba(255,122,26,0.12);
+            box-shadow: inset 0 0 0 1px rgba(255,122,26,0.06);
+        }
+
+        .sidebar-card {
+            margin-top: auto;
+            background:
+                linear-gradient(180deg, rgba(255, 122, 26, 0.12), rgba(255, 122, 26, 0.03)),
+                var(--panel);
+            border: 1px solid rgba(255,122,26,0.12);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-card h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.02rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .sidebar-card p {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.65;
+            margin-bottom: 14px;
+        }
+
+        .content {
+            padding: 28px;
+            min-width: 0;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2.3rem, 4vw, 3.4rem);
+            font-weight: 500;
+            letter-spacing: -0.05em;
+            line-height: 1.02;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 0.96rem;
+            line-height: 1.7;
+            max-width: 760px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn,
+        .btn-outline,
+        .icon-toggle {
+            border: none;
+            border-radius: 999px;
+            padding: 0.86rem 1.4rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            font-family: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.22s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            color: #fff;
+            box-shadow: var(--orange-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--orange-glow-strong);
+        }
+
+        .btn-outline,
+        .icon-toggle {
+            background: rgba(255,255,255,0.02);
+            color: var(--muted);
+            border: 1px solid var(--line-strong);
+        }
+
+        .btn-outline:hover,
+        .icon-toggle:hover {
+            color: var(--text);
+            border-color: rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .icon-toggle.active {
+            background: var(--orange-soft);
+            border-color: rgba(255,122,26,0.2);
+            color: #fff;
+            box-shadow: 0 0 18px rgba(255,122,26,0.12);
+        }
+
+        .message {
+            padding: 0.95rem 1.1rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+        }
+
+        .error-message {
+            color: #ff8c7e;
+            border-color: rgba(255,107,87,0.24);
+        }
+
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-card small {
+            display: block;
+            color: var(--faint);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1.32rem;
+            color: var(--text);
+            letter-spacing: -0.03em;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.42rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .search-input,
+        .sort-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line-strong);
+            background: var(--panel-2);
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: var(--text);
+            transition: 0.22s ease;
+        }
+
+        .search-input::placeholder {
+            color: var(--faint);
+        }
+
+        .search-input:focus,
+        .sort-select:focus {
+            outline: none;
+            border-color: rgba(255,122,26,0.45);
+            box-shadow: 0 0 0 4px rgba(255,122,26,0.10);
+            background: var(--panel-3);
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 8px;
         }
 
         .restaurants-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .restaurants-grid.compact {
+            grid-template-columns: 1fr;
         }
 
         .restaurant-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 22px;
             overflow: hidden;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
+            transition: 0.22s ease;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
         }
 
         .restaurant-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255,122,26,0.22);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
         }
 
-        .restaurant-logo-wrapper {
+        .restaurants-grid.compact .restaurant-card {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+        }
+
+        .restaurant-visual {
             position: relative;
-            width: 100%;
             height: 200px;
-            background: linear-gradient(135deg, #e8e8e8, #d5d5d5);
-            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(255,122,26,0.16), transparent 30%),
+                linear-gradient(180deg, #1a1a1a 0%, #101010 100%);
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
-        .restaurant-logo {
+        .restaurants-grid.compact .restaurant-visual {
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .restaurant-visual img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             object-position: center;
-            transition: transform 0.3s ease;
         }
 
-        .restaurant-card:hover .restaurant-logo {
-            transform: scale(1.05);
-        }
-
-        .restaurant-logo-placeholder {
-            display: flex;
+        .restaurant-logo-fallback {
+            width: 92px;
+            height: 92px;
+            border-radius: 26px;
+            background: rgba(255,255,255,0.05);
+            color: var(--orange-2);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 140px;
-            height: 140px;
-            background: rgba(0, 0, 0, 0.08);
-            border-radius: 12px;
-            color: #999;
-            font-size: 3.5rem;
+            font-size: 2rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 18px rgba(255,122,26,0.10);
         }
 
-        .restaurant-info {
-            padding: 1.75rem;
-            flex: 1;
+        .restaurant-body {
+            padding: 18px;
+        }
+
+        .restaurant-top {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 10px;
         }
 
         .restaurant-name {
             font-family: 'Fraunces', serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1a1a2e;
-            line-height: 1.3;
-            word-break: break-word;
-            margin-bottom: 0.25rem;
+            font-size: 1.34rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            line-height: 1.15;
         }
 
         .restaurant-type {
-            font-size: 0.9rem;
-            color: #999;
-            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--orange-soft);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid rgba(255,122,26,0.14);
+            box-shadow: 0 0 16px rgba(255,122,26,0.08);
         }
 
-        .restaurant-divider {
-            height: 1px;
-            background: #f0f0f0;
-            margin: 1rem 0;
+        .restaurant-copy {
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.65;
+            margin-bottom: 14px;
         }
 
         .restaurant-actions {
             display: flex;
-            gap: 1rem;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
-        .btn-go-to {
+        .btn-go {
             flex: 1;
-            padding: 0.75rem 1.2rem;
-            background: linear-gradient(135deg, #ff8c42, #ff6b35);
-            color: white;
+            min-width: 180px;
+            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            color: #fff;
             border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.25);
+            border-radius: 999px;
+            padding: 0.82rem 1.1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
             text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.22s ease;
+            box-shadow: var(--orange-glow);
         }
 
-        .btn-go-to:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(255, 107, 53, 0.35);
+        .btn-go:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--orange-glow-strong);
+        }
+
+        .mini-stat {
+            min-width: 110px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .mini-stat small {
+            display: block;
+            color: var(--faint);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .mini-stat strong {
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .side-stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .side-note {
+            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .side-note h3 {
+            font-size: 0.98rem;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .side-note p {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.65;
         }
 
         .empty-state {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 18px;
-            padding: 3.5rem 2.5rem;
             text-align: center;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            padding: 56px 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
         }
 
         .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            display: block;
+            width: 66px;
+            height: 66px;
+            border-radius: 22px;
+            background: var(--orange-soft);
+            color: var(--orange-2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255,122,26,0.14);
+            box-shadow: 0 0 18px rgba(255,122,26,0.10);
         }
 
         .empty-state h2 {
             font-family: 'Fraunces', serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 0.75rem;
+            font-size: 1.56rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 6px;
         }
 
         .empty-state p {
-            color: #666;
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.7;
+            max-width: 620px;
+            margin: 0 auto 16px;
         }
 
-        .error-message {
-            background: rgba(220, 80, 80, 0.95);
-            border-radius: 12px;
-            padding: 1.25rem;
-            color: white;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-weight: 500;
-            box-shadow: 0 8px 20px rgba(220, 80, 80, 0.2);
+        .hidden-card {
+            display: none !important;
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 1.5rem 1rem;
-            }
-
-            .page-header {
-                flex-direction: column;
-                padding: 2rem;
-                gap: 1.5rem;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .page-header-left {
-                width: 100%;
-            }
-
-            .header-actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .restaurants-grid {
+        @media (max-width: 1200px) {
+            .workspace-grid,
+            .restaurants-grid,
+            .summary-row {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
             }
 
-            .restaurant-logo-wrapper {
-                height: 180px;
-            }
-
-            .restaurant-info {
-                padding: 1.5rem;
-            }
-
-            .empty-state {
-                padding: 2.5rem 1.5rem;
-            }
-
-            .empty-state h2 {
-                font-size: 1.5rem;
+            .restaurants-grid.compact .restaurant-card {
+                grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 480px) {
-            .page-header {
-                padding: 1.5rem;
+        @media (max-width: 920px) {
+            .app-shell {
+                grid-template-columns: 1fr;
             }
 
-            .page-header h1 {
-                font-size: 1.6rem;
+            .sidebar {
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .content,
+            .sidebar {
+                padding: 16px;
             }
 
-            .page-header-subtitle {
-                font-size: 0.85rem;
+            .topbar,
+            .topbar-actions,
+            .restaurant-actions,
+            .toolbar {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
             }
 
-            .btn-primary {
-                padding: 0.7rem 1.2rem;
-                font-size: 0.85rem;
+            .topbar-actions .btn,
+            .topbar-actions .btn-outline,
+            .btn-go,
+            .view-toggles,
+            .view-toggles .icon-toggle {
+                width: 100%;
             }
 
-            .restaurants-grid {
-                gap: 1rem;
-            }
-
-            .restaurant-card {
-                border-radius: 14px;
-            }
-
-            .restaurant-info {
-                padding: 1.25rem;
-            }
-
-            .restaurant-name {
-                font-size: 1.15rem;
+            .mini-stat {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="restaurant-list-container">
-        <!-- Header -->
-        <div class="page-header">
-            <div class="page-header-left">
-                <h1>My Restaurants</h1>
-                <p class="page-header-subtitle">Manage your restaurants and their branches</p>
+<div class="app-shell">
+
+    <aside class="sidebar">
+       <div class="brand">
+    <img src="/images/logo.png" alt="FlavorFrame logo" class="sidebar-logo">
+</div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Workspace</div>
+            <a href="/restaurants" class="nav-link active">My Restaurants</a>
+            <a href="/restaurant/setup" class="nav-link" id="setupOptionsNav">Setup Options</a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Actions</div>
+            <a href="/restaurant/setup" class="nav-link" id="addRestaurantSidebarNav">+ Add Restaurant</a>
+            <form action="/logout" method="post" style="margin:0;">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </div>
+
+        <div class="sidebar-card">
+            <h3>Workspace flow</h3>
+            <p>Add a restaurant here, then open its branches to manage locations, menu items, previews, themes, and QR pages.</p>
+            <a href="/restaurant/setup" class="btn" style="width: 100%;" id="addRestaurantSidebarCardBtn">Add Restaurant</a>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <h1 class="page-title">My Restaurants</h1>
+                <p class="page-subtitle">Manage your restaurants and their branches from a full-width, higher-contrast workspace.</p>
             </div>
-            <div class="header-actions">
-                <a href="/restaurant/setup" class="btn-primary">+ Add Restaurant</a>
-                <a href="/logout" class="btn-primary logout-btn">Logout</a>
+
+            <div class="topbar-actions">
+                <a href="/restaurant/setup" class="btn" id="addRestaurantTopBtn">+ Add Restaurant</a>
+                <form action="/logout" method="post" style="margin:0;">
+                    <button type="submit" class="btn-outline">Logout</button>
+                </form>
             </div>
         </div>
 
-        <!-- Error Message (if any) -->
-        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+        <div th:if="${error}" class="message error-message" th:text="${error}"></div>
 
-        <!-- Restaurants Grid -->
-        <div th:if="${hasRestaurants}" class="restaurants-grid">
-            <div th:each="restaurant : ${restaurants}" class="restaurant-card">
-                <!-- Restaurant Logo -->
-                <div class="restaurant-logo-wrapper">
-                    <img th:if="${logoUrls[restaurant.id]}" th:src="${logoUrls[restaurant.id]}" 
-                         alt="Restaurant Logo" class="restaurant-logo"
-                         onerror="this.style.display='none'; this.parentElement.querySelector('.restaurant-logo-placeholder').style.display='flex';">
-                    <div th:if="${logoUrls[restaurant.id]}" class="restaurant-logo-placeholder" style="display: none;">
-                        🍽️
+        <div class="summary-row">
+            <div class="summary-card">
+                <small>Restaurants</small>
+                <strong id="restaurantCount" th:text="${hasRestaurants ? #lists.size(restaurants) : 0}">0</strong>
+            </div>
+            <div class="summary-card">
+                <small>Visible</small>
+                <strong id="visibleCount" th:text="${hasRestaurants ? #lists.size(restaurants) : 0}">0</strong>
+            </div>
+            <div class="summary-card">
+                <small>Status</small>
+                <strong th:text="${hasRestaurants} ? 'Active Workspace' : 'Setup Needed'">Active Workspace</strong>
+            </div>
+            <div class="summary-card">
+                <small>Mode</small>
+                <strong>Restaurant Admin</strong>
+            </div>
+        </div>
+
+        <div class="workspace-grid">
+            <section>
+                <div th:if="${hasRestaurants}" class="panel">
+                    <h2 class="panel-title">Restaurant collection</h2>
+                    <p class="panel-subtitle">Search, sort, and open restaurant workspaces directly from here.</p>
+
+                    <div class="toolbar">
+                        <input id="restaurantSearch"
+                               class="search-input"
+                               type="text"
+                               placeholder="Search restaurants by name or type...">
+
+                        <select id="restaurantSort" class="sort-select">
+                            <option value="default">Sort: Default</option>
+                            <option value="name-asc">Name: A → Z</option>
+                            <option value="name-desc">Name: Z → A</option>
+                            <option value="type-asc">Type: A → Z</option>
+                        </select>
+
+                        <div class="view-toggles">
+                            <button type="button" class="icon-toggle active" id="gridViewBtn">Grid</button>
+                            <button type="button" class="icon-toggle" id="compactViewBtn">List</button>
+                        </div>
                     </div>
-                    <div th:unless="${logoUrls[restaurant.id]}" class="restaurant-logo-placeholder">
-                        🍽️
+
+                    <div class="restaurants-grid" id="restaurantsGrid">
+                        <div th:each="restaurant : ${restaurants}"
+                             class="restaurant-card"
+                             th:attr="data-name=${restaurant.restaurantName},data-type=${restaurant.restaurantType},data-href=@{/branches(restaurantId=${restaurant.id})}">
+                            <div class="restaurant-visual">
+                                <img th:if="${logoUrls[restaurant.id]}"
+                                     th:src="${logoUrls[restaurant.id]}"
+                                     alt="Restaurant Logo"
+                                     onerror="this.style.display='none'; this.parentElement.querySelector('.restaurant-logo-fallback').style.display='inline-flex';">
+                                <div th:if="${logoUrls[restaurant.id]}" class="restaurant-logo-fallback" style="display:none;">🍽</div>
+                                <div th:unless="${logoUrls[restaurant.id]}" class="restaurant-logo-fallback">🍽</div>
+                            </div>
+
+                            <div class="restaurant-body">
+                                <div class="restaurant-top">
+                                    <div class="restaurant-name" th:text="${restaurant.restaurantName}">Restaurant Name</div>
+                                    <div class="restaurant-type" th:text="${restaurant.restaurantType}">Cafe</div>
+                                </div>
+
+                                <p class="restaurant-copy">
+                                    Open this restaurant workspace to manage branches and continue into branch dashboards.
+                                </p>
+
+                                <div class="restaurant-actions">
+                                    <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-go">Go To Branches</a>
+                                    <div class="mini-stat">
+                                        <small>Type</small>
+                                        <strong th:text="${restaurant.restaurantType}">Cafe</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Restaurant Info -->
-                <div class="restaurant-info">
-                    <h2 class="restaurant-name" th:text="${restaurant.restaurantName}">Restaurant Name</h2>
-                    <p class="restaurant-type" th:text="${restaurant.restaurantType}">Cafe</p>
-
-                    <div class="restaurant-divider"></div>
-
-                    <!-- Go To Button -->
-                    <div class="restaurant-actions">
-                        <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-go-to">Go To Branches</a>
-                    </div>
+                <div th:unless="${hasRestaurants}" class="empty-state">
+                    <span class="empty-state-icon">🍽</span>
+                    <h2>No restaurants yet</h2>
+                    <p>You have not created any restaurants yet. Start by creating your first restaurant workspace.</p>
+                    <a href="/restaurant/setup" class="btn" id="emptyCreateRestaurantBtn">Create Restaurant</a>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Empty State -->
-        <div th:unless="${hasRestaurants}" class="empty-state">
-            <span class="empty-state-icon">🍽️</span>
-            <h2>No Restaurants Yet</h2>
-            <p>You haven't created any restaurants yet. Get started by creating your first restaurant!</p>
+            <aside class="side-stack">
+                <div class="side-note">
+                    <h3>User directions</h3>
+                    <p>Use this page as your restaurant-level workspace. Each restaurant opens into its own branches page, where you continue into branch management.</p>
+                </div>
+
+                <div class="side-note">
+                    <h3>Recommended flow</h3>
+                    <p>Create a restaurant, open its branches, then manage items, previews, themes, and QR pages from each branch workspace.</p>
+                </div>
+            </aside>
         </div>
-    </div>
+    </main>
+</div>
+
+<script>
+    (function () {
+        const RESTAURANT_SETUP_URL = '/restaurant/setup';
+
+        function forceNavigate(id, url) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = url;
+            });
+        }
+
+        forceNavigate('setupOptionsNav', RESTAURANT_SETUP_URL);
+        forceNavigate('addRestaurantSidebarNav', RESTAURANT_SETUP_URL);
+        forceNavigate('addRestaurantSidebarCardBtn', RESTAURANT_SETUP_URL);
+        forceNavigate('addRestaurantTopBtn', RESTAURANT_SETUP_URL);
+        forceNavigate('emptyCreateRestaurantBtn', RESTAURANT_SETUP_URL);
+
+        const searchInput = document.getElementById('restaurantSearch');
+        const sortSelect = document.getElementById('restaurantSort');
+        const grid = document.getElementById('restaurantsGrid');
+        const gridBtn = document.getElementById('gridViewBtn');
+        const compactBtn = document.getElementById('compactViewBtn');
+        const visibleCount = document.getElementById('visibleCount');
+
+        if (!grid) return;
+
+        const cards = Array.from(grid.querySelectorAll('.restaurant-card'));
+
+        function updateVisibleCount() {
+            const visible = cards.filter(card => !card.classList.contains('hidden-card')).length;
+            if (visibleCount) visibleCount.textContent = String(visible);
+        }
+
+        function filterCards() {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+
+            cards.forEach(card => {
+                const name = (card.dataset.name || '').toLowerCase();
+                const type = (card.dataset.type || '').toLowerCase();
+                const matches = !query || name.includes(query) || type.includes(query);
+                card.classList.toggle('hidden-card', !matches);
+            });
+
+            updateVisibleCount();
+        }
+
+        function sortCards() {
+            const mode = sortSelect?.value || 'default';
+
+            const sorted = [...cards].sort((a, b) => {
+                const nameA = (a.dataset.name || '').toLowerCase();
+                const nameB = (b.dataset.name || '').toLowerCase();
+                const typeA = (a.dataset.type || '').toLowerCase();
+                const typeB = (b.dataset.type || '').toLowerCase();
+
+                if (mode === 'name-asc') return nameA.localeCompare(nameB);
+                if (mode === 'name-desc') return nameB.localeCompare(nameA);
+                if (mode === 'type-asc') return typeA.localeCompare(typeB) || nameA.localeCompare(nameB);
+                return 0;
+            });
+
+            sorted.forEach(card => grid.appendChild(card));
+        }
+
+        function setView(mode) {
+            if (mode === 'compact') {
+                grid.classList.add('compact');
+                compactBtn?.classList.add('active');
+                gridBtn?.classList.remove('active');
+            } else {
+                grid.classList.remove('compact');
+                gridBtn?.classList.add('active');
+                compactBtn?.classList.remove('active');
+            }
+        }
+
+        searchInput?.addEventListener('input', filterCards);
+        sortSelect?.addEventListener('change', () => {
+            sortCards();
+            filterCards();
+        });
+
+        gridBtn?.addEventListener('click', () => setView('grid'));
+        compactBtn?.addEventListener('click', () => setView('compact'));
+
+        cards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                const href = card.dataset.href;
+                if (!href) return;
+                if (e.target.closest('a, button, form')) return;
+                window.location.href = href;
+            });
+        });
+
+        filterCards();
+        setView('grid');
+    })();
+</script>
 </body>
 </html>
+
+
+
