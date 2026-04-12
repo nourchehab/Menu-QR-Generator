@@ -6,4 +6,4 @@ langchain-groq
 langchain
 httpx
 pytest
-httpx
+pytest-asyncio
