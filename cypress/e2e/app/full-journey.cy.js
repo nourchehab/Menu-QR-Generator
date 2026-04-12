@@ -32,11 +32,28 @@ function getDashboardData() {
     method: 'GET',
     url: '/admin/api/restaurants/dashboard',
     failOnStatusCode: false,
+    followRedirect: false,
+    headers: {
+      Accept: 'application/json',
+    },
   })
+}
+
+function ensureDashboardJson(resp) {
+  if (resp.status === 301 || resp.status === 302) {
+    throw new Error(`Dashboard API redirected (${resp.status}) to login; auth session was not established.`)
+  }
+
+  const body = resp.body
+  if (typeof body === 'string' && /<html|<\!DOCTYPE html>/i.test(body)) {
+    throw new Error('Dashboard API returned HTML login page instead of JSON; check E2E credentials/session.')
+  }
 }
 
 function ensureRestaurantSetup() {
   return getDashboardData().then((resp) => {
+    ensureDashboardJson(resp)
+
     const body = resp.body || {}
     const dto = body.data && typeof body.data === 'object' ? body.data : body
 
@@ -62,6 +79,8 @@ function ensureRestaurantSetup() {
 
 function pickBranchFromDashboard() {
   return getDashboardData().then((resp) => {
+    ensureDashboardJson(resp)
+
     expect(resp.status).to.eq(200)
     const body = resp.body || {}
     if (Object.prototype.hasOwnProperty.call(body, 'success')) {
