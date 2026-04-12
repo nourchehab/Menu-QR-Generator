@@ -40,8 +40,6 @@ public class RestaurantController {
     @Autowired private BranchService     branchService;
     @Autowired private AiServiceClient aiServiceClient;
 
-    // ── Auth helpers ──────────────────────────────────────────────────────────
-
     private String normalizeEmail(String email) {
         if (email == null) return null;
         String e = email.trim();
@@ -73,8 +71,6 @@ public class RestaurantController {
         return user;
     }
 
-    // ── Setup pages ───────────────────────────────────────────────────────────
-
     @GetMapping("/restaurant/setup")
     public String setupPage(Principal principal, Model model) {
         if (principal == null) return "redirect:/login";
@@ -82,10 +78,6 @@ public class RestaurantController {
         SimpleUser user = getCurrentUser(principal);
         if (user == null) {
             return "redirect:/login";
-        }
-
-        if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
-            return "redirect:/restaurants";
         }
 
         model.addAttribute("formAction", "/restaurant/setup");
@@ -109,14 +101,6 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
-            if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "Restaurant already exists",
-                        "redirectUrl", "/restaurants"
-                ));
-            }
-
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
             Restaurant restaurant = restaurantService.setupRestaurant(
                     user.getId(), restaurantName, restaurantType, effectiveLogo);
@@ -132,13 +116,6 @@ public class RestaurantController {
         }
     }
 
-    // ── Authenticated restaurant info (legacy — used by old menu preview) ─────
-
-    /**
-     * GET /api/restaurant/me
-     * Returns the user's most-recent restaurant. Kept for backwards compatibility.
-     * Prefer /api/restaurant/branch/{branchId} for branch-scoped pages.
-     */
     @GetMapping("/api/restaurant/me")
     @ResponseBody
     public ResponseEntity<?> getMyRestaurant(Principal principal) {
@@ -159,12 +136,6 @@ public class RestaurantController {
         }
     }
 
-    /**
-     * GET /api/restaurant/branch/{branchId}
-     * ✅ Branch-scoped — returns the restaurant info for a specific branch.
-     * Used by menu preview, theme, and QR pages when branchId is present.
-     * Public — no auth required (menu preview is public).
-     */
     @GetMapping("/api/restaurant/branch/{branchId}")
     @ResponseBody
     public ResponseEntity<?> getRestaurantByBranch(@PathVariable Long branchId) {
@@ -174,7 +145,6 @@ public class RestaurantController {
 
             Restaurant restaurant = branch.getRestaurant();
             Map<String, Object> dto = buildRestaurantDto(restaurant);
-            // Also expose branch info so the menu preview can show the branch name
             dto.put("branchId",   branch.getId());
             dto.put("branchName", branch.getBranchName());
             dto.put("isMainBranch", branch.isMainBranch());
@@ -185,12 +155,6 @@ public class RestaurantController {
         }
     }
 
-    // ── Theme ─────────────────────────────────────────────────────────────────
-
-    /**
-     * PUT /api/restaurant/me/theme
-     * Updates background colour for the user's most-recent restaurant.
-     */
     @PutMapping("/api/restaurant/me/theme")
     @ResponseBody
     public ResponseEntity<?> updateMyTheme(@RequestBody Map<String, String> body, Authentication auth) {
@@ -214,10 +178,6 @@ public class RestaurantController {
         }
     }
 
-    /**
-     * PUT /api/restaurant/branch/{branchId}/theme
-     * ✅ Branch-scoped theme update — updates the restaurant's colour (shared by all branches).
-     */
     @PutMapping("/api/restaurant/branch/{branchId}/theme")
     @ResponseBody
     public ResponseEntity<?> updateBranchTheme(
@@ -234,15 +194,12 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
-            // Verify the branch belongs to this user
             Branch branch = branchService.getBranchForUser(user, branchId);
             String hex = body.get("menuBackgroundColor");
 
-            // Theme is stored on the restaurant level (shared across all branches)
             Restaurant restaurant = branch.getRestaurant();
             String safe = (hex == null || hex.isBlank()) ? "" : ColorContrastUtil.normalizeHex(hex);
             restaurant.setMenuBackgroundColor(safe);
-            // Save via service to keep things clean
             Restaurant updated = restaurantService.updateMenuBackgroundColor(user, hex);
 
             return ResponseEntity.ok(buildThemeResponse(updated));
@@ -253,15 +210,6 @@ public class RestaurantController {
         }
     }
 
-    // ── Batch Categorize Menu Items ───────────────────────────────────────────
-
-    /**
-     * Batch categorize multiple branch menu items using the Python AI service
-     * POST /api/restaurants/{restaurantId}/batch-categorize?branchId={branchId}
-     * 
-     * Request: { "itemIds": [1, 2, 3] }
-     * Response: { "success": true, "totalItems": 3, "categorized": 3, "message": "...", "results": [...] }
-     */
     @PostMapping("/api/restaurants/{restaurantId}/batch-categorize")
     @ResponseBody
     public ResponseEntity<?> batchCategorizeMenuItems(
@@ -269,12 +217,11 @@ public class RestaurantController {
             @RequestParam(value = "branchId", defaultValue = "default") String branchId,
             @RequestBody Map<String, Object> payload,
             Principal principal) {
-        
+
         logger.info("=== BATCH CATEGORIZE START ===");
         logger.info("restaurantId: {}, branchId: {}", restaurantId, branchId);
-        
+
         try {
-            // 1. Verify restaurant ownership
             SimpleUser user = getCurrentUser(principal);
             if (user == null) {
                 logger.error("User not authenticated");
@@ -286,15 +233,13 @@ public class RestaurantController {
             Restaurant restaurant = restaurantService.getRestaurantById(restaurantId)
                     .orElseThrow(() -> new RuntimeException("Restaurant not found"));
             logger.info("Restaurant found: {}", restaurant.getRestaurantName());
-            
-            // Check if user owns this restaurant
+
             if (!restaurant.getUser().getId().equals(user.getId())) {
                 logger.error("User {} does not own restaurant {}", user.getEmail(), restaurantId);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "You don't have access to this restaurant"));
             }
 
-            // 2. Find the branch
             Branch branch = null;
             try {
                 Long branchIdLong = Long.parseLong(branchId);
@@ -319,11 +264,10 @@ public class RestaurantController {
 
             logger.info("Branch found: {}", branch.getBranchName());
 
-            // 3. Extract item IDs from request
             @SuppressWarnings("unchecked")
             List<Integer> itemIds = (List<Integer>) payload.get("itemIds");
             logger.info("Extracted itemIds: {}", itemIds);
-            
+
             if (itemIds == null || itemIds.isEmpty()) {
                 logger.warn("No items provided in payload");
                 return ResponseEntity.ok(Map.of(
@@ -335,16 +279,14 @@ public class RestaurantController {
                 ));
             }
 
-            // 4. Process each item from branch_menu_items
             List<Map<String, Object>> results = new ArrayList<>();
             int successCount = 0;
             logger.info("Starting to process {} items from branch_menu_items", itemIds.size());
 
             for (Integer itemId : itemIds) {
                 logger.info("Processing branch menu item: {}", itemId);
-                
-                // Fetch from branch_menu_items table
-                com.restaurant.admin.model.BranchMenuItem branchItem = 
+
+                com.restaurant.admin.model.BranchMenuItem branchItem =
                     branchService.getBranchMenuItemById(itemId.longValue(), branch.getId());
 
                 if (branchItem == null) {
@@ -358,18 +300,16 @@ public class RestaurantController {
                     continue;
                 }
 
-                // Get effective name and description
-                String itemName = branchItem.getName() != null ? branchItem.getName() : 
+                String itemName = branchItem.getName() != null ? branchItem.getName() :
                                  (branchItem.getParentItem() != null ? branchItem.getParentItem().getItemName() : "Unknown");
-                String description = branchItem.getDescription() != null ? branchItem.getDescription() : 
+                String description = branchItem.getDescription() != null ? branchItem.getDescription() :
                                     (branchItem.getParentItem() != null ? branchItem.getParentItem().getItemDescription() : "");
-                Double price = branchItem.getPrice() != null ? branchItem.getPrice() : 
+                Double price = branchItem.getPrice() != null ? branchItem.getPrice() :
                               (branchItem.getParentItem() != null ? branchItem.getParentItem().getItemPrice().doubleValue() : 0.0);
 
                 logger.info("Found branch item: {} (id: {}), name: {}", itemId, branchItem.getId(), itemName);
 
                 try {
-                    // 5. Call Python AI service
                     logger.info("Calling AI service for item: {} with branchId: {}", itemName, branchId);
                     AiServiceClient.CategorizeResponse aiResponse = aiServiceClient.categorizeMenuItem(
                             itemName,
@@ -381,12 +321,11 @@ public class RestaurantController {
                     logger.info("AI response: {}", aiResponse);
 
                     if (aiResponse != null && aiResponse.category != null) {
-                        // 6. Save AI results to branch_menu_items table
                         logger.info("Saving categorization for branch item: {} -> {}", itemName, aiResponse.category);
                         branchItem.setSuggestedCategory(aiResponse.category);
                         branchItem.setAiConfidence(aiResponse.confidence);
                         branchItem.setAiReasoning(aiResponse.reasoning);
-                        branchItem.setAiAnalyzedAt(java.time.LocalDateTime.now());
+                        branchItem.setAiAnalyzedAt(LocalDateTime.now());
                         branchService.saveBranchMenuItem(branchItem);
 
                         results.add(Map.of(
@@ -419,7 +358,6 @@ public class RestaurantController {
                 }
             }
 
-            // 7. Return results
             logger.info("=== BATCH CATEGORIZE COMPLETE ===");
             logger.info("Result: {}/{} items categorized", successCount, itemIds.size());
             return ResponseEntity.ok(Map.of(
@@ -441,8 +379,6 @@ public class RestaurantController {
         }
     }
 
-    // ── Public restaurant info ────────────────────────────────────────────────
-
     @GetMapping("/api/public/restaurants/{id}")
     @ResponseBody
     public ResponseEntity<?> getRestaurantPublic(@PathVariable("id") Long restaurantId) {
@@ -454,8 +390,6 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private Map<String, Object> buildRestaurantDto(Restaurant restaurant) {
         String bg     = restaurant.getMenuBackgroundColor();

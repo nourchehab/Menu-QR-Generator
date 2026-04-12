@@ -1,229 +1,290 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Details</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #fff7f0 0%, #ffe8d6 100%);
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-image:
-        radial-gradient(circle at 20% 50%, rgba(255,102,0,0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255,153,0,0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-}
+        :root {
+            --bg: #050505;
+            --bg-soft: #090909;
+            --surface: #0d0d0d;
+            --surface-2: #121212;
+            --surface-3: #181818;
+            --text: #f7efe8;
+            --muted: #b8a79d;
+            --faint: #8f7d73;
+            --line: rgba(255, 255, 255, 0.08);
+            --line-strong: rgba(255, 255, 255, 0.12);
+            --orange: #ff7a1a;
+            --orange-2: #ff9a4d;
+            --orange-soft: rgba(255, 122, 26, 0.14);
+            --orange-soft-2: rgba(255, 122, 26, 0.08);
+            --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+            --orange-glow: 0 0 0 1px rgba(255, 122, 26, 0.18), 0 0 24px rgba(255, 122, 26, 0.18), 0 10px 24px rgba(255, 122, 26, 0.14);
+            --orange-glow-strong: 0 0 0 1px rgba(255, 122, 26, 0.28), 0 0 34px rgba(255, 122, 26, 0.30), 0 14px 30px rgba(255, 122, 26, 0.22);
+        }
 
-.title {
-    margin-top: 60px;
-    font-size: 42px;
-    background: linear-gradient(135deg, #ff6600, #ff9933);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    animation: fadeInDown 0.6s ease-out;
-}
+        html,
+        body {
+            min-height: 100%;
+        }
 
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(255, 122, 26, 0.10), transparent 20%),
+                radial-gradient(circle at bottom left, rgba(255, 122, 26, 0.06), transparent 18%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 46px 18px 28px;
+        }
 
-.details-form {
-    max-width: 550px;
-    margin: 50px auto;
-    background: white;
-    padding: 50px 45px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
-    animation: fadeInUp 0.7s ease-out;
-    position: relative;
-    overflow: hidden;
-}
+        .title {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(2.2rem, 4.2vw, 3.3rem);
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            line-height: 1.02;
+            color: var(--text);
+            margin-bottom: 28px;
+            text-align: center;
+        }
 
-.details-form::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #ff6600, #ff9933, #ffaa44);
-}
+        .details-form {
+            width: 100%;
+            max-width: 620px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%),
+                var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            padding: 34px;
+            box-shadow: var(--shadow);
+        }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+        .details-form label {
+            display: block;
+            text-align: left;
+            margin-top: 22px;
+            margin-bottom: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
 
-.details-form label {
-    display: block;
-    text-align: left;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-    margin-top: 25px;
-    font-size: 14px;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
+        .details-form label:first-of-type {
+            margin-top: 0;
+        }
 
-.details-form label::after { content: ' *'; color: #ff6600; font-size: 12px; }
+        .details-form label::after {
+            content: " *";
+            color: var(--orange-2);
+            font-size: 0.76rem;
+        }
 
-.details-form input[type="text"],
-.details-form select {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 15px;
-    border: 2px solid #e8e8e8;
-    border-radius: 10px;
-    outline: none;
-    transition: all 0.3s ease;
-    background: #fafafa;
-    box-sizing: border-box;
-    font-family: inherit;
-}
+        .details-form input[type="text"],
+        .details-form select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            border-radius: 16px;
+            border: 1px solid var(--line-strong);
+            background: var(--surface-2);
+            color: var(--text);
+            outline: none;
+            transition: 0.22s ease;
+            font-family: inherit;
+        }
 
-.details-form input[type="text"]:focus,
-.details-form select:focus {
-    border-color: #ff6600;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(255,102,0,0.1);
-    transform: translateY(-2px);
-}
+        .details-form input[type="text"]::placeholder {
+            color: var(--faint);
+        }
 
-.details-form input[type="file"] {
-    width: 100%;
-    padding: 40px;
-    border: 2px dashed #ff9933;
-    border-radius: 12px;
-    background: #fff7f0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
+        .details-form input[type="text"]:focus,
+        .details-form select:focus {
+            border-color: rgba(255, 122, 26, 0.45);
+            background: var(--surface-3);
+            box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.10);
+        }
 
-.details-form input[type="file"]:hover {
-    border-color: #ff6600;
-    background: #ffede0;
-    transform: scale(1.02);
-}
+        .details-form input[type="file"] {
+            width: 100%;
+            padding: 28px 18px;
+            border-radius: 20px;
+            border: 1px dashed rgba(255, 122, 26, 0.22);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.01), transparent 100%),
+                var(--surface-2);
+            color: var(--muted);
+            cursor: pointer;
+            transition: 0.22s ease;
+            font-family: inherit;
+        }
 
-.details-form input[type="file"]::file-selector-button {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #ff6600, #ff8533);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255,102,0,0.3);
-}
+        .details-form input[type="file"]:hover {
+            border-color: rgba(255, 122, 26, 0.38);
+            background:
+                linear-gradient(180deg, rgba(255,122,26,0.04), transparent 100%),
+                var(--surface-3);
+        }
 
-.details-form select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ff6600' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    padding-right: 40px;
-    cursor: pointer;
-}
+        .details-form input[type="file"]::file-selector-button {
+            margin-right: 12px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--orange-glow);
+            font-family: inherit;
+        }
 
-.details-form button[type="submit"] {
-    margin-top: 35px;
-    width: 100%;
-    padding: 16px;
-    font-size: 17px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #ff6600, #ff8533);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 20px rgba(255,102,0,0.3);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+        .details-form select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ff9a4d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 42px;
+            cursor: pointer;
+        }
 
-.details-form button[type="submit"]:hover {
-    background: linear-gradient(135deg, #ff7700, #ff9944);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(255,102,0,0.4);
-}
+        .details-form button[type="submit"] {
+            width: 100%;
+            margin-top: 28px;
+            padding: 15px 18px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            color: #fff;
+            font-size: 0.96rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: 0.22s ease;
+            box-shadow: var(--orange-glow);
+            font-family: inherit;
+        }
 
-.logo-preview {
-    width: 220px;
-    height: 220px;
-    border: 3px dashed #ff9933;
-    border-radius: 12px;
+        .details-form button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--orange-glow-strong);
+        }
+
+        .logo-preview {
+            width: 220px;
+            height: 220px;
+            margin: 20px auto 0;
+            border-radius: 24px;
+            border: 1px dashed rgba(255, 122, 26, 0.22);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.01), transparent 100%),
+                var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: 0.22s ease;
+        }
+
+        .logo-preview::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255, 122, 26, 0.05), transparent 58%);
+            pointer-events: none;
+        }
+        .setup-logo-wrap {
     display: flex;
-    align-items: center;
     justify-content: center;
-    margin: 20px auto;
-    background: #fff7f0;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    margin-bottom: 18px;
 }
 
-.logo-preview::before {
-    content: '🖼️';
-    font-size: 48px;
-    position: absolute;
-    opacity: 0.15;
-    pointer-events: none;
-}
-
-.preview-placeholder {
-    color: #ff9933;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: center;
-    padding: 20px;
-    opacity: 0.7;
-}
-
-.logo-preview img {
-    max-width: 100%;
-    max-height: 100%;
+.setup-logo {
+    display: block;
+    height: 72px;
+    width: auto;
     object-fit: contain;
-    border-radius: 8px;
+    filter: drop-shadow(0 10px 20px rgba(255, 122, 26, 0.12));
 }
 
-.error-message {
-    color: #ff0000;
-    font-size: 13px;
-    margin-top: 5px;
-    display: none;
-    text-align: left;
-}
+        .preview-placeholder {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 500;
+            text-align: center;
+            padding: 18px;
+            position: relative;
+            z-index: 1;
+        }
 
-@media (max-width: 768px) {
-    .title { font-size: 32px; margin-top: 40px; }
-    .details-form { padding: 35px 25px; margin: 30px 20px; }
-}
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 10px;
+            text-align: left;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255, 107, 87, 0.08);
+            color: #ff8c7e;
+            border: 1px solid rgba(255, 107, 87, 0.20);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 28px 14px 20px;
+            }
+
+            .details-form {
+                padding: 22px 18px;
+                border-radius: 24px;
+            }
+
+            .logo-preview {
+                width: 180px;
+                height: 180px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <h1 class="title">Enter Restaurant Details</h1>
+<div class="setup-logo-wrap">
+    <img src="/images/logo.png" alt="FlavorFrame logo" class="setup-logo">
+</div>
 
 <form id="restaurantForm" class="details-form" method="post" th:action="${formAction}" enctype="multipart/form-data">
-
     <label>Restaurant Name</label>
     <input type="text" id="restaurantName" name="restaurantName" placeholder="Enter restaurant name" required>
 
@@ -246,7 +307,6 @@ body::before {
     </select>
 
     <button type="submit">Continue</button>
-
 </form>
 
 <script>
@@ -267,6 +327,7 @@ body::before {
                 previewPlaceholder.style.display = 'block';
                 return;
             }
+
             fileError.style.display = 'none';
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -287,7 +348,6 @@ body::before {
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.restaurantId) {
-                    // ✅ Go to restaurants list, not dashboard
                     window.location.href = '/restaurants';
                 } else {
                     alert('Error: ' + (data.error || 'Failed to create restaurant'));
@@ -302,3 +362,6 @@ body::before {
 
 </body>
 </html>
+
+
+
