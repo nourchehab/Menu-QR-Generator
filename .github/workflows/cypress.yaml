@@ -23,6 +23,9 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
+      - name: Build Spring Boot jar
+        run: ./mvnw -B -ntp package -DskipTests
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,13 +35,15 @@ jobs:
       - name: Install Cypress dependencies
         run: npm ci
 
+      - name: Start Spring Boot app
+        run: nohup java -jar target/backend-servicex-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
       - name: Run Cypress and record to Cloud
         uses: cypress-io/github-action@v6
         with:
           install: false
           record: true
           browser: chrome
-          start: bash -lc "./mvnw -B -ntp spring-boot:run"
           wait-on: "http://localhost:8081/login"
           wait-on-timeout: 180
         env:
