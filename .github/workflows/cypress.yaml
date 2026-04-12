@@ -36,6 +36,16 @@ jobs:
         run: npm ci
 
       - name: Start Spring Boot app
+        env:
+          PORT: 8081
+          DATABASE_URL: jdbc:h2:mem:cypressdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+          DATABASE_USERNAME: sa
+          DATABASE_PASSWORD: ""
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+          GOOGLE_CLIENT_ID: ci-google-client-id
+          GOOGLE_CLIENT_SECRET: ci-google-client-secret
+          GOOGLE_CALLBACK_URL: http://localhost:8081/login/oauth2/code/google
         run: nohup java -jar target/backend-servicex-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
 
       - name: Run Cypress and record to Cloud
@@ -45,7 +55,21 @@ jobs:
           record: true
           browser: chrome
           wait-on: "http://localhost:8081/login"
-          wait-on-timeout: 180
+          wait-on-timeout: 300
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print app log on failure
+        if: failure()
+        run: |
+          echo "===== app.log (tail) ====="
+          tail -n 200 app.log || true
+
+      - name: Upload app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-app-log
+          path: app.log
+          if-no-files-found: ignore
