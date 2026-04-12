@@ -38,7 +38,7 @@ jobs:
           install: false
           record: true
           browser: chrome
-          start: ./mvnw -B -ntp spring-boot:run
+          start: bash -lc "./mvnw -B -ntp spring-boot:run"
           wait-on: "http://localhost:8081/login"
           wait-on-timeout: 180
         env:
