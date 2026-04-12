@@ -40,7 +40,7 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run unit and integration verification
-        run: ./mvnw -B -ntp clean verify
+        run: ./mvnw -B -ntp -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=5 clean verify
 
       - name: Upload surefire reports
         if: always()
@@ -93,7 +93,7 @@ jobs:
         run: chmod +x mvnw
 
       - name: Build jar without re-running tests
-        run: ./mvnw -B -ntp package -DskipTests
+        run: ./mvnw -B -ntp -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=5 package -DskipTests
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
