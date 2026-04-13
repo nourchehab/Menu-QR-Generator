@@ -79,8 +79,16 @@ public class CookieOAuth2AuthorizationRequestRepository implements Authorization
           .append("; Max-Age=").append(COOKIE_EXPIRATION_SECONDS)
           .append("; HttpOnly");
 
-        boolean secure = request != null && request.isSecure();
+        // Decide Secure flag: true if request is secure, X-Forwarded-Proto indicates https,
+        // or the operator set FORCE_COOKIE_SECURE=true in the environment.
+        boolean forwardedHttps = request != null && "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+        boolean forceSecure = "true".equalsIgnoreCase(System.getenv("FORCE_COOKIE_SECURE"));
+        boolean secure = (request != null && request.isSecure()) || forwardedHttps || forceSecure;
         if (secure) sb.append("; Secure");
+
+        log.debug("OAuth cookie save: request.isSecure={} X-Forwarded-Proto={} FORCE_COOKIE_SECURE={} -> Secure={}",
+            request != null && request.isSecure(), request != null ? request.getHeader("X-Forwarded-Proto") : null,
+            forceSecure, secure);
         sb.append("; SameSite=None");
 
         response.addHeader("Set-Cookie", sb.toString());
