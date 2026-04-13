@@ -74,6 +74,7 @@ jobs:
         run: pytest -q
         working-directory: ai-service-python
 
+
   package:
     name: Package artifact
     runs-on: ubuntu-latest

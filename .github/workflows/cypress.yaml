@@ -1,0 +1,118 @@
+name: Cypress Tests
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build Spring Boot jar
+        run: ./mvnw -B -ntp package -DskipTests
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ai-service-python/requirements.txt
+
+      - name: Install Python microservice dependencies
+        run: pip install -r ai-service-python/requirements.txt
+
+      - name: Install Cypress dependencies
+        run: npm ci
+
+      - name: Start Spring Boot app
+        env:
+          PORT: 8081
+          APP_E2E_BOOTSTRAP_ENABLED: "true"
+          DATABASE_URL: jdbc:h2:mem:cypressdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+          DATABASE_USERNAME: sa
+          DATABASE_PASSWORD: ""
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+          GOOGLE_CLIENT_ID: ci-google-client-id
+          GOOGLE_CLIENT_SECRET: ci-google-client-secret
+          GOOGLE_CALLBACK_URL: http://localhost:8081/login/oauth2/code/google
+        run: nohup java -jar target/backend-servicex-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
+      - name: Start AI Python microservice
+        env:
+          SPRING_BOOT_BASE_URL: http://localhost:8081
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          if [ -z "${GROQ_API_KEY}" ]; then
+            echo "Missing required GitHub secret: GROQ_API_KEY"
+            exit 1
+          fi
+          cd ai-service-python
+          nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 > ../ai-service.log 2>&1 &
+
+      - name: Run Cypress and record to Cloud
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          record: true
+          browser: chrome
+          wait-on: "http://localhost:8081/login,http://localhost:8001/health"
+          wait-on-timeout: 300
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
+      - name: Print AI service log on failure
+        if: failure()
+        run: |
+          echo "===== ai-service.log (tail) ====="
+          tail -n 200 ai-service.log || true
+
+      - name: Print app log on failure
+        if: failure()
+        run: |
+          echo "===== app.log (tail) ====="
+          tail -n 200 app.log || true
+
+      - name: Upload app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-app-log
+          path: app.log
+          if-no-files-found: ignore
+
+      - name: Upload AI service log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-ai-service-log
+          path: ai-service.log
+          if-no-files-found: ignore

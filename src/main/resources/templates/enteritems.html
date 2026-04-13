@@ -55,6 +55,10 @@
         .error-message { display:none; background:rgba(255,107,87,0.08); border:1px solid rgba(255,107,87,0.20); border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.5rem; color:#ff8c7e; font-weight:700; font-size:.875rem; text-align:center; } .error-message.show { display:block; }
         .branch-check-item { display:flex; align-items:center; gap:.75rem; padding:.8rem 1rem; border:1px solid var(--line); border-radius:12px; cursor:pointer; background:var(--surface-2); transition:.2s ease; }
         .branch-check-item:hover { border-color:rgba(255,122,26,.28); background:var(--surface-3); } .branch-check-item input { accent-color:var(--orange); width:18px; height:18px; cursor:pointer; }
+        /* ✅ ADDED: character counter */
+        .char-counter { text-align:right; font-size:.78rem; margin-top:.35rem; color:var(--faint); transition:color .2s ease; }
+        .char-counter.warn { color:var(--orange-2); }
+        .char-counter.over { color:#ff8c7e; }
         .swal2-container { z-index: 20000 !important; }
         @media (max-width: 640px) { .form-card { padding:1.5rem; } .form-actions { flex-direction:column; } .submit-btn,.cancel-btn { width:100%; } .page-title { font-size:1.7rem; } }
 
@@ -96,7 +100,10 @@
             </div>
             <div class="form-group">
                 <label for="itemDescription">Description</label>
-                <textarea id="itemDescription" name="itemDescription" class="form-textarea" placeholder="Describe your dish..." required minlength="10" maxlength="500"></textarea>
+                <!-- ✅ CHANGED: maxlength 500 → 230, minlength kept at 10 -->
+                <textarea id="itemDescription" name="itemDescription" class="form-textarea" placeholder="Describe your dish..." required minlength="10" maxlength="230"></textarea>
+                <!-- ✅ ADDED: character counter -->
+                <div class="char-counter" id="descCounter">0 / 230</div>
             </div>
             <div class="form-group">
                 <label for="category">Category <span class="optional">(Optional)</span></label>
@@ -135,6 +142,18 @@
     document.getElementById('returnDashboardBtn').onclick = () => { window.location.href = branchId ? `/branch/${branchId}/dashboard` : '/restaurants'; };
 
     const API = branchId ? `/api/branch/${branchId}/items` : '/api/items';
+
+    // ── ✅ ADDED: character counter for description ────────────────────────────
+    const descTextarea = document.getElementById('itemDescription');
+    const descCounter  = document.getElementById('descCounter');
+    const DESC_MAX     = 230;
+
+    descTextarea.addEventListener('input', () => {
+        const len = descTextarea.value.length;
+        descCounter.textContent = `${len} / ${DESC_MAX}`;
+        descCounter.className = 'char-counter' +
+            (len >= DESC_MAX ? ' over' : len >= DESC_MAX * 0.85 ? ' warn' : '');
+    });
 
     // ── Sibling branches ──────────────────────────────────────────────────────
     let siblingBranches = null;
@@ -207,6 +226,7 @@
                 }
                 successMessage.classList.add('show');
                 itemForm.style.display = 'none';
+                document.querySelector('.form-card').style.display = 'none';
             } else {
                 showError(data.error || 'Failed to add menu item.');
                 submitBtn.disabled = false; submitBtn.textContent = 'Add Item';
@@ -258,10 +278,14 @@
 
     document.getElementById('addAnotherBtn').addEventListener('click', () => {
         successMessage.classList.remove('show');
+        document.querySelector('.form-card').style.display = 'block';
         itemForm.style.display = 'block';
         itemForm.reset();
         photoInput.value = ''; previewImage.src = '';
         previewArea.classList.remove('active'); uploadArea.style.display = 'block';
+        // ✅ ADDED: reset counter on "Add Another"
+        descCounter.textContent = `0 / ${DESC_MAX}`;
+        descCounter.className = 'char-counter';
         submitBtn.disabled = false; submitBtn.textContent = 'Add Item';
     });
 
@@ -273,6 +297,3 @@
 </script>
 </body>
 </html>
-
-
-

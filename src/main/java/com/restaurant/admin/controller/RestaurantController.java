@@ -101,6 +101,14 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
+            if (restaurantService.userHasRestaurant(user)) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Restaurant already exists",
+                        "redirectUrl", "/restaurants"
+                ));
+            }
+
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
             Restaurant restaurant = restaurantService.setupRestaurant(
                     user.getId(), restaurantName, restaurantType, effectiveLogo);
@@ -115,7 +123,7 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
-
+    
     @GetMapping("/api/restaurant/me")
     @ResponseBody
     public ResponseEntity<?> getMyRestaurant(Principal principal) {

@@ -68,17 +68,18 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 4px 6px 18px;
+            padding: 18px 6px 28px;
             border-bottom: 1px solid var(--line);
         }
         .sidebar-logo {
-    display: block;
-    width: 100%;
-    max-width: 180px;
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 10px 20px rgba(255, 122, 26, 0.12));
-}
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            height: auto;
+            margin: 0 auto;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(255, 122, 26, 0.12));
+        }
 
         .brand-icon {
             width: 42px;
@@ -684,11 +685,8 @@
 <div class="app-shell">
 
     <aside class="sidebar">
-             <div class="brand">
-        <picture>
-            <source srcset="/images/logo.webp" type="image/webp">
-            <img src="/images/logo.png" alt="FlavorFrame logo" class="sidebar-logo" width="160" height="48" loading="eager" decoding="async">
-        </picture>
+       <div class="brand">
+    <img src="/images/FlavorFrame_LOGO.png" alt="FlavorFrame logo" class="sidebar-logo">
 </div>
 
         <div class="sidebar-group">
@@ -832,12 +830,18 @@
 </div>
 
 <script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
     (function () {
         const RESTAURANT_SETUP_URL = '/restaurant/setup';
 
         function forceNavigate(id, url) {
             const el = document.getElementById(id);
-            if (!el) return;
+            if (el == null) return;
             el.addEventListener('click', function (e) {
                 e.preventDefault();
                 window.location.href = url;
@@ -857,22 +861,27 @@
         const compactBtn = document.getElementById('compactViewBtn');
         const visibleCount = document.getElementById('visibleCount');
 
-        if (!grid) return;
+        if (grid == null) return;
 
         const cards = Array.from(grid.querySelectorAll('.restaurant-card'));
 
         function updateVisibleCount() {
-            const visible = cards.filter(card => !card.classList.contains('hidden-card')).length;
-            if (visibleCount) visibleCount.textContent = String(visible);
+            const visible = cards.filter(function (card) {
+                return !card.classList.contains('hidden-card');
+            }).length;
+
+            if (visibleCount != null) {
+                visibleCount.textContent = String(visible);
+            }
         }
 
         function filterCards() {
-            const query = (searchInput?.value || '').trim().toLowerCase();
+            const query = ((searchInput != null ? searchInput.value : '') || '').trim().toLowerCase();
 
-            cards.forEach(card => {
+            cards.forEach(function (card) {
                 const name = (card.dataset.name || '').toLowerCase();
                 const type = (card.dataset.type || '').toLowerCase();
-                const matches = !query || name.includes(query) || type.includes(query);
+                const matches = query === '' || name.includes(query) || type.includes(query);
                 card.classList.toggle('hidden-card', !matches);
             });
 
@@ -880,9 +889,9 @@
         }
 
         function sortCards() {
-            const mode = sortSelect?.value || 'default';
+            const mode = sortSelect != null ? sortSelect.value : 'default';
 
-            const sorted = [...cards].sort((a, b) => {
+            const sorted = [...cards].sort(function (a, b) {
                 const nameA = (a.dataset.name || '').toLowerCase();
                 const nameB = (b.dataset.name || '').toLowerCase();
                 const typeA = (a.dataset.type || '').toLowerCase();
@@ -894,35 +903,51 @@
                 return 0;
             });
 
-            sorted.forEach(card => grid.appendChild(card));
+            sorted.forEach(function (card) {
+                grid.appendChild(card);
+            });
         }
 
         function setView(mode) {
             if (mode === 'compact') {
                 grid.classList.add('compact');
-                compactBtn?.classList.add('active');
-                gridBtn?.classList.remove('active');
+                if (compactBtn != null) compactBtn.classList.add('active');
+                if (gridBtn != null) gridBtn.classList.remove('active');
             } else {
                 grid.classList.remove('compact');
-                gridBtn?.classList.add('active');
-                compactBtn?.classList.remove('active');
+                if (gridBtn != null) gridBtn.classList.add('active');
+                if (compactBtn != null) compactBtn.classList.remove('active');
             }
         }
 
-        searchInput?.addEventListener('input', filterCards);
-        sortSelect?.addEventListener('change', () => {
-            sortCards();
-            filterCards();
-        });
+        if (searchInput != null) {
+            searchInput.addEventListener('input', filterCards);
+        }
 
-        gridBtn?.addEventListener('click', () => setView('grid'));
-        compactBtn?.addEventListener('click', () => setView('compact'));
+        if (sortSelect != null) {
+            sortSelect.addEventListener('change', function () {
+                sortCards();
+                filterCards();
+            });
+        }
 
-        cards.forEach(card => {
-            card.addEventListener('click', (e) => {
+        if (gridBtn != null) {
+            gridBtn.addEventListener('click', function () {
+                setView('grid');
+            });
+        }
+
+        if (compactBtn != null) {
+            compactBtn.addEventListener('click', function () {
+                setView('compact');
+            });
+        }
+
+        cards.forEach(function (card) {
+            card.addEventListener('click', function (e) {
                 const href = card.dataset.href;
-                if (!href) return;
-                if (e.target.closest('a, button, form')) return;
+                if (href == null || href === '') return;
+                if (e.target.closest('a, button, form') != null) return;
                 window.location.href = href;
             });
         });
@@ -930,7 +955,7 @@
         filterCards();
         setView('grid');
     })();
-</script>
+</script>>>>>>>> b56ecf39d (Fixed remember-me and protect cached restaurant page after logout)
 </body>
 </html>
 
