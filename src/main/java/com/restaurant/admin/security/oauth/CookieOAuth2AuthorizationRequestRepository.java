@@ -1,18 +1,23 @@
 package com.restaurant.admin.security.oauth;
 
-import java.util.Base64;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.util.SerializationUtils;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Stores the OAuth2AuthorizationRequest in a short-lived cookie to survive session loss.
+ * Simple server-side cache approach:
+ * - Store a short UUID token in a cookie (small, under typical limits)
+ * - Keep the full OAuth2AuthorizationRequest in an in-memory map keyed by the token
+ * This avoids oversized cookies while keeping the request short-lived and retrievable
+ * across redirects (helpful when sessions are lost).
  */
 public class CookieOAuth2AuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
@@ -21,19 +26,35 @@ public class CookieOAuth2AuthorizationRequestRepository implements Authorization
     public static final String COOKIE_NAME = "OAUTH2_AUTH_REQUEST";
     private static final int COOKIE_EXPIRATION_SECONDS = 300; // 5 minutes
 
+    private static final Map<String, CachedEntry> CACHE = new ConcurrentHashMap<>();
+
+    private static class CachedEntry {
+        final OAuth2AuthorizationRequest request;
+        final long createdAt;
+
+        CachedEntry(OAuth2AuthorizationRequest request) {
+            this.request = request;
+            this.createdAt = System.currentTimeMillis();
+        }
+    }
+
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) return null;
         for (Cookie c : cookies) {
             if (COOKIE_NAME.equals(c.getName())) {
-                try {
-                    byte[] data = Base64.getUrlDecoder().decode(c.getValue());
-                    Object obj = SerializationUtils.deserialize(data);
-                    if (obj instanceof OAuth2AuthorizationRequest) {
-                        return (OAuth2AuthorizationRequest) obj;
-                    }
-                } catch (Exception ignored) { }
+                String token = c.getValue();
+                if (token == null || token.isBlank()) return null;
+                CachedEntry entry = CACHE.get(token);
+                if (entry == null) return null;
+                // Validate TTL
+                long age = (System.currentTimeMillis() - entry.createdAt) / 1000L;
+                if (age > COOKIE_EXPIRATION_SECONDS) {
+                    CACHE.remove(token);
+                    return null;
+                }
+                return entry.request;
             }
         }
         return null;
@@ -42,29 +63,24 @@ public class CookieOAuth2AuthorizationRequestRepository implements Authorization
     @Override
     public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request, HttpServletResponse response) {
         if (authorizationRequest == null) {
-            removeCookie(response);
+            removeCookie(response, request != null && request.isSecure());
             return;
         }
 
-        byte[] data = SerializationUtils.serialize(authorizationRequest);
-        String payload = Base64.getUrlEncoder().encodeToString(data);
+        // Generate a short token and store the full request server-side
+        String token = UUID.randomUUID().toString();
+        CACHE.put(token, new CachedEntry(authorizationRequest));
 
-        // Log payload size for debugging large-cookie issues
-        log.debug("Saving OAuth2 authorization request cookie ({} bytes)", payload.length());
+        log.debug("Saved OAuth2 authorization request in server cache under token {} (ttl={}s)", token, COOKIE_EXPIRATION_SECONDS);
 
-        // Build a Set-Cookie header string so we can include SameSite attribute which
-        // `HttpServletResponse.addCookie` doesn't let us control on older servlet APIs.
         StringBuilder sb = new StringBuilder();
-        sb.append(COOKIE_NAME).append("=").append(payload)
+        sb.append(COOKIE_NAME).append("=").append(token)
           .append("; Path=/")
           .append("; Max-Age=").append(COOKIE_EXPIRATION_SECONDS)
           .append("; HttpOnly");
 
-        // Mark Secure when request is secure to satisfy SameSite=None requirements
-        boolean secure = request.isSecure();
+        boolean secure = request != null && request.isSecure();
         if (secure) sb.append("; Secure");
-
-        // Explicitly set SameSite=None to allow cross-site OAuth callbacks
         sb.append("; SameSite=None");
 
         response.addHeader("Set-Cookie", sb.toString());
@@ -72,14 +88,22 @@ public class CookieOAuth2AuthorizationRequestRepository implements Authorization
 
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) {
-        OAuth2AuthorizationRequest req = loadAuthorizationRequest(request);
-        removeCookie(response, request.isSecure());
-        return req;
-    }
-
-    private void removeCookie(HttpServletResponse response) {
-        // default remove without secure flag
-        removeCookie(response, false);
+        if (request == null) return null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return null;
+        for (Cookie c : cookies) {
+            if (COOKIE_NAME.equals(c.getName())) {
+                String token = c.getValue();
+                if (token == null || token.isBlank()) {
+                    removeCookie(response, request.isSecure());
+                    return null;
+                }
+                CachedEntry entry = CACHE.remove(token);
+                removeCookie(response, request.isSecure());
+                return entry != null ? entry.request : null;
+            }
+        }
+        return null;
     }
 
     private void removeCookie(HttpServletResponse response, boolean secure) {
