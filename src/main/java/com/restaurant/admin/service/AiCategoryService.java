@@ -38,7 +38,7 @@ public class AiCategoryService {
     
     @Autowired
     private CategoryRepository categoryRepository;
-    @Autowired
+    @Autowired(required = false)
     private com.restaurant.admin.repository.RestaurantRepository restaurantRepository;
     
     /**
@@ -53,10 +53,14 @@ public class AiCategoryService {
     public boolean categorizeAndSaveMenuItem(MenuItem menuItem, Long restaurantId, String branchId) {
         try {
             // Call AI service
+            double price = 0.0;
+            if (menuItem.getItemPrice() != null) {
+                try { price = menuItem.getItemPrice().doubleValue(); } catch (Exception ignored) { price = 0.0; }
+            }
             AiServiceClient.CategorizeResponse response = aiServiceClient.categorizeMenuItem(
                 menuItem.getItemName(),
                 menuItem.getItemDescription(),
-                menuItem.getItemPrice().doubleValue(),
+                price,
                 restaurantId.toString(),
                 branchId != null ? branchId : "default"
             );
@@ -133,12 +137,20 @@ public class AiCategoryService {
         
         try {
             String suggestedCategoryName = menuItem.getSuggestedCategory();
-            Long restId = menuItem.getRestaurant() != null ? menuItem.getRestaurant().getId() : null;
-            if (restId == null) {
-                logger.warn("MenuItem {} has no associated restaurant", menuItem.getId());
+            Restaurant restaurant = null;
+            if (menuItem.getRestaurant() != null) {
+                restaurant = menuItem.getRestaurant();
+            } else if (restaurantRepository != null) {
+                Long restId = null;
+                try { restId = menuItem.getRestaurant() != null ? menuItem.getRestaurant().getId() : null; } catch (Exception ignored) {}
+                if (restId != null) {
+                    restaurant = restaurantRepository.findById(restId).orElse(null);
+                }
+            }
+            if (restaurant == null) {
+                logger.warn("MenuItem {} has no associated restaurant and no repository available", menuItem.getId());
                 return false;
             }
-            Restaurant restaurant = restaurantRepository.findById(restId).orElseThrow(() -> new RuntimeException("Restaurant not found"));
             
             // Try to find or create the category
             Category category = findOrCreateCategory(restaurant, suggestedCategoryName);
