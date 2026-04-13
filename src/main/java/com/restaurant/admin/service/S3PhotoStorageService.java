@@ -65,18 +65,20 @@ public class S3PhotoStorageService {
             .contentType(defaultContentType(contentType))
             .build();
 
-        try {
-            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        try (var in = file.getInputStream()) {
+            s3Client.putObject(request, RequestBody.fromInputStream(in, file.getSize()));
             return s3Client.utilities()
                 .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
                 .toExternalForm();
         } catch (Exception e) {
             // Fallback to local storage when S3 is not available (missing creds/bucket or network issues)
-            log.warn("S3 upload failed for photo, falling back to local storage: {}", e.getMessage());
+            log.warn("S3 upload failed for photo, falling back to local storage: {}", e.toString());
             Files.createDirectories(Path.of(localPhotoDir));
-            String filename = UUID.randomUUID() + getExtension(file.getOriginalFilename(), file.getContentType());
+            String filename = UUID.randomUUID() + extension;
             Path target = Path.of(localPhotoDir).resolve(filename);
-            Files.copy(file.getInputStream(), target);
+            try (var in2 = file.getInputStream()) {
+                Files.copy(in2, target);
+            }
             return "/uploads/photos/" + filename;
         }
     }
@@ -107,11 +109,19 @@ public class S3PhotoStorageService {
                 .contentType(contentType)
                 .build();
 
-        s3Client.putObject(request, RequestBody.fromFile(source));
-
-        return s3Client.utilities()
-                .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
-                .toExternalForm();
+        try {
+            s3Client.putObject(request, RequestBody.fromFile(source));
+            return s3Client.utilities()
+                    .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                    .toExternalForm();
+        } catch (Exception e) {
+            log.warn("S3 migration upload failed for photo [{}], falling back to local copy: {}", source, e.toString());
+            Files.createDirectories(Path.of(localPhotoDir));
+            String filename = UUID.randomUUID() + extension;
+            Path target = Path.of(localPhotoDir).resolve(filename);
+            Files.copy(source, target);
+            return "/uploads/photos/" + filename;
+        }
     }
 
     public String migrateExistingLogoPath(String storedPath) throws IOException {
@@ -139,11 +149,19 @@ public class S3PhotoStorageService {
                 .contentType(contentType)
                 .build();
 
-        s3Client.putObject(request, RequestBody.fromFile(source));
-
-        return s3Client.utilities()
-                .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
-                .toExternalForm();
+        try {
+            s3Client.putObject(request, RequestBody.fromFile(source));
+            return s3Client.utilities()
+                    .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                    .toExternalForm();
+        } catch (Exception e) {
+            log.warn("S3 migration upload failed for logo [{}], falling back to local copy: {}", source, e.toString());
+            Files.createDirectories(Path.of(localLogoDir));
+            String filename = UUID.randomUUID() + extension;
+            Path target = Path.of(localLogoDir).resolve(filename);
+            Files.copy(source, target);
+            return "/uploads/logos/" + filename;
+        }
     }
 
     private String tryFindOnS3(String storedPath) {
