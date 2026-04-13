@@ -143,7 +143,15 @@ public class RestaurantController {
             Branch branch = branchRepository.findById(branchId)
                     .orElseThrow(() -> new RuntimeException("Branch not found"));
 
-            Restaurant restaurant = branch.getRestaurant();
+            // Avoid lazy-init proxy outside of a transactional context by loading the
+            // Restaurant explicitly from the repository/service. Accessing
+            // branch.getRestaurant() may return a proxy that needs an active
+            // Hibernate session, which can cause "no session" errors.
+            Long restId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+            if (restId == null) throw new RuntimeException("Restaurant not found for branch");
+            Restaurant restaurant = restaurantService.getRestaurantById(restId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
             Map<String, Object> dto = buildRestaurantDto(restaurant);
             dto.put("branchId",   branch.getId());
             dto.put("branchName", branch.getBranchName());
