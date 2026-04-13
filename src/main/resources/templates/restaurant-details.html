@@ -343,14 +343,25 @@
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(form);
-        const action = form.getAttribute('action');
+        let action = form.getAttribute('action');
+        if (!action) action = '/restaurant/setup';
 
         fetch(action, { method: 'POST', body: formData })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.restaurantId) {
+            .then(async response => {
+                const txt = await response.text();
+                try {
+                    const data = JSON.parse(txt);
+                    return { ok: response.ok, data };
+                } catch (e) {
+                    // Not JSON — return raw text for debugging
+                    return { ok: response.ok, data: { error: txt } };
+                }
+            })
+            .then(({ ok, data }) => {
+                if (ok && data.success && data.restaurantId) {
                     window.location.href = '/restaurants';
                 } else {
+                    console.error('Create restaurant response:', data);
                     alert('Error: ' + (data.error || 'Failed to create restaurant'));
                 }
             })

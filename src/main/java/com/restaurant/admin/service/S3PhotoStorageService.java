@@ -60,15 +60,25 @@ public class S3PhotoStorageService {
         String key = buildKey(photosFolder, extension);
 
         PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType(defaultContentType(contentType))
-                .build();
+            .bucket(bucketName)
+            .key(key)
+            .contentType(defaultContentType(contentType))
+            .build();
 
-        s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        return s3Client.utilities()
+        try {
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            return s3Client.utilities()
                 .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
                 .toExternalForm();
+        } catch (Exception e) {
+            // Fallback to local storage when S3 is not available (missing creds/bucket or network issues)
+            log.warn("S3 upload failed for photo, falling back to local storage: {}", e.getMessage());
+            Files.createDirectories(Path.of(localPhotoDir));
+            String filename = UUID.randomUUID() + getExtension(file.getOriginalFilename(), file.getContentType());
+            Path target = Path.of(localPhotoDir).resolve(filename);
+            Files.copy(file.getInputStream(), target);
+            return "/uploads/photos/" + filename;
+        }
     }
 
     public String migrateExistingPhotoPath(String storedPath) throws IOException {
@@ -196,10 +206,20 @@ public class S3PhotoStorageService {
                 .contentType(defaultContentType(file.getContentType()))
                 .build();
 
-        s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        return s3Client.utilities()
-                .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
-                .toExternalForm();
+        try {
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            return s3Client.utilities()
+                    .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                    .toExternalForm();
+        } catch (Exception e) {
+            // Fallback: save to local logo dir and return local path
+            log.warn("S3 upload failed for logo, falling back to local storage: {}", e.getMessage());
+            Files.createDirectories(Path.of(localLogoDir));
+            String filename = UUID.randomUUID() + extension;
+            Path target = Path.of(localLogoDir).resolve(filename);
+            Files.copy(file.getInputStream(), target);
+            return "/uploads/logos/" + filename;
+        }
     }
 
         private Path resolveExistingFile(String storedPath, String fallbackLocalDir) {
