@@ -281,7 +281,10 @@
 
 <h1 class="title">Enter Restaurant Details</h1>
 <div class="setup-logo-wrap">
-    <img src="/images/logo.png" alt="FlavorFrame logo" class="setup-logo">
+        <picture>
+            <source srcset="/images/logo.webp" type="image/webp">
+            <img src="/images/logo.png" alt="FlavorFrame logo" class="setup-logo" width="180" height="180" loading="eager" decoding="async">
+        </picture>
 </div>
 
 <form id="restaurantForm" class="details-form" method="post" th:action="${formAction}" enctype="multipart/form-data">

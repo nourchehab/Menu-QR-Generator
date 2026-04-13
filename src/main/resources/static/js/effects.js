@@ -5,28 +5,31 @@
 function initScrollEffects() {
     const body = document.body;
     const navbar = document.querySelector(".navbar");
+    let ticking = false;
 
-    window.addEventListener("scroll", () => {
-    const scrollY = window.scrollY;
+    function updateOnScroll() {
+        const scrollY = window.scrollY;
 
-    /* BACKGROUND GRADIENT SHIFT */
-    body.style.background = `
-        linear-gradient(
-            180deg,
-            #fbf7f2 ${Math.min(40 + scrollY / 15, 75)}%,
-            #ffffff
-        )
-    `;
+        /* BACKGROUND GRADIENT SHIFT */
+        body.style.background = `linear-gradient(180deg, #fbf7f2 ${Math.min(40 + scrollY / 15, 75)}%, #ffffff)`;
 
-    /* NAVBAR SHADOW ON SCROLL */
-    if (navbar) {
-        if (scrollY > 10) {
-            navbar.classList.add("scrolled");
-        } else {
-            navbar.classList.remove("scrolled");
+        /* NAVBAR SHADOW ON SCROLL */
+        if (navbar) {
+            navbar.classList.toggle("scrolled", scrollY > 10);
         }
     }
-    });
+
+    function onScroll() {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateOnScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
 }
 
 // Ensure DOM is loaded before running scroll effects
