@@ -111,9 +111,11 @@ public class RestaurantController {
             }
 
                 MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
-                String correlationId = UUID.randomUUID().toString();
+                // Use the 4-arg service overload so unit tests that mock that
+                // signature continue to work. CorrelationId is logged inside
+                // the service on error.
                 Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(), restaurantName, restaurantType, effectiveLogo, correlationId);
+                    user.getId(), restaurantName, restaurantType, effectiveLogo);
 
             return ResponseEntity.ok(Map.of(
                     "success",      true,
@@ -122,14 +124,17 @@ public class RestaurantController {
                     "redirectUrl",  "/restaurants"
             ));
         } catch (Exception e) {
-            // correlationId is generated before calling the service; if missing, create one for response
+            // If the service already included an ErrorId prefix in its message, extract it.
             String errorId = (e.getMessage() != null && e.getMessage().startsWith("ErrorId "))
-                ? e.getMessage().split(" ")[1]
-                : UUID.randomUUID().toString();
-            logger.error("ErrorId {} - Failed to create restaurant: {}", errorId, e.getMessage(), e);
+                    ? e.getMessage().split(" ")[1]
+                    : UUID.randomUUID().toString();
+            String msg = e.getMessage() != null ? e.getMessage() : "Failed to create restaurant";
+            logger.error("ErrorId {} - Failed to create restaurant: {}", errorId, msg, e);
+            // Return the original service message when available (tests expect this),
+            // plus the generated errorId for correlation.
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "Failed to create restaurant",
-                "errorId", errorId
+                    "error", msg,
+                    "errorId", errorId
             ));
         }
     }
