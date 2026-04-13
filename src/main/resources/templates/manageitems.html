@@ -963,7 +963,8 @@
         results.forEach(result => {
             const div = document.createElement('div');
             div.id = `categorise-result-${result.itemId}`;
-            div.style.cssText = 'padding:1.25rem; border:2px solid rgba(255,140,66,0.2); border-radius:10px; margin-bottom:1rem; background:white;';
+            // Dark background for better contrast in the app's dark theme
+            div.style.cssText = 'padding:1.25rem; border-radius:10px; margin-bottom:1rem; background: var(--panel-2); border: 1px solid rgba(255,255,255,0.04); color: var(--text);';
 
             const statusColor = result.success ? '#4CAF50' : '#ff6b35';
             const statusIcon  = result.success ? '✓' : '→';
@@ -981,9 +982,9 @@
 
             if (result.success) {
                 const info = document.createElement('div'); info.style.cssText = 'margin-left:2rem; margin-bottom:0.5rem;';
-                const catLine = document.createElement('div'); catLine.style.cssText = 'font-size:0.9rem; color:#b8a79d; margin-bottom:0.25rem;';
+                const catLine = document.createElement('div'); catLine.style.cssText = 'font-size:0.9rem; color:var(--muted); margin-bottom:0.25rem;';
                 catLine.innerHTML = '<strong>Suggested Category:</strong> ';
-                const catVal = document.createElement('span'); catVal.style.cssText = 'color:#4CAF50; font-weight:600;'; catVal.textContent = result.category;
+                const catVal = document.createElement('span'); catVal.style.cssText = 'background: rgba(255,255,255,0.04); color: var(--text); padding:0.18rem 0.6rem; border-radius:8px; margin-left:0.5rem; font-weight:600; display:inline-block;'; catVal.textContent = result.category;
                 catLine.appendChild(catVal);
                 const confLine = document.createElement('div'); confLine.style.cssText = 'font-size:0.9rem; color:#b8a79d; margin-bottom:0.25rem;';
                 confLine.innerHTML = `<strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%`;
