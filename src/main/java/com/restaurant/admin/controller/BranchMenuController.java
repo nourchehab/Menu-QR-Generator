@@ -1,6 +1,7 @@
 package com.restaurant.admin.controller;
 
 import com.restaurant.admin.model.Branch;
+import com.restaurant.admin.model.Restaurant;
 import com.restaurant.admin.model.SimpleUser;
 import com.restaurant.admin.service.BranchService;
 import com.restaurant.admin.service.BranchService.EffectiveMenuItem;
@@ -23,6 +24,7 @@ public class BranchMenuController {
 
     @Autowired private BranchService     branchService;
     @Autowired private SimpleUserService userService;
+    @Autowired private com.restaurant.admin.service.RestaurantService restaurantService;
 
     // ── Auth helpers ──────────────────────────────────────────────────────────
 
@@ -69,7 +71,9 @@ public class BranchMenuController {
         List<EffectiveMenuItem> effectiveMenu = branchService.buildEffectiveMenu(branch);
 
         model.addAttribute("branch",       branch);
-        model.addAttribute("restaurant",   branch.getRestaurant());
+        Long restId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+        Restaurant restaurant = restId == null ? null : restaurantService.getRestaurantById(restId).orElse(null);
+        model.addAttribute("restaurant",   restaurant);
         model.addAttribute("effectiveMenu", effectiveMenu);
         model.addAttribute("hasItems",     !effectiveMenu.isEmpty());
         return "branch-menu-manage";
@@ -85,7 +89,9 @@ public class BranchMenuController {
 
         Branch branch = branchService.getBranchForUser(user, branchId);
         model.addAttribute("branch",     branch);
-        model.addAttribute("restaurant", branch.getRestaurant());
+        Long restId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+        Restaurant restaurant = restId == null ? null : restaurantService.getRestaurantById(restId).orElse(null);
+        model.addAttribute("restaurant", restaurant);
         return "branch-item-add";
     }
 
@@ -129,7 +135,9 @@ public class BranchMenuController {
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         model.addAttribute("branch",     branch);
-        model.addAttribute("restaurant", branch.getRestaurant());
+        Long restId2 = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+        Restaurant restaurant2 = restId2 == null ? null : restaurantService.getRestaurantById(restId2).orElse(null);
+        model.addAttribute("restaurant", restaurant2);
         model.addAttribute("item",       target);
         model.addAttribute("itemId",     itemId);
         return "branch-item-edit";

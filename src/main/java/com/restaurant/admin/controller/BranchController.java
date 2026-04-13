@@ -128,7 +128,13 @@ public class BranchController {
 
         Branch branch = branchService.getBranchForUser(user, branchId);
         model.addAttribute("branch", branch);
-        model.addAttribute("restaurant", branch.getRestaurant());
+        // Load Restaurant explicitly to avoid lazy proxy initialization outside
+        // of a Hibernate session. Accessing branch.getRestaurant() directly may
+        // return a proxy that requires an active session.
+        Long restId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+        Restaurant restaurant = restId == null ? null : restaurantService.getRestaurantById(restId)
+            .orElse(null);
+        model.addAttribute("restaurant", restaurant);
         return "branch-dashboard";
     }
 

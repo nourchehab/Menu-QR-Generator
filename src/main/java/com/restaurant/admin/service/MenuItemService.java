@@ -72,8 +72,9 @@ public class MenuItemService {
      * Get menu item by ID
      */
     public MenuItem getMenuItemById(Long id) {
-        return menuItemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        return menuItemRepository.findByIdWithRestaurant(id)
+            .orElseGet(() -> menuItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found")));
     }
 
     /**

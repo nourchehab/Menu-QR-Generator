@@ -85,7 +85,8 @@ public class BranchItemApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
             Branch branch = branchService.getBranchForUser(user, branchId);
-            Long restaurantId = branch.getRestaurant().getId();
+            Long restaurantId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+            if (restaurantId == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Restaurant not found"));
 
             List<Branch> siblings = branchService.getNonMainBranchesForRestaurant(user, restaurantId);
             List<Map<String, Object>> result = siblings.stream().map(b -> {

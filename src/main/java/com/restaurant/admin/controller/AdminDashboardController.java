@@ -115,8 +115,11 @@ public class AdminDashboardController {
                         .orElseThrow(() -> new RuntimeException("No restaurant found"));
             }
 
-            List<Branch> branches = branchService.getAllBranchesForUser(user).stream()
-                    .filter(b -> b.getRestaurant().getId().equals(restaurant.getId()))
+                List<Branch> branches = branchService.getAllBranchesForUser(user).stream()
+                    .filter(b -> {
+                    Long bid = b.getRestaurant() != null ? b.getRestaurant().getId() : null;
+                    return bid != null && bid.equals(restaurant.getId());
+                    })
                     .toList();
 
             model.addAttribute("restaurant", restaurant);

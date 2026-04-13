@@ -264,7 +264,8 @@ public class RestaurantController {
                         .body(Map.of("error", "Branch not found"));
             }
 
-            if (!branch.getRestaurant().getId().equals(restaurantId)) {
+            Long branchRestId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+            if (branchRestId == null || !branchRestId.equals(restaurantId)) {
                 logger.error("Branch {} does not belong to restaurant {}", branchId, restaurantId);
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Branch does not belong to this restaurant"));

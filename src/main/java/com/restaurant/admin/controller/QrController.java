@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -61,10 +62,14 @@ public class QrController {
      */
     @GetMapping(value = "/branch/{branchId}", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> getBranchQr(@PathVariable Long branchId) {
-        return branchRepository.findById(branchId).map(branch -> {
-            Long restaurantId = branch.getRestaurant().getId();
-            return pngResponse(publicBaseUrl + "/r/" + restaurantId);
-        }).orElse(ResponseEntity.status(404).build());
+        var branchOpt = branchRepository.findById(branchId);
+        if (branchOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var branch = branchOpt.get();
+        Long restaurantId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
+        if (restaurantId == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return pngResponse(publicBaseUrl + "/r/" + restaurantId);
     }
 
     /** Legacy authenticated endpoint. */

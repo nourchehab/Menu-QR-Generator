@@ -38,6 +38,8 @@ public class AiCategoryService {
     
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private com.restaurant.admin.repository.RestaurantRepository restaurantRepository;
     
     /**
      * Get AI categorization for a menu item and save to database
@@ -131,7 +133,12 @@ public class AiCategoryService {
         
         try {
             String suggestedCategoryName = menuItem.getSuggestedCategory();
-            Restaurant restaurant = menuItem.getRestaurant();
+            Long restId = menuItem.getRestaurant() != null ? menuItem.getRestaurant().getId() : null;
+            if (restId == null) {
+                logger.warn("MenuItem {} has no associated restaurant", menuItem.getId());
+                return false;
+            }
+            Restaurant restaurant = restaurantRepository.findById(restId).orElseThrow(() -> new RuntimeException("Restaurant not found"));
             
             // Try to find or create the category
             Category category = findOrCreateCategory(restaurant, suggestedCategoryName);
