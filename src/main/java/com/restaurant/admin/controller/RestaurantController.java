@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,9 +110,10 @@ public class RestaurantController {
                 ));
             }
 
-            MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
-            Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(), restaurantName, restaurantType, effectiveLogo);
+                MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
+                String correlationId = UUID.randomUUID().toString();
+                Restaurant restaurant = restaurantService.setupRestaurant(
+                    user.getId(), restaurantName, restaurantType, effectiveLogo, correlationId);
 
             return ResponseEntity.ok(Map.of(
                     "success",      true,
@@ -120,7 +122,15 @@ public class RestaurantController {
                     "redirectUrl",  "/restaurants"
             ));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            // correlationId is generated before calling the service; if missing, create one for response
+            String errorId = (e.getMessage() != null && e.getMessage().startsWith("ErrorId "))
+                ? e.getMessage().split(" ")[1]
+                : UUID.randomUUID().toString();
+            logger.error("ErrorId {} - Failed to create restaurant: {}", errorId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Failed to create restaurant",
+                "errorId", errorId
+            ));
         }
     }
     

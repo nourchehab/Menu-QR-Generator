@@ -4,6 +4,8 @@ import java.util.Base64;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
@@ -13,6 +15,8 @@ import org.springframework.util.SerializationUtils;
  * Stores the OAuth2AuthorizationRequest in a short-lived cookie to survive session loss.
  */
 public class CookieOAuth2AuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
+
+    private static final Logger log = LoggerFactory.getLogger(CookieOAuth2AuthorizationRequestRepository.class);
 
     public static final String COOKIE_NAME = "OAUTH2_AUTH_REQUEST";
     private static final int COOKIE_EXPIRATION_SECONDS = 300; // 5 minutes
@@ -44,26 +48,48 @@ public class CookieOAuth2AuthorizationRequestRepository implements Authorization
 
         byte[] data = SerializationUtils.serialize(authorizationRequest);
         String payload = Base64.getUrlEncoder().encodeToString(data);
-        Cookie cookie = new Cookie(COOKIE_NAME, payload);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(COOKIE_EXPIRATION_SECONDS);
-        // Keep secure flag unset here; container should set it via proxy TLS in production if needed.
-        response.addCookie(cookie);
+
+        // Log payload size for debugging large-cookie issues
+        log.debug("Saving OAuth2 authorization request cookie ({} bytes)", payload.length());
+
+        // Build a Set-Cookie header string so we can include SameSite attribute which
+        // `HttpServletResponse.addCookie` doesn't let us control on older servlet APIs.
+        StringBuilder sb = new StringBuilder();
+        sb.append(COOKIE_NAME).append("=").append(payload)
+          .append("; Path=/")
+          .append("; Max-Age=").append(COOKIE_EXPIRATION_SECONDS)
+          .append("; HttpOnly");
+
+        // Mark Secure when request is secure to satisfy SameSite=None requirements
+        boolean secure = request.isSecure();
+        if (secure) sb.append("; Secure");
+
+        // Explicitly set SameSite=None to allow cross-site OAuth callbacks
+        sb.append("; SameSite=None");
+
+        response.addHeader("Set-Cookie", sb.toString());
     }
 
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) {
         OAuth2AuthorizationRequest req = loadAuthorizationRequest(request);
-        removeCookie(response);
+        removeCookie(response, request.isSecure());
         return req;
     }
 
     private void removeCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(COOKIE_NAME, "");
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        // default remove without secure flag
+        removeCookie(response, false);
+    }
+
+    private void removeCookie(HttpServletResponse response, boolean secure) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(COOKIE_NAME).append("=")
+          .append("; Path=/")
+          .append("; Max-Age=0")
+          .append("; HttpOnly");
+        if (secure) sb.append("; Secure");
+        sb.append("; SameSite=None");
+        response.addHeader("Set-Cookie", sb.toString());
     }
 }

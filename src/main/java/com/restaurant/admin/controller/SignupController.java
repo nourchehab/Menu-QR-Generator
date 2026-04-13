@@ -241,12 +241,14 @@ public class SignupController {
                 ));
             }
 
-            Restaurant restaurant = restaurantService.setupRestaurant(
+                String correlationId = java.util.UUID.randomUUID().toString();
+                Restaurant restaurant = restaurantService.setupRestaurant(
                     user.getId(),
                     restaurantName,
                     restaurantType,
-                    logoFile
-            );
+                    logoFile,
+                    correlationId
+                );
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -255,8 +257,12 @@ public class SignupController {
                     "redirectUrl", "/restaurants"
             ));
         } catch (Exception e) {
+            // Return safe error and correlation id so logs can be correlated
+            String errorId = (e.getMessage() != null && e.getMessage().startsWith("ErrorId "))
+                ? e.getMessage().split(" ")[1]
+                : java.util.UUID.randomUUID().toString();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Failed to create restaurant", "errorId", errorId));
         }
     }
 }
