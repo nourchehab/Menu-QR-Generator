@@ -69,11 +69,13 @@ main,
     justify-content: space-between;
     align-items: center;
     gap: 18px;
-    padding: 20px 0;
+    height: 110px;
+    padding: 0;
 }
 
 .logo {
-    display: inline-flex;
+    height: 100%;
+    display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
@@ -464,17 +466,18 @@ main,
     }
 }
 .logo {
-    display: inline-flex;
+    height: 100%;
+    display: flex;
     align-items: center;
     text-decoration: none;
-    min-width: 260px;
+    min-width: 0;
 }
 
 .brand-wordmark {
     display: block;
-    height: 120px;
+    height: 100%;
     width: auto;
-    max-width: none;
+    max-height: 100%;
     object-fit: contain;
     filter: drop-shadow(0 10px 20px rgba(255, 122, 26, 0.12));
 }
