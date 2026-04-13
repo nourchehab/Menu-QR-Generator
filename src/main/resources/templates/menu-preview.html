@@ -75,6 +75,7 @@ function googleTranslateElementInit() {
 
 <script>
     const LBP_RATE = 89500;
+    let menuPreviewLoading = false;
     let allMenuItems = [], selectedCategories = new Set();
     const typeEmojis = { cafe:'☕', buffet:'🍱', fastfood:'🍔', finedining:'🍷', default:'🍽' };
     const typeLabels = { cafe:'Café', buffet:'Buffet', fastfood:'Fast Food', finedining:'Fine Dining', default:'Restaurant' };
@@ -200,6 +201,8 @@ function googleTranslateElementInit() {
     }
 
     async function loadMenuPreview() {
+        if (menuPreviewLoading) return;
+        menuPreviewLoading = true;
         try {
             let restaurantUrl, itemsUrl, dashboardUrl, themeUrl;
 
@@ -282,6 +285,8 @@ function googleTranslateElementInit() {
             content.style.display = 'block';
             document.getElementById('categoryFilters').style.display = 'none';
             content.innerHTML = `<div class="error-state"><h3>Couldn't load menu</h3><p>${escHtml(err.message)}</p><button class="btn-retry" onclick="location.reload()">Try Again</button></div>`;
+        } finally {
+            menuPreviewLoading = false;
         }
     }
 
