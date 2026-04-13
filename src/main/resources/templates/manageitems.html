@@ -962,6 +962,7 @@
 
         results.forEach(result => {
             const div = document.createElement('div');
+            div.id = `categorise-result-${result.itemId}`;
             div.style.cssText = 'padding:1.25rem; border:2px solid rgba(255,140,66,0.2); border-radius:10px; margin-bottom:1rem; background:white;';
 
             const statusColor = result.success ? '#4CAF50' : '#ff6b35';
@@ -1019,8 +1020,24 @@
             const response = await fetch(`${API}/${itemId}`, { method: 'POST', body: formData });
             const data = await response.json();
             if (response.ok && (data.success === undefined || data.success)) {
-                Swal.fire({ title:'Saved!', text:'Category updated.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
-                fetchItems();
+                // Remove the result div from the category suggestion list
+                const resultDiv = document.getElementById(`categorise-result-${itemId}`);
+                if (resultDiv) {
+                    resultDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    resultDiv.style.opacity = '0';
+                    resultDiv.style.transform = 'translateX(10px)';
+                    setTimeout(() => {
+                        resultDiv.remove();
+                        // Check if there are any results left
+                        const container = document.getElementById('resultsContainer');
+                        if (!container.children.length) {
+                            document.getElementById('categoriseResults').style.display = 'none';
+                            document.getElementById('categoriseContent').style.display = 'block';
+                            renderCategoriseItemsList();
+                        }
+                    }, 300);
+                }
+                Swal.fire({ title:'Saved!', text:'Category updated and removed from list.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
             } else { Swal.fire({ title:'Error!', text: data.error || 'Failed to save', icon:'error', target: document.body }); }
         } catch (err) { Swal.fire({ title:'Error!', text:'Network error', icon:'error', target: document.body }); }
     }
