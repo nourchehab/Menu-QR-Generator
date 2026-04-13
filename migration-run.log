@@ -1,0 +1,105 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.MohdKat:backend-servicex >--------------------
+[INFO] Building backend-servicex 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.0.2:run (default-cli) > test-compile @ backend-servicex >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend-servicex ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 41 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ backend-servicex ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ backend-servicex ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ backend-servicex ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:4.0.2:run (default-cli) < test-compile @ backend-servicex <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.2:run (default-cli) @ backend-servicex ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-04-13T18:42:34.247+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.admin.BackendServicexApplication     : Starting BackendServicexApplication using Java 21.0.10 with PID 65004 (/home/mohdkat/projects/backend-servicex/target/classes started by mohdkat in /home/mohdkat/projects/backend-servicex)
+2026-04-13T18:42:34.250+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.admin.BackendServicexApplication     : The following 1 profile is active: "local"
+2026-04-13T18:42:34.943+03:00  INFO 65004 --- [backend-servicex] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-13T18:42:35.005+03:00  INFO 65004 --- [backend-servicex] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 54 ms. Found 7 JPA repository interfaces.
+2026-04-13T18:42:35.653+03:00  INFO 65004 --- [backend-servicex] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-04-13T18:42:35.663+03:00  INFO 65004 --- [backend-servicex] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-13T18:42:35.664+03:00  INFO 65004 --- [backend-servicex] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.15]
+2026-04-13T18:42:35.706+03:00  INFO 65004 --- [backend-servicex] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1407 ms
+2026-04-13T18:42:35.856+03:00  INFO 65004 --- [backend-servicex] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-13T18:42:35.901+03:00  INFO 65004 --- [backend-servicex] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.1.Final
+2026-04-13T18:42:36.223+03:00  INFO 65004 --- [backend-servicex] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-13T18:42:36.237+03:00  WARN 65004 --- [backend-servicex] [           main] org.hibernate.orm.deprecation            : HHH90000021: Encountered deprecated setting [hibernate.temp.use_jdbc_metadata_defaults], use [hibernate.boot.allow_jdbc_metadata_access] instead
+2026-04-13T18:42:36.251+03:00  WARN 65004 --- [backend-servicex] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-13T18:42:36.265+03:00  INFO 65004 --- [backend-servicex] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [undefined/unknown]
+	Database driver: undefined/unknown
+	Database dialect: PostgreSQLDialect
+	Database version: 13.0
+	Default catalog/schema: unknown/unknown
+	Autocommit mode: undefined/unknown
+	Isolation level: <unknown>
+	JDBC fetch size: undefined/unknown
+	Pool: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-13T18:42:37.166+03:00  INFO 65004 --- [backend-servicex] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-13T18:42:39.797+03:00  INFO 65004 --- [backend-servicex] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-13T18:42:39.923+03:00  INFO 65004 --- [backend-servicex] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-13T18:42:40.490+03:00  INFO 65004 --- [backend-servicex] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-04-13T18:42:40.694+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.admin.BackendServicexApplication     : Started BackendServicexApplication in 6.791 seconds (process running for 7.119)
+2026-04-13T18:42:41.024+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Starting menu item image migration to S3 (photoPath + thumbPath) in batches...
+2026-04-13T18:42:41.324+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: cc8d3358-9354-4243-ba98-085a3dec1959.jpg — skipping migration for this item
+2026-04-13T18:42:41.693+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=16 photoPath=cc8d3358-9354-4243-ba98-085a3dec1959.jpg thumbPath= null
+2026-04-13T18:42:42.495+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: bcbb4909-e384-4db0-8afb-bdc9df55c851.jpg — skipping migration for this item
+2026-04-13T18:42:42.854+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=13 photoPath=bcbb4909-e384-4db0-8afb-bdc9df55c851.jpg thumbPath= null
+2026-04-13T18:42:42.930+03:00  INFO 65004 --- [backend-servicex] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-13T18:42:42.930+03:00  INFO 65004 --- [backend-servicex] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-13T18:42:43.028+03:00  INFO 65004 --- [backend-servicex] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 98 ms
+2026-04-13T18:42:43.080+03:00  INFO 65004 --- [backend-servicex] [0.0-8081-exec-1] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name customAuthenticationProvider
+2026-04-13T18:42:43.654+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: 43ec8e56-b562-48c0-a95e-3a309873d0ac.jpg — skipping migration for this item
+2026-04-13T18:42:44.000+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=17 photoPath=43ec8e56-b562-48c0-a95e-3a309873d0ac.jpg thumbPath= null
+2026-04-13T18:42:44.797+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: 19962d33-5797-4024-87e5-f306dcba2bd4.jpg — skipping migration for this item
+2026-04-13T18:42:45.141+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=12 photoPath=19962d33-5797-4024-87e5-f306dcba2bd4.jpg thumbPath= null
+2026-04-13T18:42:45.940+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: a08fb8ac-4de8-4a35-8e34-3385699fb5aa.jpg — skipping migration for this item
+2026-04-13T18:42:46.285+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=19 photoPath=a08fb8ac-4de8-4a35-8e34-3385699fb5aa.jpg thumbPath= null
+2026-04-13T18:42:47.069+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: display/other/59b27891-0647-42d5-bcdc-ae6675dff001.jpg — skipping migration for this item
+2026-04-13T18:42:47.871+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: thumb/other/6944824a-8093-4175-81b2-4a7c3ed7d0ac.jpg — skipping migration for this item
+2026-04-13T18:42:48.218+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=22 photoPath=display/other/59b27891-0647-42d5-bcdc-ae6675dff001.jpg thumbPath= thumb/other/6944824a-8093-4175-81b2-4a7c3ed7d0ac.jpg
+2026-04-13T18:42:49.030+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: display/other/51a6525d-e8a0-4547-8fb7-08aa9a534808.jpg — skipping migration for this item
+2026-04-13T18:42:49.827+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: thumb/other/5eea70f1-63a7-4470-97d7-bb9d981b850e.jpg — skipping migration for this item
+2026-04-13T18:42:50.179+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=24 photoPath=display/other/51a6525d-e8a0-4547-8fb7-08aa9a534808.jpg thumbPath= thumb/other/5eea70f1-63a7-4470-97d7-bb9d981b850e.jpg
+2026-04-13T18:42:50.987+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: display/other/98d48c58-1c2a-43df-b531-3f65e4a955c3.jpg — skipping migration for this item
+2026-04-13T18:42:51.830+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: thumb/other/8464d559-f459-4059-8c4a-65ee577f285f.jpg — skipping migration for this item
+2026-04-13T18:42:52.182+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=29 photoPath=display/other/98d48c58-1c2a-43df-b531-3f65e4a955c3.jpg thumbPath= thumb/other/8464d559-f459-4059-8c4a-65ee577f285f.jpg
+2026-04-13T18:42:52.981+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: display/other/78a6cb9d-7feb-4e26-89f6-56435ce011f1.jpg — skipping migration for this item
+2026-04-13T18:42:53.793+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing photo path: thumb/other/377ecd1b-448b-41f0-ab0f-033eb811dd3d.jpg — skipping migration for this item
+2026-04-13T18:42:54.147+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Migrated menu item id=27 photoPath=display/other/78a6cb9d-7feb-4e26-89f6-56435ce011f1.jpg thumbPath= thumb/other/377ecd1b-448b-41f0-ab0f-033eb811dd3d.jpg
+2026-04-13T18:42:54.386+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.MenuItemPhotoMigrationRunner     : Menu image migration finished. migratedFields=13, skippedItems=49, failedItems=0
+2026-04-13T18:42:54.386+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Starting restaurant logo migration to S3 (batched)...
+2026-04-13T18:42:56.952+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing logo path: 007f7911-7b8e-4feb-bfb5-c57c3dea310c.png — skipping migration for this restaurant
+2026-04-13T18:42:55.283+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Migrated restaurant id=1 -> 007f7911-7b8e-4feb-bfb5-c57c3dea310c.png
+2026-04-13T18:42:56.153+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing logo path: cd7d47c6-7e49-4702-81b8-fd575e42e209.png — skipping migration for this restaurant
+2026-04-13T18:42:56.908+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Migrated restaurant id=2 -> cd7d47c6-7e49-4702-81b8-fd575e42e209.png
+2026-04-13T18:42:57.728+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing logo path: 671dc60f-d891-49fe-956c-872d2813b3a4.png — skipping migration for this restaurant
+2026-04-13T18:42:58.212+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Migrated restaurant id=3 -> 671dc60f-d891-49fe-956c-872d2813b3a4.png
+2026-04-13T18:42:59.293+03:00  WARN 65004 --- [backend-servicex] [           main] c.r.admin.service.S3PhotoStorageService  : Could not resolve existing logo path: 1c875abb-ac22-4d3f-8097-311a239e1f8f.png — skipping migration for this restaurant
+2026-04-13T18:42:59.921+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Migrated restaurant id=5 -> 1c875abb-ac22-4d3f-8097-311a239e1f8f.png
+2026-04-13T18:43:00.189+03:00  INFO 65004 --- [backend-servicex] [           main] c.r.a.m.RestaurantLogoMigrationRunner    : Logo migration finished. migrated=4, skipped=47, failed=0

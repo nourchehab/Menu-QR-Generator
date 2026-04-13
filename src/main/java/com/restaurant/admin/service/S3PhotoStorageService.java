@@ -10,7 +10,9 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.net.URI;
@@ -77,7 +79,12 @@ public class S3PhotoStorageService {
 
         Path source = resolveExistingFile(storedPath, localPhotoDir);
         if (source == null) {
-            throw new IOException("Could not resolve existing photo path: " + storedPath);
+            // Try to find the object already on S3 (legacy keys / different folder placements)
+            String s3Url = tryFindOnS3(storedPath);
+            if (s3Url != null) return s3Url;
+            // If not found locally or on S3, log and return original path so migration can continue safely.
+            log.warn("Could not resolve existing photo path: {} — skipping migration for this item", storedPath);
+            return storedPath;
         }
 
         String extension = getExtension(source.getFileName().toString(), Files.probeContentType(source));
@@ -105,7 +112,11 @@ public class S3PhotoStorageService {
 
         Path source = resolveExistingFile(storedPath, localLogoDir);
         if (source == null) {
-            throw new IOException("Could not resolve existing logo path: " + storedPath);
+            // Try to find the logo already on S3 under common keys
+            String s3Url = tryFindOnS3(storedPath);
+            if (s3Url != null) return s3Url;
+            log.warn("Could not resolve existing logo path: {} — skipping migration for this restaurant", storedPath);
+            return storedPath;
         }
 
         String extension = getExtension(source.getFileName().toString(), Files.probeContentType(source));
@@ -123,6 +134,41 @@ public class S3PhotoStorageService {
         return s3Client.utilities()
                 .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
                 .toExternalForm();
+    }
+
+    private String tryFindOnS3(String storedPath) {
+        if (!StringUtils.hasText(bucketName)) return null;
+        String cleaned = storedPath.replace("\\", "/").trim();
+        String filename = Paths.get(cleaned).getFileName().toString();
+
+        List<String> candidates = new ArrayList<>();
+        candidates.add(cleaned);
+        candidates.add(filename);
+        candidates.add(logosFolder + "/" + filename);
+        candidates.add(photosFolder + "/" + filename);
+        // also try common upload subfolders
+        candidates.add("display/" + filename);
+        candidates.add("thumb/" + filename);
+
+        for (String key : candidates) {
+            try {
+                HeadObjectRequest head = HeadObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .build();
+                s3Client.headObject(head);
+                // object exists — return its public URL
+                return s3Client.utilities()
+                        .getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build())
+                        .toExternalForm();
+            } catch (S3Exception e) {
+                // not found or access denied — try next candidate
+                continue;
+            } catch (Exception e) {
+                log.debug("S3 lookup failed for key {}: {}", key, e.getMessage());
+            }
+        }
+        return null;
     }
 
     public void deleteIfS3Url(String photoPath) {

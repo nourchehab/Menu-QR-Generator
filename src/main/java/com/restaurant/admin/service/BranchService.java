@@ -72,7 +72,7 @@ public class BranchService {
     }
 
     public Branch getBranchForUser(SimpleUser user, Long branchId) {
-        Branch branch = branchRepository.findById(branchId)
+        Branch branch = branchRepository.findByIdWithRestaurant(branchId)
                 .orElseThrow(() -> new SecurityException("Branch not found"));
         if (!branch.getRestaurant().getUser().getId().equals(user.getId()))
             throw new SecurityException("Branch not owned by user");
