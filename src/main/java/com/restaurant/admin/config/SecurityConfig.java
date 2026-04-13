@@ -12,6 +12,7 @@ import com.restaurant.admin.security.oauth.CustomOAuth2UserService;
 import com.restaurant.admin.security.oauth.CustomOidcUserService;
 import com.restaurant.admin.security.oauth.OAuth2LoginFailureHandler;
 import com.restaurant.admin.security.oauth.OAuth2LoginSuccessHandler;
+import com.restaurant.admin.security.oauth.CookieOAuth2AuthorizationRequestRepository;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -113,6 +114,7 @@ public class SecurityConfig {
 
         if (oauth2Enabled) {
             http.oauth2Login(oauth -> oauth
+                    .authorizationEndpoint(authz -> authz.authorizationRequestRepository(new CookieOAuth2AuthorizationRequestRepository()))
                     .loginPage("/login")
                     .userInfoEndpoint(userInfo -> userInfo
                             .userService(customOAuth2UserService)
