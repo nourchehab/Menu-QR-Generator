@@ -101,9 +101,9 @@
             <div class="form-group">
                 <label for="itemDescription">Description</label>
                 <!-- ✅ CHANGED: maxlength 500 → 230, minlength kept at 10 -->
-                <textarea id="itemDescription" name="itemDescription" class="form-textarea" placeholder="Describe your dish..." required minlength="10" maxlength="230"></textarea>
+                <textarea id="itemDescription" name="itemDescription" class="form-textarea" placeholder="Describe your dish..." required minlength="10" maxlength="100"></textarea>
                 <!-- ✅ ADDED: character counter -->
-                <div class="char-counter" id="descCounter">0 / 230</div>
+                <div class="char-counter" id="descCounter">0 / 100</div>
             </div>
             <div class="form-group">
                 <label for="category">Category <span class="optional">(Optional)</span></label>
@@ -146,7 +146,7 @@
     // ── ✅ ADDED: character counter for description ────────────────────────────
     const descTextarea = document.getElementById('itemDescription');
     const descCounter  = document.getElementById('descCounter');
-    const DESC_MAX     = 230;
+    const DESC_MAX     = 100;
 
     descTextarea.addEventListener('input', () => {
         const len = descTextarea.value.length;
