@@ -67,16 +67,15 @@ public class S3PhotoStorageServiceTest {
     void testUploadNewPhotoFailsWhenS3ClientThrowsException() throws Exception {
         // Arrange
         MultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
-
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(S3Exception.builder().message("Access Denied").build());
 
-        // Act & Assert
-        S3Exception exception = assertThrows(S3Exception.class, () -> {
-            s3PhotoStorageService.uploadNewPhoto(file);
-        });
+        // Act
+        String result = s3PhotoStorageService.uploadNewPhoto(file);
 
-        assertEquals("Access Denied", exception.getMessage());
+        // Assert: service should fall back to local storage and return a local uploads path
+        assertNotNull(result);
+        assertTrue(result.startsWith("/uploads/photos/"));
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 }
