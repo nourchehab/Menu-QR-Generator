@@ -53,50 +53,72 @@
 
     async function init() {
         try {
+            // If opened from a branch dashboard, prefer branch-level QR and fallbacks
             if (branchId) {
-                const res = await fetch(`/api/restaurant/branch/${branchId}`, fetchOpts);
-                if (!res.ok) throw new Error('Branch not found');
-                const data = await res.json();
-                restaurantId = data.id;
-
-                document.getElementById('backBtn').href   = `/branch/${branchId}/dashboard`;
-                document.getElementById('errorBack').href = `/branch/${branchId}/dashboard`;
-                document.getElementById('previewBtn').href = `/menu/preview?branchId=${branchId}`;
-
-                if (data.restaurantName) {
-                    document.getElementById('subtitle').textContent =
-                        `Customers scan this to view ${data.restaurantName}'s menu.`;
+                try {
+                    const res = await fetch(`/api/restaurant/branch/${branchId}`, fetchOpts);
+                    if (res.ok) {
+                        const data = await res.json();
+                        restaurantId = data.id;
+                        if (data.restaurantName) {
+                            const sub = document.getElementById('subtitle');
+                            if (sub) sub.textContent = `Customers scan this to view ${data.restaurantName}'s menu.`;
+                        }
+                    }
+                } catch (ignored) {
+                    // ignore branch info failures — we'll still show a branch-level QR
                 }
+
+                const back = document.getElementById('backBtn');
+                if (back) back.href = `/branch/${branchId}/dashboard`;
+                const prev = document.getElementById('previewBtn');
+                if (prev) prev.href = `/menu/preview?branchId=${branchId}`;
+
+                // Prefer the branch-level QR endpoint (public) and branch URL as the menu link
+                qrApiUrl = `/api/qr/branch/${branchId}`;
+                menuUrl  = `${location.origin}/b/${branchId}`;
+
             } else {
+                // No branchId — attempt to resolve the current user's restaurant (requires auth)
                 const res = await fetch('/api/restaurant/me', fetchOpts);
                 if (!res.ok) throw new Error('Restaurant not found');
                 const data = await res.json();
                 restaurantId = data.id;
 
-                document.getElementById('previewBtn').href = '/menu/preview';
-                document.getElementById('backBtn').href    = '/restaurants';
+                const prev = document.getElementById('previewBtn');
+                if (prev) prev.href = '/menu/preview';
+                const back = document.getElementById('backBtn');
+                if (back) back.href = '/restaurants';
+
+                qrApiUrl = `/api/qr/restaurant/${restaurantId}`;
+                menuUrl  = `${location.origin}/r/${restaurantId}`;
             }
 
-            if (!restaurantId) throw new Error('Could not determine restaurant');
-
-            qrApiUrl = `/api/qr/restaurant/${restaurantId}`;
-            menuUrl  = `${location.origin}/r/${restaurantId}`;
+            if (!qrApiUrl) throw new Error('Could not determine QR endpoint');
 
             const qrImg = document.getElementById('qrImage');
-            qrImg.onload = () => {
-                document.getElementById('qrLoading').style.display = 'none';
-                qrImg.style.display = 'block';
-            };
-            qrImg.src = qrApiUrl;
+            if (qrImg) {
+                qrImg.onload = () => {
+                    const loading = document.getElementById('qrLoading');
+                    if (loading) loading.style.display = 'none';
+                    qrImg.style.display = 'block';
+                };
+                qrImg.src = qrApiUrl;
+            }
 
             const linkEl = document.getElementById('menuLink');
-            linkEl.href        = menuUrl;
-            linkEl.textContent = menuUrl;
+            if (linkEl) {
+                linkEl.href = menuUrl;
+                linkEl.textContent = menuUrl;
+            }
 
         } catch (e) {
-            document.getElementById('qrLoading').textContent = 'Could not load QR code.';
-            document.getElementById('menuLink').textContent  = 'Could not load link';
-            document.getElementById('errorMsg').style.display = 'block';
+            const loading = document.getElementById('qrLoading');
+            if (loading) loading.textContent = 'Could not load QR code.';
+            const linkEl = document.getElementById('menuLink');
+            if (linkEl) linkEl.textContent = 'Could not load link';
+            const err = document.getElementById('errorMsg');
+            if (err) err.style.display = 'block';
         }
     }
 
