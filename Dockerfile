@@ -33,7 +33,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Prefer IPv4 in containerized environments where IPv6 routing can be flaky
-ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true -XX:MaxMetaspaceSize=256m -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -Dhibernate.query.plan_cache_max_size=128"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
