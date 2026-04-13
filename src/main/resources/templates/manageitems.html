@@ -451,8 +451,11 @@
 
                     <div class="form-group" style="margin-bottom:1rem;">
                         <label style="display:block; font-weight:600; margin-bottom:.4rem;">Description</label>
-                        <textarea id="editItemDescription" class="form-textarea" required maxlength="500"
+                        <!-- ✅ CHANGED: maxlength 500 → 100 -->
+                        <textarea id="editItemDescription" class="form-textarea" required maxlength="100"
                             style="min-height:110px;"></textarea>
+                        <!-- ✅ ADDED: character counter -->
+                        <div id="editDescCounter" style="text-align:right; font-size:0.78rem; margin-top:0.35rem; color:#8f7d73; transition:color .2s ease;">0 / 100</div>
                     </div>
 
                     <div class="form-group" style="margin-bottom:1rem;">
@@ -701,6 +704,11 @@
         document.getElementById('editItemCategory').value    = category || '';
         document.getElementById('editItemPhoto').value       = '';
 
+        // ✅ ADDED: set counter when modal opens
+        const editCounter = document.getElementById('editDescCounter');
+        editCounter.textContent = `${description.length} / 100`;
+        editCounter.style.color = description.length >= 100 ? '#ff8c7e' : description.length >= 85 ? '#ff9a4d' : '#8f7d73';
+
         const currentImg   = document.getElementById('currentItemImage');
         const deleteImgBtn = document.getElementById('deleteImageBtn');
         if (photoUrl) { currentImg.src = photoUrl; deleteImgBtn.style.display = 'inline-flex'; }
@@ -712,8 +720,24 @@
         setTimeout(() => document.getElementById('editItemName').focus(), 100);
     };
 
-    window.closeEditModal = function() { editModal.style.display = 'none'; editForm.reset(); };
+    window.closeEditModal = function() {
+        editModal.style.display = 'none';
+        editForm.reset();
+        // ✅ ADDED: reset counter when modal closes
+        const editCounter = document.getElementById('editDescCounter');
+        editCounter.textContent = '0 / 100';
+        editCounter.style.color = '#8f7d73';
+    };
+
     editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
+
+    // ✅ ADDED: live counter while typing in edit modal
+    document.getElementById('editItemDescription').addEventListener('input', function() {
+        const len = this.value.length;
+        const counter = document.getElementById('editDescCounter');
+        counter.textContent = `${len} / 100`;
+        counter.style.color = len >= 100 ? '#ff8c7e' : len >= 85 ? '#ff9a4d' : '#8f7d73';
+    });
 
     document.getElementById('editItemPhoto').addEventListener('change', function() {
         const file = this.files && this.files[0];
@@ -1159,6 +1183,3 @@
 
 </body>
 </html>
-
-
-
