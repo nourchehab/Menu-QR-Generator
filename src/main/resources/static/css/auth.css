@@ -73,6 +73,7 @@
 .auth-form input,
 .auth-form select,
 .auth-form textarea {
+    box-sizing:  border-box;
     width: 100%;
     background: var(--surface-2);
     color: var(--text-dark);
@@ -211,9 +212,18 @@
 }
 
 @media (max-width: 560px) {
+    .auth-container {
+        align-items: flex-start;
+        padding: 0;
+        min-height: 100dvh;
+    }
+
     .auth-card {
-        padding: 34px 18px;
-        border-radius: 24px;
+        max-width: 100%;
+        min-height: 100dvh;
+        border-radius: 0;
+        padding: 48px 24px 40px;
+        box-shadow: none;
     }
 
     .code-inputs {
@@ -225,4 +235,3 @@
         font-size: 1.15rem;
     }
 }
-
