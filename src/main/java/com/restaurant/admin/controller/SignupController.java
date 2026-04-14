@@ -196,6 +196,7 @@ public class SignupController {
 
     @GetMapping("/details")
     public String restaurantDetails(@RequestParam(required = false) String option,
+                                    @RequestParam(required = false) String source,
                                     Principal principal,
                                     Model model) {
         if (principal == null) {
@@ -207,8 +208,12 @@ public class SignupController {
             return "redirect:/login";
         }
 
-        if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
-            return "redirect:/restaurants";
+        // Only redirect away if this is NOT an explicit "add new restaurant" request.
+        // Existing users adding a new restaurant should pass ?source=new to bypass this.
+        if (!"new".equals(source)) {
+            if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
+                return "redirect:/restaurants";
+            }
         }
 
         model.addAttribute("formAction", "/signup/restaurant/setup");
@@ -233,22 +238,16 @@ public class SignupController {
         }
 
         try {
-            if (user.isRestaurantSetupComplete() && restaurantService.userHasRestaurant(user)) {
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "Restaurant already exists",
-                        "redirectUrl", "/restaurants"
-                ));
-            }
+            // Removed "already exists" guard — multiple restaurants per user are supported.
 
-                String correlationId = java.util.UUID.randomUUID().toString();
-                Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(),
-                    restaurantName,
-                    restaurantType,
-                    logoFile,
-                    correlationId
-                );
+            String correlationId = java.util.UUID.randomUUID().toString();
+            Restaurant restaurant = restaurantService.setupRestaurant(
+                user.getId(),
+                restaurantName,
+                restaurantType,
+                logoFile,
+                correlationId
+            );
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -257,7 +256,6 @@ public class SignupController {
                     "redirectUrl", "/restaurants"
             ));
         } catch (Exception e) {
-            // Return safe error and correlation id so logs can be correlated
             String errorId = (e.getMessage() != null && e.getMessage().startsWith("ErrorId "))
                 ? e.getMessage().split(" ")[1]
                 : java.util.UUID.randomUUID().toString();

@@ -102,20 +102,11 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
-            if (restaurantService.userHasRestaurant(user)) {
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "Restaurant already exists",
-                        "redirectUrl", "/restaurants"
-                ));
-            }
+            // Removed "already exists" guard — multiple restaurants per user are supported.
 
-                MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
-                // Use the 4-arg service overload so unit tests that mock that
-                // signature continue to work. CorrelationId is logged inside
-                // the service on error.
-                Restaurant restaurant = restaurantService.setupRestaurant(
-                    user.getId(), restaurantName, restaurantType, effectiveLogo);
+            MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
+            Restaurant restaurant = restaurantService.setupRestaurant(
+                user.getId(), restaurantName, restaurantType, effectiveLogo);
 
             return ResponseEntity.ok(Map.of(
                     "success",      true,
@@ -124,21 +115,18 @@ public class RestaurantController {
                     "redirectUrl",  "/restaurants"
             ));
         } catch (Exception e) {
-            // If the service already included an ErrorId prefix in its message, extract it.
             String errorId = (e.getMessage() != null && e.getMessage().startsWith("ErrorId "))
                     ? e.getMessage().split(" ")[1]
                     : UUID.randomUUID().toString();
             String msg = e.getMessage() != null ? e.getMessage() : "Failed to create restaurant";
             logger.error("ErrorId {} - Failed to create restaurant: {}", errorId, msg, e);
-            // Return the original service message when available (tests expect this),
-            // plus the generated errorId for correlation.
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "error", msg,
                     "errorId", errorId
             ));
         }
     }
-    
+
     @GetMapping("/api/restaurant/me")
     @ResponseBody
     public ResponseEntity<?> getMyRestaurant(Principal principal) {
@@ -166,10 +154,6 @@ public class RestaurantController {
             Branch branch = branchRepository.findById(branchId)
                     .orElseThrow(() -> new RuntimeException("Branch not found"));
 
-            // Avoid lazy-init proxy outside of a transactional context by loading the
-            // Restaurant explicitly from the repository/service. Accessing
-            // branch.getRestaurant() may return a proxy that needs an active
-            // Hibernate session, which can cause "no session" errors.
             Long restId = branch.getRestaurant() != null ? branch.getRestaurant().getId() : null;
             if (restId == null) throw new RuntimeException("Restaurant not found for branch");
             Restaurant restaurant = restaurantService.getRestaurantById(restId)
