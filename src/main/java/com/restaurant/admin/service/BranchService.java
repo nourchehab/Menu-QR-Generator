@@ -72,8 +72,9 @@ public class BranchService {
     }
 
     public Branch getBranchForUser(SimpleUser user, Long branchId) {
-        // ✅ FIXED: was findByIdWithRestaurant which doesn't exist in BranchRepository
-        Branch branch = branchRepository.findById(branchId)
+        // ✅ FIXED: use join fetch to eagerly load Restaurant+User in one query,
+        // avoiding "no session" lazy proxy errors outside the transaction.
+        Branch branch = branchRepository.findByIdWithRestaurantAndUser(branchId)
                 .orElseThrow(() -> new SecurityException("Branch not found"));
         if (!branch.getRestaurant().getUser().getId().equals(user.getId()))
             throw new SecurityException("Branch not owned by user");
