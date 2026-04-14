@@ -175,7 +175,7 @@ class RestaurantControllerTest {
     @DisplayName("♻️ TC-06 | User already has a restaurant → still creates new one → 200 OK")
     void testSetupWhenRestaurantAlreadyExists() throws Exception {
         mockUser.setRestaurantSetupComplete(true);
-        when(restaurantService.setupRestaurant(1L, "Test Restaurant", "Fast Food", (MultipartFile) isNull()))
+        when(restaurantService.setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull()))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
@@ -189,7 +189,7 @@ class RestaurantControllerTest {
         assertEquals("/restaurants", body.get("redirectUrl"));
 
         // Ensure a new restaurant was created
-        verify(restaurantService).setupRestaurant(1L, "Test Restaurant", "Fast Food", (MultipartFile) isNull());
+        verify(restaurantService).setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull());
     }
 
     // =========================================================================
