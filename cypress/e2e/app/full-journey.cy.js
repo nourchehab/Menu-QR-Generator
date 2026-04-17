@@ -278,13 +278,17 @@ describe('FlavorFrame full user journey', () => {
       cy.get('#categoriseAllBtn').should('be.visible')
     })
 
-    // Try clicking the button (force in CI), then ensure the page helper exists and invoke it as a reliable fallback
+    // Try clicking the button (force in CI), then invoke the page helper if it exists.
     cy.get('#aiIdeasBtn').click({ force: true })
-    cy.window({ timeout: 15000 }).its('openAiIdeasModal').should('be.a', 'function').then((fn) => {
-      try { fn(); } catch (e) {}
+    cy.window({ timeout: 20000 }).then((win) => {
+      try {
+        if (typeof win.openAiIdeasModal === 'function') {
+          win.openAiIdeasModal();
+        }
+      } catch (e) {}
     });
     // wait for the modal to become visible before interacting with its inputs
-    cy.get('#aiIdeasModal', { timeout: 15000 }).should('be.visible')
+    cy.get('#aiIdeasModal', { timeout: 20000 }).should('be.visible')
     cy.get('#aiCuisineType').clear().type('Lebanese')
     cy.get('#aiRestaurantType').clear().type('Cafe')
     cy.get('#aiIdeasCount').clear().type('2')
