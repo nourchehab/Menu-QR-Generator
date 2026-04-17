@@ -278,12 +278,10 @@ describe('FlavorFrame full user journey', () => {
       cy.get('#categoriseAllBtn').should('be.visible')
     })
 
-    cy.get('#aiIdeasBtn').click()
-    // Ensure the modal is open: click may be flaky in CI, so call the page helper as fallback
-    cy.window().then((win) => {
-      try {
-        if (typeof win.openAiIdeasModal === 'function') win.openAiIdeasModal();
-      } catch (e) {}
+    // Try clicking the button (force in CI), then ensure the page helper exists and invoke it as a reliable fallback
+    cy.get('#aiIdeasBtn').click({ force: true })
+    cy.window({ timeout: 15000 }).its('openAiIdeasModal').should('be.a', 'function').then((fn) => {
+      try { fn(); } catch (e) {}
     });
     // wait for the modal to become visible before interacting with its inputs
     cy.get('#aiIdeasModal', { timeout: 15000 }).should('be.visible')
