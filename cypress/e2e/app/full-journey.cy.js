@@ -279,6 +279,8 @@ describe('FlavorFrame full user journey', () => {
     })
 
     cy.get('#aiIdeasBtn').click()
+    // wait for the modal to become visible before interacting with its inputs
+    cy.get('#aiIdeasModal', { timeout: 10000 }).should('be.visible')
     cy.get('#aiCuisineType').clear().type('Lebanese')
     cy.get('#aiRestaurantType').clear().type('Cafe')
     cy.get('#aiIdeasCount').clear().type('2')
