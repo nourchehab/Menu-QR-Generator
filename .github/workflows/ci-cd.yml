@@ -103,3 +103,33 @@ jobs:
           path: target/*.jar
           if-no-files-found: error
 
+  e2e-tests:
+    name: E2E (Cypress) tests
+    runs-on: ubuntu-latest
+    needs: [package]
+    env:
+      # Inject E2E credentials from repository Secrets into Cypress runtime
+      CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build jar (skip tests)
+        run: ./mvnw -B -ntp -DskipTests package
+
+      - name: Run Cypress E2E
+        uses: cypress-io/github-action@v6
+        with:
+          start: ./mvnw -q -DskipTests spring-boot:run
+          wait-on: 'http://localhost:8081/login,http://localhost:8001/health'
+          wait-on-timeout: 300000
+          run-args: --headless
+        env:
+          # ensure the app can access secrets as Cypress.env variables
+          CYPRESS_E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          CYPRESS_E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
