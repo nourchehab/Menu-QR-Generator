@@ -369,16 +369,23 @@ function updateClearFiltersText() {
 }
 
 function bindTranslateDropdown() {
-    const checkExist = setInterval(function () {
+    // track interval id so we can clean it up on navigation/unload
+    window.__menuPreview_checkExist = window.__menuPreview_checkExist || null;
+    window.__menuPreview_checkExist = setInterval(function () {
         const combo = document.querySelector(".goog-te-combo");
         if (combo) {
-            clearInterval(checkExist);
+            clearInterval(window.__menuPreview_checkExist);
+            window.__menuPreview_checkExist = null;
 
-            combo.addEventListener("change", function () {
-                setTimeout(function () {
-                    updateClearFiltersText();
-                }, 500);
-            });
+            // attach a namespaced handler so we can remove it if needed
+            function onComboChange() {
+                setTimeout(function () { updateClearFiltersText(); }, 500);
+            }
+            combo.addEventListener("change", onComboChange);
+
+            // store for cleanup
+            window.__menuPreview_combo = combo;
+            window.__menuPreview_onComboChange = onComboChange;
 
             updateClearFiltersText();
         }
@@ -388,6 +395,28 @@ function bindTranslateDropdown() {
 window.addEventListener("load", function () {
     bindTranslateDropdown();
 });
+
+// Cleanup specific to this page: remove translate dropdown handlers and any intervals
+(function(){
+    function cleanupMenuPreview() {
+        try {
+            if (window.__menuPreview_checkExist) { clearInterval(window.__menuPreview_checkExist); window.__menuPreview_checkExist = null; }
+            if (window.__menuPreview_combo && window.__menuPreview_onComboChange) {
+                try { window.__menuPreview_combo.removeEventListener('change', window.__menuPreview_onComboChange); } catch(e){}
+                window.__menuPreview_combo = null; window.__menuPreview_onComboChange = null;
+            }
+            // remove any inline listeners by cloning key containers
+            const menuContent = document.getElementById('menuContent');
+            if (menuContent && menuContent.parentNode) {
+                const clone = menuContent.cloneNode(true);
+                menuContent.parentNode.replaceChild(clone, menuContent);
+            }
+        } catch(e){}
+    }
+    window.addEventListener('pagehide', cleanupMenuPreview, {passive:true});
+    window.addEventListener('beforeunload', cleanupMenuPreview, {passive:true});
+    document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') cleanupMenuPreview(); }, {passive:true});
+})();
 </script>
 </body>
 </html>

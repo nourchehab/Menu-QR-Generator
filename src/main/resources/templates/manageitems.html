@@ -587,6 +587,49 @@
     </div>
 
 <script>
+
+<!-- Page lifecycle cleanup: remove listeners and stop timers to avoid retaining DOM/observers -->
+<script>
+    (function(){
+        function removeByCloning(selector) {
+            try {
+                const el = document.querySelector(selector);
+                if (!el || !el.parentNode) return;
+                const clone = el.cloneNode(true);
+                el.parentNode.replaceChild(clone, el);
+            } catch(e) {}
+        }
+
+        function runPageCleanup(){
+            try {
+                // remove many per-item listeners by cloning lists/containers
+                removeByCloning('#itemsList');
+                removeByCloning('#categoriseItemsList');
+                removeByCloning('#aiIdeasList');
+
+                // hide modals to break live references
+                const ids = ['editModal','aiIdeasModal','categoriseModal'];
+                ids.forEach(id => { try{ const m = document.getElementById(id); if (m) { m.style.display = 'none'; } }catch(e){} });
+
+                // heuristic: clear intervals and cancel RAFs
+                for (let i=1;i<1000;i++){ try{ clearInterval(i); clearTimeout(i); cancelAnimationFrame(i); }catch(e){} }
+
+                // attempt to disconnect any tracked PerformanceObservers (if instrumentation installed)
+                try { (window.__createdPerfObservers || []).forEach(o => { try{ o.disconnect(); }catch(e){} }); window.__createdPerfObservers = []; } catch(e){}
+
+                // stop any media streams if tracked
+                try { (window.__activeMediaStreams || []).forEach(s=>{ try{s.getTracks().forEach(t=>t.stop()); }catch(e){} }); window.__activeMediaStreams = []; } catch(e){}
+            } catch(e){}
+        }
+
+        window.addEventListener('pagehide', runPageCleanup, {passive:true});
+        window.addEventListener('beforeunload', runPageCleanup, {passive:true});
+        document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') runPageCleanup(); }, {passive:true});
+
+        // expose for manual trigger in console
+        window.__runManageItemsCleanup = runPageCleanup;
+    })();
+</script>
     const params     = new URLSearchParams(window.location.search);
     const branchId   = params.get('branchId');
     const branchName = params.get('branchName') || 'Branch';
