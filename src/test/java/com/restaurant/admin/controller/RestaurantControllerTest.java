@@ -172,22 +172,24 @@ class RestaurantControllerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("♻️ TC-06 | User already has a restaurant → 200 OK with 'already exists' message")
+    @DisplayName("♻️ TC-06 | User already has a restaurant → still creates new one → 200 OK")
     void testSetupWhenRestaurantAlreadyExists() throws Exception {
         mockUser.setRestaurantSetupComplete(true);
-        when(restaurantService.userHasRestaurant(mockUser)).thenReturn(true);
+        when(restaurantService.setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull()))
+                .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
                 "Test Restaurant", "Fast Food", null, null, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
-        assertEquals(true,                        body.get("success"));
-        assertEquals("Restaurant already exists", body.get("message"));
-        assertEquals("/restaurants",              body.get("redirectUrl"));
+        assertEquals(true,           body.get("success"));
+        assertEquals("Restaurant saved successfully", body.get("message"));
+        assertEquals(10L,            body.get("restaurantId"));
+        assertEquals("/restaurants", body.get("redirectUrl"));
 
-        // Ensure a second restaurant was NOT created
-        verify(restaurantService, never()).setupRestaurant(anyLong(), any(), any(), any());
+        // Ensure a new restaurant was created
+        verify(restaurantService).setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull());
     }
 
     // =========================================================================
