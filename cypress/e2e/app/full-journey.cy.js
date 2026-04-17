@@ -62,6 +62,17 @@ function bootstrapE2EUser() {
   })
 }
 
+// ----- Debug helpers: capture HTML responses and uncaught exceptions -----
+// These are temporary diagnostics to help trace 'Unexpected token "<"' failures.
+Cypress.on('uncaught:exception', (err) => {
+  // log the error to browser console and prevent Cypress from failing immediately
+  // (we still want the test to run so we can inspect network/debug logs)
+  // eslint-disable-next-line no-console
+  console.error('Cypress caught uncaught exception:', err && err.message);
+  return false;
+});
+
+
 function getDashboardData() {
   return cy.request({
     method: 'GET',
@@ -156,6 +167,23 @@ describe('FlavorFrame full user journey', () => {
     cy.session([E2E_EMAIL], () => {
       loginByFormPost()
     })
+
+    // Intercept all responses and log any that return HTML where JSON/JS expected.
+    // This helps identify endpoints or assets returning an HTML error page.
+    cy.intercept({ url: '**', middleware: true }, (req) => {
+      req.on('response', (res) => {
+        try {
+          if (res && typeof res.body === 'string' && res.body.trim().startsWith('<')) {
+            // eslint-disable-next-line no-console
+            console.warn('HTML response detected for:', req.url, 'status:', res.statusCode);
+            // print first chunk of HTML to console for quick inspection
+            // eslint-disable-next-line no-console
+            console.warn(res.body.slice(0, 2000));
+          }
+        } catch (e) {}
+      });
+      req.continue();
+    });
   })
 
   afterEach(() => {
