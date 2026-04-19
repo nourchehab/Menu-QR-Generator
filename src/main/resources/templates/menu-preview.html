@@ -369,23 +369,16 @@ function updateClearFiltersText() {
 }
 
 function bindTranslateDropdown() {
-    // track interval id so we can clean it up on navigation/unload
-    window.__menuPreview_checkExist = window.__menuPreview_checkExist || null;
-    window.__menuPreview_checkExist = setInterval(function () {
+    const checkExist = setInterval(function () {
         const combo = document.querySelector(".goog-te-combo");
         if (combo) {
-            clearInterval(window.__menuPreview_checkExist);
-            window.__menuPreview_checkExist = null;
+            clearInterval(checkExist);
 
-            // attach a namespaced handler so we can remove it if needed
-            function onComboChange() {
-                setTimeout(function () { updateClearFiltersText(); }, 500);
-            }
-            combo.addEventListener("change", onComboChange);
-
-            // store for cleanup
-            window.__menuPreview_combo = combo;
-            window.__menuPreview_onComboChange = onComboChange;
+            combo.addEventListener("change", function () {
+                setTimeout(function () {
+                    updateClearFiltersText();
+                }, 500);
+            });
 
             updateClearFiltersText();
         }
@@ -395,8 +388,6 @@ function bindTranslateDropdown() {
 window.addEventListener("load", function () {
     bindTranslateDropdown();
 });
-
-// (removed page-specific cleanup to avoid interfering with UI handlers in tests)
 </script>
 </body>
 </html>
