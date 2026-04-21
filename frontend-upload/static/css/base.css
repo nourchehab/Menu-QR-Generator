@@ -1,0 +1,108 @@
+/* ── FlavorFrame Design Tokens ─────────────────────────────── */
+:root {
+    --bg:           #f8f5f1;
+    --white:        #ffffff;
+    --text-dark:    #1c1612;
+    --text-muted:   #7a6b60;
+    --orange:       #f97316;
+    --orange-dark:  #e8640a;
+    --orange-soft:  rgba(249, 115, 22, 0.12);
+    --border:       rgba(0, 0, 0, 0.09);
+    --radius-lg:    24px;
+    --radius-md:    14px;
+    --radius-sm:    8px;
+    --shadow-soft:  0 4px 20px rgba(0, 0, 0, 0.07);
+    --shadow-md:    0 10px 36px rgba(0, 0, 0, 0.11);
+    --transition:   0.25s ease;
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+body {
+    font-family: 'Inter', 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ── Accessibility ──────────────────────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.btn {
+    padding: 13px 28px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: inline-block;
+    text-decoration: none;
+    font-family: inherit;
+    line-height: 1;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--orange);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--orange-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.30);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid var(--orange);
+    color: var(--orange);
+}
+
+.btn-secondary:hover {
+    background: var(--orange);
+    color: var(--white);
+    transform: translateY(-2px);
+}
+
+/* ── Inputs ─────────────────────────────────────────────────── */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px var(--orange-soft);
+}
+

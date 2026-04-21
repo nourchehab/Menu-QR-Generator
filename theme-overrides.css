@@ -1,0 +1,391 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg: #050505;
+    --bg-soft: #090909;
+    --sidebar: #040404;
+    --surface: #0d0d0d;
+    --surface-2: #121212;
+    --surface-3: #181818;
+    --surface-4: #1f1f1f;
+    --text-dark: #f7efe8;
+    --text-muted: #b8a79d;
+    --text-faint: #8f7d73;
+    --orange: #ff7a1a;
+    --orange-2: #ff9a4d;
+    --orange-soft: rgba(255, 122, 26, 0.14);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --shadow-soft: 0 16px 38px rgba(0, 0, 0, 0.28);
+    --shadow-md: 0 22px 50px rgba(0, 0, 0, 0.36);
+    --orange-glow: 0 0 0 1px rgba(255, 122, 26, 0.18), 0 0 24px rgba(255, 122, 26, 0.22), 0 10px 24px rgba(255, 122, 26, 0.18);
+    --orange-glow-strong: 0 0 0 1px rgba(255, 122, 26, 0.28), 0 0 34px rgba(255, 122, 26, 0.32), 0 14px 30px rgba(255, 122, 26, 0.24);
+    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Sora', sans-serif;
+}
+
+html, body {
+    background:
+        radial-gradient(circle at top right, rgba(255, 122, 26, 0.10), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(255, 122, 26, 0.06), transparent 18%),
+        var(--bg) !important;
+    color: var(--text-dark) !important;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-body) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.section-title,
+.settings-title,
+.page-title,
+.brand strong,
+.brand-text strong,
+.sidebar h3,
+.logo-text strong,
+.hero-copy h1,
+.hero-copy h2,
+.hero-brand h1,
+.auth-card h1,
+.auth-card h2,
+.modal-header h2,
+.panel-title,
+.title,
+.header h1,
+.header h2,
+.header h3 {
+    font-family: var(--font-heading) !important;
+    letter-spacing: -0.03em !important;
+    color: var(--text-dark) !important;
+}
+
+a,
+p,
+span,
+small,
+label,
+li,
+div {
+    border-color: inherit;
+}
+
+p,
+small,
+.subtitle,
+.section-subtitle,
+.page-subtitle,
+.header-sub,
+.branch-label,
+.brand span,
+.brand-text span,
+.sidebar-label,
+.auth-card p,
+.breadcrumb,
+.note-card p,
+.side-note p,
+.empty-state p,
+.resend-text,
+.menu-footer,
+.restaurant-type,
+.fallback-note,
+.qr-loading {
+    color: var(--text-muted) !important;
+}
+
+.header,
+.navbar,
+.sidebar,
+.brand,
+.container,
+.card,
+.content-card,
+.form-card,
+.panel,
+.section-panel,
+.settings-card,
+.side-note,
+.note-card,
+.sidebar-card,
+.modal-content,
+.create-panel,
+.branch-card,
+.restaurant-card,
+.item-card,
+.auth-card,
+.hero-card,
+.hero-device,
+.qr-wrap,
+.device-screen,
+.success-content,
+.error-content,
+.email-display {
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%),
+        var(--surface) !important;
+    color: var(--text-dark) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-soft) !important;
+}
+
+.sidebar,
+.header {
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), transparent 18%),
+        var(--sidebar) !important;
+}
+
+.nav-link,
+.nav-btn,
+.link-btn,
+.back-btn,
+.google-btn,
+.btn-outline,
+.btn-secondary,
+.btn-ghost,
+.icon-btn,
+.mini-btn,
+.btn-edit,
+.btn-delete,
+.cancel-btn,
+.btn-cancel,
+.view-toggles .icon-toggle,
+.action-icon,
+button:not(.btn):not(.btn-primary):not(.auth-submit):not(.swal2-confirm):not(.swal2-cancel) {
+    background: rgba(255,255,255,0.03) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border-strong) !important;
+    box-shadow: none !important;
+}
+
+.nav-link:hover,
+.nav-btn:hover,
+.link-btn:hover,
+.back-btn:hover,
+.google-btn:hover,
+.btn-outline:hover,
+.btn-secondary:hover,
+.btn-ghost:hover,
+.icon-btn:hover,
+.mini-btn:hover,
+.btn-edit:hover,
+.btn-delete:hover,
+.cancel-btn:hover,
+.btn-cancel:hover,
+.view-toggles .icon-toggle:hover,
+.action-icon:hover,
+button:not(.btn):not(.btn-primary):not(.auth-submit):not(.swal2-confirm):not(.swal2-cancel):hover {
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--text-dark) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+}
+
+.btn,
+.btn-primary,
+.auth-submit,
+.btn-submit,
+.primary,
+.primary-btn,
+.btn-go,
+.action-btn,
+button[type="submit"],
+.swal2-confirm {
+    background: linear-gradient(135deg, var(--orange-2), var(--orange)) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: var(--orange-glow) !important;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.auth-submit:hover,
+.btn-submit:hover,
+.primary:hover,
+.primary-btn:hover,
+.btn-go:hover,
+.action-btn:hover,
+button[type="submit"]:hover,
+.swal2-confirm:hover {
+    box-shadow: var(--orange-glow-strong) !important;
+    transform: translateY(-1px);
+}
+
+.active,
+.nav-link.active,
+.link-btn.active,
+.nav-btn.active,
+.status-active,
+.main-badge,
+.badge,
+.branch-badge,
+.status-pill,
+.preview-banner,
+.override-notice {
+    background: linear-gradient(90deg, rgba(255,122,26,0.18), rgba(255,122,26,0.08)) !important;
+    color: #fff !important;
+    border-color: rgba(255,122,26,0.14) !important;
+}
+
+.status-inactive,
+.inactive,
+.hidden-branch {
+    background: rgba(255,255,255,0.03) !important;
+    color: var(--text-faint) !important;
+    border-color: var(--border) !important;
+}
+
+input,
+select,
+textarea,
+.form-input,
+.form-textarea,
+.search-input,
+.rename-form input,
+.create-form input,
+.details-form select {
+    background: var(--surface-2) !important;
+    color: var(--text-dark) !important;
+    border: 1px solid var(--border-strong) !important;
+    box-shadow: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-faint) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-input:focus,
+.form-textarea:focus,
+.search-input:focus,
+.rename-form input:focus,
+.create-form input:focus,
+.details-form select:focus {
+    outline: none !important;
+    border-color: rgba(255,122,26,0.45) !important;
+    box-shadow: 0 0 0 4px rgba(255,122,26,0.10) !important;
+    background: var(--surface-3) !important;
+}
+
+th,
+thead,
+.table-head,
+.summary-card,
+.branch-mini,
+.menu-link,
+.stat-card,
+.device-card,
+.device-highlight,
+.field-group small,
+.flash,
+.flash-success,
+.success-message,
+.error-message,
+.message,
+.empty-state,
+.content,
+.main,
+.topbar,
+.workspace-grid > *,
+.quick-actions > *,
+.action-grid > * {
+    color: var(--text-dark);
+}
+
+.success-message,
+.flash-success,
+.success-content {
+    background: linear-gradient(180deg, rgba(255,122,26,0.08), rgba(255,122,26,0.02)), var(--surface) !important;
+    color: #ffb37d !important;
+    border-color: rgba(255,122,26,0.20) !important;
+}
+
+.error-message,
+.error-content,
+.flash,
+.error-msg {
+    background: rgba(255,107,87,0.08) !important;
+    color: #ff8c7e !important;
+    border-color: rgba(255,107,87,0.20) !important;
+}
+
+.password-rules li,
+.countdown,
+.resend-btn,
+.forgot-password,
+.auth-footer a,
+.breadcrumb a,
+.menu-link:hover,
+.back-link:hover {
+    color: var(--orange-2) !important;
+}
+
+.code-input,
+.code-input:focus {
+    background: var(--surface-2) !important;
+    color: var(--text-dark) !important;
+    border-color: var(--border-strong) !important;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent !important;
+    color: var(--text-dark) !important;
+}
+
+th,
+td {
+    border-color: var(--border) !important;
+    color: var(--text-dark) !important;
+}
+
+thead,
+tr:nth-child(even) {
+    background: rgba(255,255,255,0.02) !important;
+}
+
+hr,
+.settings-divider,
+.resend-section,
+.brand,
+.sidebar,
+.panel,
+.section-panel,
+.form-card,
+.card,
+.content-card,
+.restaurant-header,
+.category-header {
+    border-color: var(--border) !important;
+}
+
+img {
+    border-radius: inherit;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-soft);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.14);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.20);
+}
+
+

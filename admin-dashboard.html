@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/effects.css">
+    <link rel="stylesheet" href="/css/base.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f8f5f1;
+            color: #1c1612;
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid rgba(28,22,18,0.08);
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 6px 16px;
+            border-bottom: 1px solid rgba(28,22,18,0.06);
+        }
+
+        .brand img {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            object-fit: cover;
+            box-shadow: 0 8px 18px rgba(16,12,9,0.08);
+        }
+
+        .brand-text strong {
+            display: block;
+            font-family: 'Fraunces', serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #1c1612;
+        }
+
+        .brand-text span {
+            display: block;
+            font-size: 0.82rem;
+            color: #7a6b60;
+            margin-top: 2px;
+        }
+
+        .sidebar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #a49689;
+            padding: 0 8px;
+            margin-bottom: 2px;
+        }
+
+        .nav-link,
+        .nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            color: #6f6258;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-link:hover,
+        .nav-btn:hover {
+            background: #f5efe8;
+            color: #1c1612;
+        }
+
+        .nav-link.active {
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+        }
+
+        .content {
+            padding: 26px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            color: #7a6b60;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 700px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn,
+        .btn-outline,
+        .btn-danger-soft {
+            border-radius: 999px;
+            padding: 0.82rem 1.35rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #f97316;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(249,115,22,0.22);
+        }
+
+        .btn:hover {
+            background: #e8640a;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid rgba(28,22,18,0.12);
+            color: #6f6258;
+        }
+
+        .btn-outline:hover {
+            border-color: #1c1612;
+            color: #1c1612;
+        }
+
+        .message {
+            display: none;
+            padding: 0.95rem 1.1rem;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .error-message {
+            background: #fff;
+            border: 1.5px solid rgba(192,57,43,0.22);
+            color: #c0392b;
+        }
+
+        .success-message {
+            background: #fff;
+            border: 1.5px solid rgba(39,174,96,0.22);
+            color: #1f8f50;
+        }
+
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(16,12,9,0.04);
+        }
+
+        .summary-card small {
+            display: block;
+            color: #a49689;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1.3rem;
+            color: #1c1612;
+            letter-spacing: -0.03em;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 28px rgba(16,12,9,0.05);
+        }
+
+        .panel-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .panel-subtitle {
+            color: #7a6b60;
+            font-size: 0.9rem;
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+
+        .branch-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .branch-item {
+            background: #faf7f3;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            transition: all 0.22s ease;
+        }
+
+        .branch-item:hover {
+            background: #fff;
+            border-color: rgba(249,115,22,0.18);
+            box-shadow: 0 10px 24px rgba(16,12,9,0.04);
+        }
+
+        .branch-item.inactive {
+            opacity: 0.72;
+        }
+
+        .branch-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-weight: 700;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .branch-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #27ae60;
+            display: inline-block;
+        }
+
+        .branch-status.inactive {
+            background: #c4b8b0;
+        }
+
+        .branch-address,
+        .branch-phone {
+            color: #7a6b60;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .branch-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .btn-small {
+            border: none;
+            border-radius: 999px;
+            padding: 0.62rem 1rem;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            font-family: inherit;
+        }
+
+        .btn-edit {
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+        }
+
+        .btn-edit:hover {
+            background: #f97316;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: rgba(229,57,53,0.08);
+            color: #e53935;
+        }
+
+        .btn-delete:hover {
+            background: #e53935;
+            color: #fff;
+        }
+
+        .note-card {
+            background: #fcfaf7;
+            border: 1px solid rgba(28,22,18,0.07);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .note-card h3 {
+            font-size: 0.96rem;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .note-card p {
+            color: #7a6b60;
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .empty-state h3 {
+            color: #1c1612;
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            color: #7a6b60;
+            margin-bottom: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 9999;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 620px;
+            background: #fff;
+            border-radius: 24px;
+            padding: 1.7rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+            border: 1px solid rgba(28,22,18,0.08);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #1c1612;
+            letter-spacing: -0.03em;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: 1.5px solid rgba(28,22,18,0.10);
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #7a6b60;
+        }
+
+        .close-btn:hover {
+            color: #1c1612;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.45rem;
+            font-weight: 700;
+            color: #1c1612;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 1.5px solid rgba(28,22,18,0.10);
+            border-radius: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: #1c1612;
+            background: #faf7f3;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 4px rgba(249,115,22,0.10);
+            background: #fff;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.2rem;
+        }
+
+        .btn-cancel,
+        .btn-submit {
+            border-radius: 999px;
+            padding: 0.8rem 1.3rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1.5px solid rgba(28,22,18,0.12);
+            color: #7a6b60;
+        }
+
+        .btn-cancel:hover {
+            border-color: #1c1612;
+            color: #1c1612;
+        }
+
+        .btn-submit {
+            background: #f97316;
+            border: none;
+            color: white;
+            box-shadow: 0 8px 20px rgba(249,115,22,0.22);
+        }
+
+        .btn-submit:hover {
+            background: #e8640a;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(28,22,18,0.08);
+            }
+
+            .summary-row,
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 0;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .sidebar {
+                padding: 18px 14px;
+            }
+
+            .branch-item,
+            .header,
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/theme-overrides.css">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <img th:src="${restaurant.logoPath != null ? restaurant.logoPath : '/images/default-logo.png'}"
+                 alt="Restaurant Logo"
+                 loading="lazy"
+                 decoding="async"
+                 onerror="this.src='/images/default-logo.png'">
+            <div class="brand-text">
+                <strong th:text="${restaurant.restaurantName}">Restaurant</strong>
+                <span th:text="${restaurant.restaurantType}">Cafe</span>
+            </div>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Overview</div>
+            <a href="#" class="nav-link active">Admin Dashboard</a>
+            <a href="/restaurants" class="nav-link" id="restaurantsBtn">All Restaurants</a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Actions</div>
+            <button class="nav-btn" id="addBranchBtn" th:if="${isMultiBranch}">+ Add Branch</button>
+            <a href="/logout" class="nav-link logout-btn">Logout</a>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <h1 class="page-title">Admin dashboard</h1>
+                <p class="page-subtitle">
+                    Manage restaurant branches, review branch health, and keep the whole setup clean from one organized workspace.
+                </p>
+            </div>
+
+            <div class="top-actions">
+                <button class="btn" id="addFirstBranchBtnTop">+ New Branch</button>
+                <a href="/restaurants" class="btn-outline">All Restaurants</a>
+            </div>
+        </div>
+
+        <div class="error-message message" id="errorMessage"></div>
+        <div class="success-message message" id="successMessage"></div>
+
+        <div class="summary-row">
+            <div class="summary-card">
+                <small>Restaurant</small>
+                <strong th:text="${restaurant.restaurantName}">Restaurant</strong>
+            </div>
+            <div class="summary-card">
+                <small>Type</small>
+                <strong th:text="${restaurant.restaurantType}">Cafe</strong>
+            </div>
+            <div class="summary-card">
+                <small>Branches</small>
+                <strong th:text="${branchCount}">0</strong>
+            </div>
+            <div class="summary-card">
+                <small>Mode</small>
+                <strong th:text="${isMultiBranch} ? 'Multi Branch' : 'Single Branch'">Single Branch</strong>
+            </div>
+        </div>
+
+        <div class="panel-grid">
+            <section class="panel">
+                <h2 class="panel-title">Branches</h2>
+                <p class="panel-subtitle">
+                    Review branch information, edit details, or remove branches from the system.
+                </p>
+
+                <div class="branch-list" th:if="${branches and branches.size() > 0}">
+                    <div class="branch-item" th:each="branch : ${branches}" th:classappend="${!branch.active ? 'inactive' : ''}">
+                        <div class="branch-details">
+                            <div class="branch-name">
+                                <span class="branch-status" th:classappend="${!branch.active ? 'inactive' : ''}"></span>
+                                <span th:text="${branch.branchName}">Branch Name</span>
+                                <span th:if="${!branch.active}" style="font-size: 0.72rem; background: rgba(0,0,0,0.08); color: #7a6b60; padding: 3px 8px; border-radius: 999px;">Inactive</span>
+                            </div>
+                            <div class="branch-address" th:text="${branch.address}">123 Main St</div>
+                            <div class="branch-phone" th:text="${branch.phone}">555-0000</div>
+                        </div>
+
+                        <div class="branch-actions">
+                            <button class="btn-small btn-edit" th:onclick="|editBranch(${branch.id})|">Edit</button>
+                            <button class="btn-small btn-delete" th:onclick="|deleteBranch(${branch.id})|">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state" th:unless="${branches and branches.size() > 0}">
+                    <h3>No branches yet</h3>
+                    <p>Create your first branch to get started with branch management.</p>
+                    <button class="btn" id="addFirstBranchBtn">Create First Branch</button>
+                </div>
+            </section>
+
+            <aside class="panel">
+                <h2 class="panel-title">Workspace notes</h2>
+                <p class="panel-subtitle">
+                    Keep the admin space tighter and more structured, like the dashboard inspo you shared.
+                </p>
+
+                <div class="note-card">
+                    <h3 th:if="${isMultiBranch}">Multi-branch restaurant</h3>
+                    <h3 th:unless="${isMultiBranch}">Single branch setup</h3>
+                    <p th:if="${isMultiBranch}">
+                        You have <strong th:text="${branchCount}">0</strong> branches connected to this restaurant. Use this panel to keep them organized.
+                    </p>
+                    <p th:unless="${isMultiBranch}">
+                        You currently have one branch. Add more branches later if the restaurant expands.
+                    </p>
+                </div>
+
+                <div class="note-card">
+                    <h3>Recommended flow</h3>
+                    <p>Create or edit branches here, then move into each branch dashboard to manage items, preview menus, and generate QR pages.</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+</div>
+
+<div class="modal" id="branchModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add Branch</h2>
+            <button class="close-btn" onclick="closeBranchModal()">&times;</button>
+        </div>
+        <form id="branchForm">
+            <div class="form-group">
+                <label for="branchName">Branch Name</label>
+                <input type="text" id="branchName" required placeholder="e.g., Downtown Location">
+            </div>
+            <div class="form-group">
+                <label for="branchAddress">Address</label>
+                <input type="text" id="branchAddress" required placeholder="123 Main Street">
+            </div>
+            <div class="form-group">
+                <label for="branchPhone">Phone</label>
+                <input type="tel" id="branchPhone" required placeholder="+1 (555) 123-4567">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeBranchModal()">Cancel</button>
+                <button type="submit" class="btn-submit">Save Branch</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentBranchId = null;
+    const API_BASE = '/api/admin';
+
+    function init() {
+        const addBtn = document.getElementById('addBranchBtn');
+        const addFirstBtn = document.getElementById('addFirstBranchBtn');
+        const addFirstBtnTop = document.getElementById('addFirstBranchBtnTop');
+        const form = document.getElementById('branchForm');
+        const modal = document.getElementById('branchModal');
+
+        if (addBtn) addBtn.addEventListener('click', openAddBranchModal);
+        if (addFirstBtn) addFirstBtn.addEventListener('click', openAddBranchModal);
+        if (addFirstBtnTop) addFirstBtnTop.addEventListener('click', openAddBranchModal);
+        if (form) form.addEventListener('submit', handleFormSubmit);
+        if (modal) modal.addEventListener('click', handleModalClick);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function openAddBranchModal() {
+        currentBranchId = null;
+        document.getElementById('modalTitle').textContent = 'Add Branch';
+        document.getElementById('branchForm').reset();
+        const modal = document.getElementById('branchModal');
+        if (modal) modal.classList.add('show');
+    }
+
+    function editBranch(branchId) {
+        currentBranchId = branchId;
+        document.getElementById('modalTitle').textContent = 'Edit Branch';
+
+        fetch(`${API_BASE}/branches/${branchId}`)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                if (data.success && data.data) {
+                    document.getElementById('branchName').value = data.data.branchName || '';
+                    document.getElementById('branchAddress').value = data.data.address || '';
+                    document.getElementById('branchPhone').value = data.data.phone || '';
+                    const modal = document.getElementById('branchModal');
+                    if (modal) modal.classList.add('show');
+                } else {
+                    showError(data.message || 'Failed to load branch');
+                }
+            })
+            .catch(err => {
+                showError('Error: ' + err.message);
+            });
+    }
+
+    function closeBranchModal() {
+        const modal = document.getElementById('branchModal');
+        if (modal) modal.classList.remove('show');
+        document.getElementById('branchForm').reset();
+        currentBranchId = null;
+    }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+
+        const branchName = document.getElementById('branchName').value.trim();
+        const address = document.getElementById('branchAddress').value.trim();
+        const phone = document.getElementById('branchPhone').value.trim();
+
+        if (!branchName || !address || !phone) {
+            showError('All fields are required');
+            return;
+        }
+
+        const payload = { branchName, address, phone };
+        const method = currentBranchId ? 'PUT' : 'POST';
+        const url = currentBranchId ? `${API_BASE}/branches/${currentBranchId}` : `${API_BASE}/branches`;
+
+        fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showSuccess(currentBranchId ? 'Branch updated' : 'Branch created');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showError(data.message || 'Failed to save branch');
+                }
+            })
+            .catch(err => {
+                showError('Error: ' + err.message);
+            });
+    }
+
+    function deleteBranch(branchId) {
+        if (!confirm('Are you sure you want to delete this branch?')) return;
+
+        fetch(`${API_BASE}/branches/${branchId}`, {
+            method: 'DELETE'
+        })
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Branch deleted');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showError(data.message || 'Failed to delete branch');
+                }
+            })
+            .catch(err => {
+                showError('Error: ' + err.message);
+            });
+    }
+
+    function handleModalClick(e) {
+        if (e.target === document.getElementById('branchModal')) {
+            closeBranchModal();
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMessage');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(msg) {
+        const el = document.getElementById('successMessage');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 3500);
+    }
+
+    document.getElementById('branchModal')?.addEventListener('click', (e) => {
+        if (e.target === document.getElementById('branchModal')) {
+            closeBranchModal();
+        }
+    });
+</script>
+</body>
+</html>
+
+
+

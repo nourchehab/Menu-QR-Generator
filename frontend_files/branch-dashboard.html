@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Dashboard – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f8f5f1;
+            color: #1c1612;
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid rgba(28,22,18,0.08);
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .brand {
+            padding: 4px 6px 16px;
+            border-bottom: 1px solid rgba(28,22,18,0.06);
+        }
+
+        .brand strong {
+            display: block;
+            font-family: 'Fraunces', serif;
+            font-size: 1.28rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #1c1612;
+            margin-bottom: 4px;
+        }
+
+        .brand span {
+            display: block;
+            font-size: 0.82rem;
+            color: #7a6b60;
+        }
+
+        .sidebar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #a49689;
+            padding: 0 8px;
+            margin-bottom: 2px;
+        }
+
+        .nav-link,
+        .nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            color: #6f6258;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-link:hover,
+        .nav-btn:hover {
+            background: #f5efe8;
+            color: #1c1612;
+        }
+
+        .nav-link.active {
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+        }
+
+        .content {
+            padding: 26px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badges {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .branch-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(249,115,22,0.11);
+            border: 1px solid rgba(249,115,22,0.16);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #f97316;
+        }
+
+        .main-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff6df;
+            border: 1px solid rgba(183,121,31,0.18);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #b7791f;
+        }
+
+        .page-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            color: #7a6b60;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 720px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn,
+        .btn-outline {
+            border-radius: 999px;
+            padding: 0.82rem 1.35rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #f97316;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(249,115,22,0.22);
+        }
+
+        .btn:hover {
+            background: #e8640a;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid rgba(28,22,18,0.12);
+            color: #6f6258;
+        }
+
+        .btn-outline:hover {
+            border-color: #1c1612;
+            color: #1c1612;
+        }
+
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(16,12,9,0.04);
+        }
+
+        .summary-card small {
+            display: block;
+            color: #a49689;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1.3rem;
+            color: #1c1612;
+            letter-spacing: -0.03em;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 28px rgba(16,12,9,0.05);
+        }
+
+        .panel-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #1c1612;
+            margin-bottom: 6px;
+        }
+
+        .panel-subtitle {
+            color: #7a6b60;
+            font-size: 0.9rem;
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .action-btn {
+            background: #faf7f3;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 20px;
+            padding: 18px;
+            color: #1c1612;
+            text-decoration: none;
+            transition: all 0.22s ease;
+            display: block;
+        }
+
+        .action-btn:hover {
+            background: #fff;
+            border-color: rgba(249,115,22,0.18);
+            box-shadow: 0 10px 24px rgba(16,12,9,0.04);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.featured {
+            background: linear-gradient(180deg, #fff7f1 0%, #ffffff 100%);
+            border-color: rgba(249,115,22,0.18);
+        }
+
+        .action-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .action-btn h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #1c1612;
+            margin-bottom: 7px;
+        }
+
+        .action-btn p {
+            color: #7a6b60;
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(28,22,18,0.06);
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(28,22,18,0.08);
+            }
+
+            .summary-row,
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 0;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .sidebar {
+                padding: 18px 14px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .top-actions,
+            .top-actions .btn,
+            .top-actions .btn-outline,
+            .bottom-actions .btn,
+            .bottom-actions .btn-outline {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <strong th:text="${restaurant.restaurantName}">Restaurant</strong>
+            <span th:text="${branch.branchName}">Branch</span>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Overview</div>
+            <a href="#" class="nav-link active">Branch Dashboard</a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Manage</div>
+            <a th:href="@{/enteritems(branchId=${branch.id},branchName=${branch.branchName})}" class="nav-link">Add Items</a>
+            <a th:href="@{/manageitems(branchId=${branch.id},branchName=${branch.branchName})}" class="nav-link">Manage Items</a>
+            <a th:href="@{/menu/theme(branchId=${branch.id})}" class="nav-link">Menu Theme</a>
+            <a th:href="@{/menu/preview(branchId=${branch.id})}" target="_blank" class="nav-link">Preview Menu</a>
+            <a th:href="@{/qr-page(branchId=${branch.id})}" target="_blank" class="nav-link">QR Page</a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="sidebar-label">Navigation</div>
+            <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="nav-link">All Branches</a>
+            <form action="/logout" method="post" style="margin:0;">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <div class="badges">
+                    <span class="branch-badge">📍 <span th:text="${branch.branchName}">Branch Name</span></span>
+                    <span th:if="${branch.mainBranch}" class="main-badge">⭐ Main Branch</span>
+                </div>
+                <h1 class="page-title">Branch dashboard</h1>
+                <p class="page-subtitle">
+                    <span th:text="${restaurant.restaurantName}">Restaurant</span>
+                    · Manage this location with a cleaner, more structured dashboard layout.
+                </p>
+            </div>
+
+            <div class="top-actions">
+                <a th:href="@{/enteritems(branchId=${branch.id},branchName=${branch.branchName})}" class="btn">+ Add Item</a>
+                <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-outline">All Branches</a>
+            </div>
+        </div>
+
+        <div class="summary-row">
+            <div class="summary-card">
+                <small>Restaurant</small>
+                <strong th:text="${restaurant.restaurantName}">Restaurant</strong>
+            </div>
+            <div class="summary-card">
+                <small>Branch</small>
+                <strong th:text="${branch.branchName}">Branch</strong>
+            </div>
+            <div class="summary-card">
+                <small>Status</small>
+                <strong th:text="${branch.mainBranch} ? 'Main Branch' : 'Active Branch'">Active Branch</strong>
+            </div>
+            <div class="summary-card">
+                <small>Workspace</small>
+                <strong>Menu Ops</strong>
+            </div>
+        </div>
+
+        <div class="panel-grid">
+            <section class="panel">
+                <h2 class="panel-title">Branch actions</h2>
+                <p class="panel-subtitle">
+                    Use the branch tools below to manage items, preview the customer experience, and control presentation.
+                </p>
+
+                <div class="action-grid">
+                    <a th:href="@{/enteritems(branchId=${branch.id},branchName=${branch.branchName})}" class="action-btn featured">
+                        <div class="action-icon">＋</div>
+                        <h3>Add items</h3>
+                        <p>Create new menu items for this branch from the main workflow.</p>
+                    </a>
+
+                    <a th:href="@{/manageitems(branchId=${branch.id},branchName=${branch.branchName})}" class="action-btn">
+                        <div class="action-icon">✎</div>
+                        <h3>Manage items</h3>
+                        <p>Edit prices, descriptions, categories, and images in one place.</p>
+                    </a>
+
+                    <a th:href="@{/menu/preview(branchId=${branch.id})}" target="_blank" class="action-btn">
+                        <div class="action-icon">👁</div>
+                        <h3>Preview menu</h3>
+                        <p>Open the live customer-facing menu preview for this branch.</p>
+                    </a>
+
+                    <a th:href="@{/menu/theme(branchId=${branch.id})}" class="action-btn">
+                        <div class="action-icon">🎨</div>
+                        <h3>Menu theme</h3>
+                        <p>Adjust presentation so the branch menu feels more polished.</p>
+                    </a>
+
+                    <a th:href="@{/qr-page(branchId=${branch.id})}" target="_blank" class="action-btn">
+                        <div class="action-icon">⌁</div>
+                        <h3>QR page</h3>
+                        <p>Open the QR page customers can scan to access this branch menu.</p>
+                    </a>
+                </div>
+
+                <div class="bottom-actions">
+                    <form action="/logout" method="post" style="margin:0">
+                        <button type="submit" class="btn-outline">Logout</button>
+                    </form>
+                    <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-outline">← All Branches</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/css/effects.css">
+    <title>Login – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/theme-overrides.css">
+
+    <style>
+        .remember-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin: 4px 0 6px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .remember-me__label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .remember-me__checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--orange);
+        }
+
+        .remember-me__text {
+            line-height: 1;
+        }
+
+        .forgot-password {
+            text-decoration: none;
+            color: #ff9a4d;
+            font-weight: 700;
+        }
+
+        .forgot-password:hover {
+            color: #fff;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 13px 16px;
+            margin-bottom: 2px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.92rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-dark);
+            font-family: inherit;
+        }
+
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .google-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.18);
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: #ff9a4d;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            font-size: 0.92rem;
+        }
+
+        .resend-btn:hover {
+            color: #fff;
+        }
+
+        .resend-btn:disabled {
+            color: var(--text-faint);
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        .countdown {
+            color: var(--orange);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back!</h2>
+        <p>Log in to manage your restaurant</p>
+
+        <div th:if="${error}" class="error-message">
+            <span th:text="${error}"></span>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+        <div class="success-message" id="successMessage" style="display: none;"></div>
+
+        <div class="login-section" id="loginSection">
+            <div class="step-indicator">Step 1 of 2</div>
+
+            <form id="loginForm" class="auth-form">
+                <input type="email" id="email" name="username" placeholder="Email" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+
+                <div class="remember-row">
+                    <label class="remember-me__label">
+                        <input type="checkbox" name="remember-me" id="rememberMe" class="remember-me__checkbox">
+                        <span class="remember-me__text">Remember me</span>
+                    </label>
+                    <a href="/otp.html" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <a href="/oauth2/authorization/google" class="google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+                    Continue with Google
+                </a>
+
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    Continue
+                </button>
+            </form>
+
+            <span class="auth-footer">
+                Don't have an account? <a href="/signup">Sign up</a>
+            </span>
+        </div>
+
+        <div class="verification-section" id="verificationSection">
+            <div class="step-indicator">Step 2 of 2 · Verify Email</div>
+
+            <div class="verification-info">
+                We've sent a verification code to<br>
+                <strong id="displayEmail"></strong>
+            </div>
+
+            <form id="verifyForm" class="auth-form">
+                <div class="code-inputs">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="off">
+                </div>
+
+                <input type="hidden" id="verificationCode">
+
+                <button type="submit" class="btn btn-primary" id="verifyBtn" disabled>
+                    Verify & Log In
+                </button>
+
+                <div class="resend-section">
+                    <span id="resendTimer">
+                        Didn't receive it? Resend in <span class="countdown" id="countdown">60</span>s
+                    </span>
+                    <button type="button" class="resend-btn" id="resendBtn" style="display: none;">
+                        Resend Code
+                    </button>
+                </div>
+
+                <div style="text-align: center; margin-top: 16px;">
+                    <button type="button" class="resend-btn" id="backBtn">
+                        ← Back to Login
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const loginSection = document.getElementById('loginSection');
+    const verificationSection = document.getElementById('verificationSection');
+    const loginForm = document.getElementById('loginForm');
+    const verifyForm = document.getElementById('verifyForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const displayEmail = document.getElementById('displayEmail');
+    const codeInputs = document.querySelectorAll('.code-input');
+    const verificationCode = document.getElementById('verificationCode');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendTimer = document.getElementById('resendTimer');
+    const countdownSpan = document.getElementById('countdown');
+    const backBtn = document.getElementById('backBtn');
+    const rememberMe = document.getElementById('rememberMe');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+
+    let userEmail = '';
+    let userPassword = '';
+    let countdown = 60;
+    let countdownInterval;
+    let isSubmitting = false;
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Verifying...';
+
+        userEmail = emailInput.value.trim().toLowerCase();
+        userPassword = passwordInput.value;
+
+        try {
+            const response = await fetch('/api/login/verify-credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: userEmail,
+                    password: userPassword
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                showError(error || 'Invalid email or password');
+                isSubmitting = false;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue';
+                return;
+            }
+
+            const codeResponse = await fetch('/api/login/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
+
+            if (!codeResponse.ok) {
+                showError('Failed to send verification code. Please try again.');
+                isSubmitting = false;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue';
+                return;
+            }
+
+            showVerificationStep();
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
+        } catch (error) {
+            showError('An error occurred. Please try again.');
+            console.error(error);
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
+        }
+    });
+
+    verifyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        const code = verificationCode.value.trim();
+
+        try {
+            const response = await fetch('/api/login/verify-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: userEmail,
+                    code: code
+                })
+            });
+
+            if (!response.ok) {
+                showCodeError();
+                isSubmitting = false;
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify & Log In';
+                return;
+            }
+
+            completeLogin();
+        } catch (error) {
+            showError('Verification failed. Please try again.');
+            console.error(error);
+            isSubmitting = false;
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Log In';
+        }
+    });
+
+    async function completeLogin() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/login';
+
+        const usernameInput = document.createElement('input');
+        usernameInput.type = 'hidden';
+        usernameInput.name = 'username';
+        usernameInput.value = userEmail;
+        form.appendChild(usernameInput);
+
+        const passwordInput = document.createElement('input');
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'password';
+        passwordInput.value = userPassword;
+        form.appendChild(passwordInput);
+
+        if (rememberMe.checked) {
+            const rememberInput = document.createElement('input');
+            rememberInput.type = 'hidden';
+            rememberInput.name = 'remember-me';
+            rememberInput.value = 'on';
+            form.appendChild(rememberInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    codeInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+
+            if (!/^\d*$/.test(value)) {
+                e.target.value = '';
+                return;
+            }
+
+            if (value && index < codeInputs.length - 1) {
+                codeInputs[index + 1].focus();
+            }
+
+            updateVerifyButton();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                codeInputs[index - 1].focus();
+            }
+
+            if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                navigator.clipboard.readText().then(text => {
+                    const digits = text.replace(/\D/g, '').slice(0, 6);
+                    digits.split('').forEach((digit, i) => {
+                        if (codeInputs[i]) {
+                            codeInputs[i].value = digit;
+                        }
+                    });
+                    updateVerifyButton();
+                });
+            }
+        });
+    });
+
+    function updateVerifyButton() {
+        const code = Array.from(codeInputs).map(input => input.value).join('');
+        verificationCode.value = code;
+        verifyBtn.disabled = code.length !== 6;
+    }
+
+    function showVerificationStep() {
+        loginSection.style.display = 'none';
+        verificationSection.classList.add('active');
+        displayEmail.textContent = userEmail;
+        codeInputs[0].focus();
+        startCountdown();
+    }
+
+    function showLoginStep() {
+        verificationSection.classList.remove('active');
+        loginSection.style.display = 'block';
+        clearCodeInputs();
+        stopCountdown();
+        isSubmitting = false;
+    }
+
+    function clearCodeInputs() {
+        codeInputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('error');
+        });
+        verificationCode.value = '';
+        verifyBtn.disabled = true;
+    }
+
+    function showCodeError() {
+        codeInputs.forEach(input => {
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 300);
+        });
+        showError('Invalid or expired code. Please try again.');
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+        setTimeout(() => {
+            successMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    function startCountdown() {
+        countdown = 60;
+        countdownSpan.textContent = countdown;
+        resendTimer.style.display = 'inline';
+        resendBtn.style.display = 'none';
+
+        countdownInterval = setInterval(() => {
+            countdown--;
+            countdownSpan.textContent = countdown;
+
+            if (countdown <= 0) {
+                stopCountdown();
+                resendTimer.style.display = 'none';
+                resendBtn.style.display = 'inline';
+            }
+        }, 1000);
+    }
+
+    function stopCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+    }
+
+    resendBtn.addEventListener('click', async () => {
+        if (isSubmitting) return;
+
+        isSubmitting = true;
+        resendBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/login/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
+
+            if (response.ok) {
+                showSuccess('New code sent to your email!');
+                clearCodeInputs();
+                startCountdown();
+            } else {
+                showError('Failed to resend code. Please try again.');
+            }
+        } catch (error) {
+            showError('An error occurred. Please try again.');
+        } finally {
+            isSubmitting = false;
+            resendBtn.disabled = false;
+        }
+    });
+
+    backBtn.addEventListener('click', () => {
+        showLoginStep();
+    });
+</script>
+
+</body>
+</html>
+
+
+
+

@@ -17,23 +17,41 @@ public class MenuIdeaService {
     private AiClientService aiClientService;
 
     /**
-     * Generates menu item ideas via Groq AI (llama-3.3-70b-versatile).
-     * Throws a clean RuntimeException if AI is unavailable so the
-     * controller can return a proper error to the UI.
+     * Generates menu item ideas via AI.
+     * Throws IllegalArgumentException for invalid user input.
+     * Throws RuntimeException if the AI service is unavailable or unusable.
      */
     public List<String> generateIdeas(String cuisineType,
                                       String restaurantType,
                                       String existingCategories,
                                       int count) {
 
-        String prompt = buildPrompt(cuisineType, restaurantType, existingCategories, count);
+        validateRequiredText(cuisineType, "Cuisine type", "Please enter a valid cuisine type.");
+        validateRequiredText(restaurantType, "Restaurant style", "Please enter a valid restaurant style.");
+
+        if (count < 0) {
+            throw new IllegalArgumentException("Number of ideas cannot be negative.");
+        }
+
+        if (count > 10) {
+            throw new IllegalArgumentException("Maximum number of ideas is 10.");
+        }
+
+        if (count == 0) {
+            return List.of();
+        }
+
+        String cleanedCuisineType = cuisineType.trim();
+        String cleanedRestaurantType = restaurantType.trim();
+        String cleanedExistingCategories = normalizeOptionalText(existingCategories);
+
+        String prompt = buildPrompt(cleanedCuisineType, cleanedRestaurantType, cleanedExistingCategories, count);
         String raw = aiClientService.chat(prompt);
 
         log.info("=== AI RAW RESPONSE START ===");
         log.info(raw);
         log.info("=== AI RAW RESPONSE END ===");
 
-        // Detect AiClientService's own fallback string — means AI is down
         if (isUnavailableResponse(raw)) {
             throw new RuntimeException(
                     "The AI service is currently unavailable. " +
@@ -51,29 +69,23 @@ public class MenuIdeaService {
         return ideas;
     }
 
-    // -----------------------------------------------------------------------
-    // Prompt — structured for Llama 3.3 / Groq
-    // -----------------------------------------------------------------------
-
-    private String buildPrompt(String cuisineType, String restaurantType,
-                                String existingCategories, int count) {
+    private String buildPrompt(String cuisineType,
+                               String restaurantType,
+                               String existingCategories,
+                               int count) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Generate exactly ").append(count).append(" creative menu item ideas");
 
-        if (cuisineType != null && !cuisineType.isBlank()) {
-            sb.append(" for a ").append(cuisineType.trim());
-        }
-        if (restaurantType != null && !restaurantType.isBlank()) {
-            sb.append(" ").append(restaurantType.trim());
-        }
-        sb.append(".\n");
+        sb.append("Generate exactly ").append(count).append(" creative menu item ideas ");
+        sb.append("for a ").append(restaurantType).append(" serving ").append(cuisineType).append(" cuisine.\n");
 
-        if (existingCategories != null && !existingCategories.isBlank()) {
-            sb.append("The menu already has: ").append(existingCategories.trim()).append(". ");
-            sb.append("Suggest complementary new items.\n");
+        if (existingCategories != null) {
+            sb.append("The menu already has these categories: ")
+                    .append(existingCategories)
+                    .append(". Suggest new items that fit well without repeating them.\n");
         }
 
-        sb.append("\nFormat your response as a numbered list ONLY. Each line:\n");
+        sb.append("\nFormat your response as a numbered list only.\n");
+        sb.append("Each line must follow this format:\n");
         sb.append("NUMBER. Dish Name: One appetizing sentence description.\n\n");
         sb.append("Example:\n");
         sb.append("1. Grilled Halloumi: Golden-seared halloumi with za'atar oil and cherry tomatoes.\n");
@@ -83,9 +95,38 @@ public class MenuIdeaService {
         return sb.toString();
     }
 
-    // -----------------------------------------------------------------------
-    // Detect AiClientService's own fallback message
-    // -----------------------------------------------------------------------
+    private String normalizeOptionalText(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String cleaned = value.trim();
+        return cleaned.isEmpty() ? null : cleaned;
+    }
+
+    private void validateRequiredText(String value, String fieldLabel, String invalidMessage) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldLabel + " is required.");
+        }
+
+        String cleaned = value.trim();
+
+        if (cleaned.length() < 2 || cleaned.length() > 60) {
+            throw new IllegalArgumentException(invalidMessage);
+        }
+
+        if (!cleaned.matches(".*\\p{L}.*")) {
+            throw new IllegalArgumentException(invalidMessage);
+        }
+
+        if (cleaned.matches(".*\\d.*")) {
+            throw new IllegalArgumentException(invalidMessage);
+        }
+
+        if (!cleaned.matches("^[\\p{L}][\\p{L}\\s'&-]*[\\p{L}]$")) {
+            throw new IllegalArgumentException(invalidMessage);
+        }
+    }
 
     private boolean isUnavailableResponse(String raw) {
         if (raw == null || raw.isBlank()) return true;
@@ -95,15 +136,9 @@ public class MenuIdeaService {
                 || lower.contains("you asked:");
     }
 
-    // -----------------------------------------------------------------------
-    // Parser — Groq/Llama reliably returns numbered lists so Strategy 1
-    // will almost always succeed. Strategies 2 & 3 are safety nets.
-    // -----------------------------------------------------------------------
-
     private List<String> parseIdeas(String raw, int count) {
         if (raw == null || raw.isBlank()) return List.of();
 
-        // Lines to reject — prompt echoes or meta-commentary
         List<String> rejectPhrases = List.of(
                 "generate exactly", "format your response", "example:",
                 "now write", "numbered list", "one appetizing",
@@ -111,7 +146,6 @@ public class MenuIdeaService {
                 "certainly", "sure!", "of course"
         );
 
-        // Strategy 1: look for "Now write N ideas:" marker, parse after it
         String toParse = raw;
         int markerIdx = raw.lastIndexOf("Now write");
         if (markerIdx >= 0) {
@@ -127,23 +161,20 @@ public class MenuIdeaService {
             return result;
         }
 
-        // Strategy 2: scan full response for numbered lines
         result = extractNumberedLines(raw, rejectPhrases, count);
         if (!result.isEmpty()) {
             log.info("Strategy 2 found {} ideas", result.size());
             return result;
         }
 
-        // Strategy 3: accept any reasonable-looking line
         result = extractAnyLines(raw, rejectPhrases, count);
         log.info("Strategy 3 found {} ideas", result.size());
         return result;
     }
 
-    /** Accept lines starting with digit: "1. Name: desc" */
     private List<String> extractNumberedLines(String text,
-                                               List<String> rejectPhrases,
-                                               int count) {
+                                              List<String> rejectPhrases,
+                                              int count) {
         List<String> results = new ArrayList<>();
         if (text == null || text.isBlank()) return results;
 
@@ -162,10 +193,9 @@ public class MenuIdeaService {
         return results;
     }
 
-    /** Fallback: any non-prompt line with real content */
     private List<String> extractAnyLines(String text,
-                                          List<String> rejectPhrases,
-                                          int count) {
+                                         List<String> rejectPhrases,
+                                         int count) {
         List<String> results = new ArrayList<>();
         if (text == null || text.isBlank()) return results;
 

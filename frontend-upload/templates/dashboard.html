@@ -1,0 +1,193 @@
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        /* Changed: removed loud orange gradient */
+        background: #f8f5f1;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* Removed: body::before animated dot grid */
+
+    .dashboard-container {
+        background: #ffffff;
+        border-radius: 28px;
+        padding: 3rem 3.5rem;
+        max-width: 860px;
+        width: 100%;
+        /* Changed: lighter, cleaner shadow */
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.09);
+        animation: fadeSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeSlideIn {
+        0%   { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Removed: per-button fadeIn animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome-text {
+        font-family: 'Fraunces', serif;
+        font-size: 2.2rem;
+        font-weight: 300;
+        color: #1c1612;
+        margin-bottom: 2.5rem;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        animation: fadeIn 0.7s ease-out 0.1s backwards;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.875rem;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Changed: from heavy orange gradient → clean outlined pill */
+    .action-btn {
+        background: transparent;
+        border: 1.5px solid rgba(0, 0, 0, 0.11);
+        border-radius: 999px;
+        padding: 1.05rem 1.5rem;
+        color: #1c1612;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        animation: fadeIn 0.6s ease-out 0.2s backwards;
+    }
+
+    .action-btn:hover {
+        border-color: #f97316;
+        color: #f97316;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.14);
+    }
+
+    /* Changed: clear primary — solid orange fill */
+    .action-btn.primary {
+        background: #f97316;
+        border-color: #f97316;
+        color: white;
+        box-shadow: 0 4px 16px rgba(249, 115, 22, 0.28);
+    }
+
+    .action-btn.primary:hover {
+        background: #e8640a;
+        border-color: #e8640a;
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.36);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .action-btn.disabled {
+        background: transparent;
+        border-color: rgba(0, 0, 0, 0.06);
+        color: #c4b8b0;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .action-btn.disabled:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: rgba(0, 0, 0, 0.06);
+        color: #c4b8b0;
+    }
+
+    /* Added: subtle divider above bottom actions */
+    .bottom-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        animation: fadeIn 0.6s ease-out 0.3s backwards;
+    }
+
+    .logout-form {
+        margin: 0;
+    }
+
+    /* Changed: dark navy → neutral muted style */
+    .secondary-btn {
+        background: transparent;
+        border: 1.5px solid rgba(0, 0, 0, 0.12);
+        border-radius: 999px;
+        padding: 0.75rem 1.5rem;
+        color: #7a6b60;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .secondary-btn:hover {
+        border-color: #1c1612;
+        color: #1c1612;
+        transform: translateY(-1px);
+    }
+
+    /* Changed: outline variant now uses orange system */
+    .secondary-btn.outline {
+        border-color: #f97316;
+        color: #f97316;
+    }
+
+    .secondary-btn.outline:hover {
+        background: #f97316;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+        .dashboard-container {
+            padding: 2rem 1.5rem;
+            border-radius: 20px;
+        }
+
+        .welcome-text {
+            font-size: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .bottom-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .secondary-btn {
+            text-align: center;
+        }
+    }
+</style>
+
+
+

@@ -6,40 +6,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root {
-            --bg: #050505;
-            --panel: #0d0d0d;
-            --panel-2: #121212;
-            --panel-3: #181818;
-            --text: #f7efe8;
-            --muted: #b8a79d;
-            --faint: #8f7d73;
-            --line: rgba(255,255,255,0.08);
-            --line-strong: rgba(255,255,255,0.12);
-            --orange: #ff7a1a;
-            --orange-2: #ff9a4d;
-            --orange-glow: 0 0 0 1px rgba(255,122,26,0.18), 0 0 24px rgba(255,122,26,0.22), 0 10px 24px rgba(255,122,26,0.18);
-            --orange-glow-strong: 0 0 0 1px rgba(255,122,26,0.28), 0 0 34px rgba(255,122,26,0.32), 0 14px 30px rgba(255,122,26,0.24);
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background:
-                radial-gradient(circle at top right, rgba(255,122,26,0.10), transparent 20%),
-                radial-gradient(circle at bottom left, rgba(255,122,26,0.06), transparent 18%),
-                var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            background: #f8f5f1;
             min-height: 100vh;
             padding: 2rem;
             position: relative;
             overflow-x: hidden;
-            color: var(--text);
         }
 
         .container {
@@ -65,14 +45,14 @@
         }
 
         .back-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--line-strong);
+            background: transparent;
+            border: 1.5px solid rgba(0, 0, 0, 0.15);
             border-radius: 999px;
-            padding: 0.7rem 1.1rem;
-            color: var(--muted);
-            font-family: 'Inter', sans-serif;
+            padding: 0.6rem 1.1rem;
+            color: #1c1612;
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.88rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.25s ease;
             text-decoration: none;
@@ -83,55 +63,54 @@
         }
 
         .back-btn:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.18);
-            color: var(--text);
+            border-color: #f97316;
+            color: #f97316;
             transform: translateX(-2px);
         }
 
         .page-title {
-            font-family: 'Sora', sans-serif;
+            font-family: 'Fraunces', serif;
             font-size: 2rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.04em;
+            font-weight: 300;
+            color: #1c1612;
+            letter-spacing: -0.02em;
             margin-top: 0.5rem;
         }
 
         .branch-label {
             font-size: 0.82rem;
-            color: var(--orange-2);
-            font-weight: 700;
+            color: #7a6b60;
+            font-weight: 500;
         }
 
         .add-btn, .categorise-btn {
-            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            background: #f97316;
             color: white;
             text-decoration: none;
             border-radius: 999px;
             padding: 0.7rem 1.4rem;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.25s ease;
             white-space: nowrap;
             border: none;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            box-shadow: var(--orange-glow);
+            font-family: 'DM Sans', sans-serif;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
             display: inline-block;
         }
 
         .add-btn:hover, .categorise-btn:hover {
+            background: #e8640a;
             transform: translateY(-2px);
-            box-shadow: var(--orange-glow-strong);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.36);
         }
 
         .content-card {
-            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel);
-            border: 1px solid var(--line);
+            background: #ffffff;
             border-radius: 24px;
             padding: 2.5rem;
-            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.36);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
             animation: fadeSlideIn 0.6s ease-out backwards;
         }
 
@@ -144,8 +123,8 @@
         .item-card {
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), var(--panel-2);
-            border: 1px solid var(--line);
+            background: #fff;
+            border: 1.5px solid rgba(0, 0, 0, 0.07);
             border-radius: 16px;
             padding: 1.25rem 1.5rem;
             gap: 1.5rem;
@@ -155,9 +134,8 @@
 
         .item-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
-            border-color: rgba(255, 122, 26, 0.22);
-            background: linear-gradient(180deg, rgba(255,122,26,0.05), transparent 100%), var(--panel-3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+            border-color: rgba(249, 115, 22, 0.25);
         }
 
         .item-image {
@@ -165,39 +143,38 @@
             height: 90px;
             border-radius: 12px;
             object-fit: cover;
-            background: var(--panel-2);
-            border: 1px solid var(--line);
+            background: #f0ece6;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--faint);
+            color: #999;
             font-size: 0.85rem;
         }
 
         .item-details { flex: 1; }
 
         .item-name {
-            font-family: 'Sora', sans-serif;
+            font-family: 'Fraunces', serif;
             font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text);
+            font-weight: 600;
+            color: #1c1612;
             margin-bottom: 0.25rem;
         }
 
         .item-price {
-            font-weight: 800;
-            color: var(--orange-2);
+            font-weight: 700;
+            color: #f97316;
             font-size: 0.95rem;
             margin-bottom: 0.4rem;
             display: inline-block;
-            background: rgba(255, 122, 26, 0.10);
+            background: rgba(249, 115, 22, 0.10);
             padding: 0.2rem 0.65rem;
             border-radius: 999px;
         }
 
         .item-desc {
-            color: var(--muted);
+            color: #7a6b60;
             font-size: 0.875rem;
             line-height: 1.5;
             display: -webkit-box;
@@ -207,106 +184,85 @@
             overflow: hidden;
         }
 
-        .item-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+        .item-actions { display: flex; gap: 0.6rem; align-items: center; }
 
         .btn-action {
             padding: 0.5rem 1rem;
             border-radius: 999px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.25s ease;
-            border: 1px solid var(--line-strong);
+            border: 1.5px solid transparent;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: rgba(255,255,255,0.03);
-            color: var(--muted);
         }
 
         .btn-categorise-item {
-            background: rgba(255, 122, 26, 0.08);
-            color: #ffb37d;
-            border-color: rgba(255, 122, 26, 0.15);
+            background: rgba(196, 122, 27, 0.08);
+            color: #c47a1b;
+            border-color: rgba(196, 122, 27, 0.15);
         }
 
         .btn-categorise-item:hover {
-            background: linear-gradient(135deg, var(--orange-2), var(--orange));
+            background: #c47a1b;
             color: white;
-            border-color: transparent;
+            border-color: #c47a1b;
             transform: translateY(-1px);
         }
 
         .btn-edit {
-            background: rgba(255,255,255,0.03);
-            color: var(--muted);
-            border-color: var(--line-strong);
+            background: rgba(0,0,0,0.04);
+            color: #1c1612;
+            border-color: rgba(0,0,0,0.08);
         }
 
         .btn-edit:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--text);
-            border-color: rgba(255,255,255,0.18);
+            background: rgba(0,0,0,0.09);
             transform: translateY(-1px);
         }
 
         .btn-delete {
-            background: rgba(255, 107, 87, 0.08);
-            color: #ff8c7e;
-            border-color: rgba(255, 107, 87, 0.20);
+            background: rgba(255, 68, 68, 0.07);
+            color: #e53935;
+            border-color: rgba(255, 68, 68, 0.15);
         }
 
         .btn-delete:hover {
-            background: rgba(255, 107, 87, 0.14);
-            color: #ff8c7e;
-            border-color: rgba(255, 107, 87, 0.28);
+            background: #e53935;
+            color: white;
+            border-color: #e53935;
             transform: translateY(-1px);
-            box-shadow: none;
+            box-shadow: 0 4px 12px rgba(229, 57, 53, 0.25);
         }
 
         .empty-state {
             text-align: center;
             padding: 3rem 0;
-            color: var(--muted);
+            color: #7a6b60;
             display: none;
         }
 
-        .empty-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 122, 26, 0.14);
-            border: 1px solid rgba(255, 122, 26, 0.14);
-            color: var(--orange-2);
-            font-size: 1.6rem;
-            margin-bottom: 1rem;
-        }
+        .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.5; }
 
         .empty-state h3 {
-            font-family: 'Sora', sans-serif;
-            color: var(--text);
+            font-family: 'Fraunces', serif;
+            color: #1c1612;
             font-size: 1.4rem;
             margin-bottom: 0.5rem;
-            font-weight: 700;
+            font-weight: 400;
         }
 
-        .loader {
-            text-align: center;
-            padding: 2rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
+        .loader { text-align: center; padding: 2rem; color: #7a6b60; font-weight: 500; }
 
         .spinner {
             width: 36px;
             height: 36px;
-            border: 3px solid rgba(255,255,255,0.14);
+            border: 3px solid rgba(249, 115, 22, 0.15);
             border-radius: 50%;
-            border-top-color: var(--orange);
+            border-top-color: #f97316;
             animation: spin 0.9s ease-in-out infinite;
             margin: 0 auto 1rem;
         }
@@ -314,24 +270,19 @@
         .form-input, .form-textarea {
             width: 100%;
             padding: 0.9rem 1rem;
-            border: 1px solid var(--line-strong);
+            border: 1.5px solid rgba(0,0,0,0.09);
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
-            color: var(--text);
+            color: #1c1612;
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
-            background: var(--panel-2);
+            background: #fff;
         }
 
         .form-input:focus, .form-textarea:focus {
             outline: none;
-            border-color: rgba(255,122,26,0.45);
-            box-shadow: 0 0 0 4px rgba(255,122,26,0.10);
-            background: var(--panel-3);
-        }
-
-        .form-input::placeholder, .form-textarea::placeholder {
-            color: var(--faint);
+            border-color: #f97316;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.10);
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -343,21 +294,21 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem 1rem;
-            border: 1px solid var(--line);
+            border: 1.5px solid rgba(0,0,0,0.08);
             border-radius: 10px;
             cursor: pointer;
-            background: var(--panel-2);
+            background: #fafaf9;
             transition: all 0.2s;
             margin-bottom: 0.5rem;
         }
 
         .branch-check-item:hover {
-            border-color: rgba(255,122,26,0.28);
-            background: var(--panel-3);
+            border-color: #f97316;
+            background: #fff8f5;
         }
 
         .branch-check-item input {
-            accent-color: var(--orange);
+            accent-color: #f97316;
             width: 18px;
             height: 18px;
             cursor: pointer;
@@ -371,7 +322,7 @@
             .header { flex-direction: column; align-items: flex-start; }
             .page-title { font-size: 1.6rem; }
         }
-</style>
+    </style>
 </head>
 
 <body>
@@ -411,9 +362,9 @@
     <div id="editModal"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
         <div
-            style="width:100%; max-width:720px; background:#0d0d0d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
+            style="width:100%; max-width:720px; background:#fff; border-radius:18px; padding:1.5rem; box-shadow:0 30px 90px rgba(0,0,0,0.35);">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
-                <div style="font-family:'Sora', sans-serif; font-size:1.35rem; color:#f7efe8; font-weight:700;">Edit Item</div>
+                <div style="font-family:'Fraunces', serif; font-size:1.35rem; color:#1a1a2e;">Edit Item</div>
                 <button type="button" onclick="closeEditModal()" class="btn-action btn-edit"
                     style="padding:.45rem .75rem;">✕</button>
             </div>
@@ -421,7 +372,7 @@
             <div style="display:flex; gap:1.25rem; flex-wrap:wrap;">
                 <div style="flex: 0 0 220px;">
                     <img id="currentItemImage" src="/images/menu-item-placeholder.svg" alt="Current"
-                        style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid rgba(255,255,255,0.08);" />
+                        style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid #eee;" />
                     <div style="display:flex; gap:.5rem; margin-top:.75rem;">
                         <button id="deleteImageBtn" type="button" class="btn-action btn-delete" style="display:none;"
                             onclick="deleteItemImage()">
@@ -430,9 +381,9 @@
                     </div>
 
                     <div id="newImagePreviewWrap" style="display:none; margin-top:1rem;">
-                        <div style="font-weight:600; color:#f7efe8; margin-bottom:.5rem;">New image preview</div>
+                        <div style="font-weight:600; color:#1a1a2e; margin-bottom:.5rem;">New image preview</div>
                         <img id="newImagePreview" src="" alt="Preview"
-                            style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid rgba(255,255,255,0.08);" />
+                            style="width:220px; height:220px; object-fit:cover; border-radius:14px; border:1px solid #eee;" />
                     </div>
                 </div>
 
@@ -451,11 +402,8 @@
 
                     <div class="form-group" style="margin-bottom:1rem;">
                         <label style="display:block; font-weight:600; margin-bottom:.4rem;">Description</label>
-                        <!-- ✅ CHANGED: maxlength 500 → 100 -->
-                        <textarea id="editItemDescription" class="form-textarea" required maxlength="100"
+                        <textarea id="editItemDescription" class="form-textarea" required maxlength="500"
                             style="min-height:110px;"></textarea>
-                        <!-- ✅ ADDED: character counter -->
-                        <div id="editDescCounter" style="text-align:right; font-size:0.78rem; margin-top:0.35rem; color:#8f7d73; transition:color .2s ease;">0 / 100</div>
                     </div>
 
                     <div class="form-group" style="margin-bottom:1rem;">
@@ -465,9 +413,9 @@
 
                     <div class="form-group" style="margin-bottom:1rem;">
                         <label style="display:block; font-weight:600; margin-bottom:.4rem;">Replace image <span
-                                style="font-weight:400; color:#b8a79d;">(optional)</span></label>
+                                style="font-weight:400; color:#666;">(optional)</span></label>
                         <input id="editItemPhoto" type="file" accept="image/png,image/jpeg,image/webp" />
-                        <div style="margin-top:.35rem; color:#b8a79d; font-size:.85rem;">Allowed: JPG/PNG/WEBP up to 5MB</div>
+                        <div style="margin-top:.35rem; color:#666; font-size:.85rem;">Allowed: JPG/PNG/WEBP up to 5MB</div>
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem;">
@@ -483,33 +431,33 @@
     <div id="aiIdeasModal"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
                align-items:center; justify-content:center; padding:1.5rem; z-index:9999;">
-        <div style="width:100%; max-width:680px; background:#0d0d0d; border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+        <div style="width:100%; max-width:680px; background:#fff; border-radius:18px;
                     padding:1.75rem; box-shadow:0 30px 90px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto;">
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-                <div style="font-family:'Sora', sans-serif; font-size:1.35rem; color:#f7efe8; font-weight:700;">✨ AI Menu Ideas</div>
+                <div style="font-family:'Fraunces', serif; font-size:1.35rem; color:#1a1a2e;">✨ AI Menu Ideas</div>
                 <button type="button" onclick="closeAiIdeasModal()" class="btn-action btn-edit"
                     style="padding:.45rem .75rem;">✕</button>
             </div>
 
             <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
                 <div style="flex:1; min-width:160px;">
-                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#b8a79d;">Cuisine Type</label>
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">Cuisine Type</label>
                     <input id="aiCuisineType" class="form-input" placeholder="e.g. Lebanese, Italian" style="font-size:0.92rem;" />
                 </div>
                 <div style="flex:1; min-width:160px;">
-                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#b8a79d;">Restaurant Style</label>
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">Restaurant Style</label>
                     <input id="aiRestaurantType" class="form-input" placeholder="e.g. cafe, fine dining" style="font-size:0.92rem;" />
                 </div>
                 <div style="flex:1; min-width:160px;">
-                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#b8a79d;">How many ideas?</label>
-                    <input id="aiIdeasCount" class="form-input" type="number" min="0" max="10" step="1" value="5" style="font-size:0.92rem;" />
+                    <label style="display:block; font-weight:600; font-size:0.88rem; margin-bottom:.35rem; color:#555;">How many ideas?</label>
+                    <input id="aiIdeasCount" class="form-input" type="number" min="1" max="10" value="5" style="font-size:0.92rem;" />
                 </div>
             </div>
 
             <button id="generateIdeasBtn" type="button"
                 style="background:#ff6b35; color:white; border:none; border-radius:12px;
-                       padding:0.75rem 1.5rem; font-family:'Inter',sans-serif; font-weight:600;
+                       padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600;
                        font-size:1rem; cursor:pointer; width:100%; margin-bottom:1.25rem;"
                 onclick="generateAiIdeas()">
                 Generate Ideas
@@ -517,16 +465,16 @@
 
             <div id="aiIdeasLoading" style="display:none; text-align:center; padding:1.5rem 0;">
                 <div class="spinner"></div>
-                <p style="color:#b8a79d; margin-top:0.5rem;">Generating ideas...</p>
+                <p style="color:#666; margin-top:0.5rem;">Generating ideas...</p>
             </div>
 
             <div id="aiIdeasError"
-                style="display:none; color:#ff4444; padding:0.75rem; background:rgba(255,107,87,0.08); border:1px solid rgba(255,107,87,0.20);
+                style="display:none; color:#ff4444; padding:0.75rem; background:#fff0f0;
                        border-radius:8px; font-size:0.93rem; margin-bottom:1rem;">
             </div>
 
             <div id="aiIdeasResults" style="display:none;">
-                <div style="font-weight:600; color:#f7efe8; margin-bottom:0.75rem; font-size:0.95rem;">
+                <div style="font-weight:600; color:#1a1a2e; margin-bottom:0.75rem; font-size:0.95rem;">
                     Generated Ideas — check the ones you want to add:
                 </div>
                 <div id="aiIdeasList"
@@ -534,8 +482,8 @@
                            margin-bottom:1.25rem; max-height:320px; overflow-y:auto;">
                 </div>
                 <button type="button" onclick="addSelectedAiIdeas()"
-                    style="background:linear-gradient(135deg, #ff9a4d, #ff7a1a); color:white; border:none; border-radius:12px;
-                           padding:0.75rem 1.5rem; font-family:'Inter',sans-serif; font-weight:600;
+                    style="background:#1a1a2e; color:white; border:none; border-radius:12px;
+                           padding:0.75rem 1.5rem; font-family:'DM Sans',sans-serif; font-weight:600;
                            font-size:1rem; cursor:pointer; width:100%;">
                     + Add Selected to Menu
                 </button>
@@ -545,11 +493,11 @@
 
     <div id="categoriseModal"
          style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1.5rem; z-index:9999; overflow-y:auto;">
-        <div style="width:100%; max-width:700px; background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent 100%), #0d0d0d; border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.4); margin:auto; overflow:hidden;">
+        <div style="width:100%; max-width:700px; background:linear-gradient(135deg, #D2691E 0%, #8B4513 50%, #A0522D 100%); border-radius:24px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.4); margin:auto; overflow:hidden;">
             <div style="background:rgba(0,0,0,0.1); padding:2rem 2rem 1rem; display:flex; justify-content:space-between; align-items:flex-start;">
                 <div style="flex:1;">
-                    <div style="font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:700; color:#f7efe8; margin-bottom:0.25rem;">🤖 AI Categorise Items</div>
-                    <p style="color:#b8a79d; font-size:0.95rem; margin:0;">Select items to categorise, then let AI suggest the best categories</p>
+                    <div style="font-family:'Fraunces',serif; font-size:1.8rem; font-weight:700; color:white; margin-bottom:0.25rem;">🤖 AI Categorise Items</div>
+                    <p style="color:rgba(255,255,255,0.8); font-size:0.95rem; margin:0;">Select items to categorise, then let AI suggest the best categories</p>
                 </div>
                 <button type="button" onclick="closeCategoriseModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; font-size:1.5rem; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:1rem;">✕</button>
             </div>
@@ -558,16 +506,16 @@
                 <div id="categoriseContent">
                     <div style="margin-bottom:1.5rem;">
                         <label style="display:block; font-weight:700; margin-bottom:1rem; color:white; font-size:1.1rem;">Select Items to Categorise</label>
-                        <div id="categoriseItemsList" style="max-height:350px; overflow-y:auto; background:#121212; border-radius:12px; padding:1.25rem; border:1px solid rgba(255,255,255,0.08);"></div>
+                        <div id="categoriseItemsList" style="max-height:350px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:12px; padding:1.25rem; border:2px solid rgba(255,255,255,0.2);"></div>
                     </div>
                     <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
                         <div style="display:flex; gap:0.75rem;">
-                            <button type="button" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.12); color:#b8a79d; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;" onclick="selectAllItemsForCategorise(true)">Select All</button>
-                            <button type="button" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.12); color:#b8a79d; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;" onclick="selectAllItemsForCategorise(false)">Deselect All</button>
+                            <button type="button" style="background:rgba(255,255,255,0.25); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="selectAllItemsForCategorise(true)">Select All</button>
+                            <button type="button" style="background:rgba(255,255,255,0.25); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="selectAllItemsForCategorise(false)">Deselect All</button>
                         </div>
                         <div style="display:flex; gap:0.75rem;">
-                            <button type="button" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.12); color:#b8a79d; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;" onclick="closeCategoriseModal()">Cancel</button>
-                            <button id="categoriseSubmitBtn" type="button" style="background:linear-gradient(135deg, #ff9a4d, #ff7a1a); border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'Inter',sans-serif; cursor:pointer; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="submitCategoriseRequest()">Generate Categories</button>
+                            <button type="button" style="background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="closeCategoriseModal()">Cancel</button>
+                            <button id="categoriseSubmitBtn" type="button" style="background:#FF8C42; border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'DM Sans',sans-serif; cursor:pointer; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="submitCategoriseRequest()">Generate Categories</button>
                         </div>
                     </div>
                 </div>
@@ -575,11 +523,11 @@
                 <div id="categoriseResults" style="display:none;">
                     <div style="margin-bottom:1.5rem;">
                         <div style="font-weight:700; margin-bottom:1rem; color:white; font-size:1.1rem;">✓ AI Suggested Categories — review and confirm:</div>
-                        <div style="max-height:420px; overflow-y:auto; background:#121212; border-radius:12px; padding:1.25rem; border:1px solid rgba(255,255,255,0.08);" id="resultsContainer"></div>
+                        <div style="max-height:420px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:12px; padding:1.25rem; border:2px solid rgba(255,255,255,0.2);" id="resultsContainer"></div>
                     </div>
                     <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-                        <button type="button" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.12); color:#b8a79d; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;" onclick="closeCategoriseModal()">Done</button>
-                        <button type="button" style="background:linear-gradient(135deg, #ff9a4d, #ff7a1a); border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'Inter',sans-serif; cursor:pointer; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="categoriseAgain()">Categorise More</button>
+                        <button type="button" style="background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); color:white; padding:0.75rem 1.5rem; border-radius:10px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="closeCategoriseModal()">Done</button>
+                        <button type="button" style="background:#FF8C42; border:none; color:white; padding:0.75rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; font-family:'DM Sans',sans-serif; cursor:pointer; box-shadow:0 4px 15px rgba(255,140,66,0.3);" onclick="categoriseAgain()">Categorise More</button>
                     </div>
                 </div>
             </div>
@@ -704,11 +652,6 @@
         document.getElementById('editItemCategory').value    = category || '';
         document.getElementById('editItemPhoto').value       = '';
 
-        // ✅ ADDED: set counter when modal opens
-        const editCounter = document.getElementById('editDescCounter');
-        editCounter.textContent = `${description.length} / 100`;
-        editCounter.style.color = description.length >= 100 ? '#ff8c7e' : description.length >= 85 ? '#ff9a4d' : '#8f7d73';
-
         const currentImg   = document.getElementById('currentItemImage');
         const deleteImgBtn = document.getElementById('deleteImageBtn');
         if (photoUrl) { currentImg.src = photoUrl; deleteImgBtn.style.display = 'inline-flex'; }
@@ -720,24 +663,8 @@
         setTimeout(() => document.getElementById('editItemName').focus(), 100);
     };
 
-    window.closeEditModal = function() {
-        editModal.style.display = 'none';
-        editForm.reset();
-        // ✅ ADDED: reset counter when modal closes
-        const editCounter = document.getElementById('editDescCounter');
-        editCounter.textContent = '0 / 100';
-        editCounter.style.color = '#8f7d73';
-    };
-
+    window.closeEditModal = function() { editModal.style.display = 'none'; editForm.reset(); };
     editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
-
-    // ✅ ADDED: live counter while typing in edit modal
-    document.getElementById('editItemDescription').addEventListener('input', function() {
-        const len = this.value.length;
-        const counter = document.getElementById('editDescCounter');
-        counter.textContent = `${len} / 100`;
-        counter.style.color = len >= 100 ? '#ff8c7e' : len >= 85 ? '#ff9a4d' : '#8f7d73';
-    });
 
     document.getElementById('editItemPhoto').addEventListener('change', function() {
         const file = this.files && this.files[0];
@@ -761,7 +688,7 @@
         const result = await Swal.fire({
             title: 'Delete this image?', text: "The item will keep its name/price/description.",
             icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#ff7a1a', cancelButtonColor: '#121212',
+            confirmButtonColor: '#ff4444', cancelButtonColor: '#1a1a2e',
             confirmButtonText: 'Yes, delete image', allowOutsideClick: false, target: document.body
         });
         if (!result.isConfirmed) return;
@@ -816,7 +743,7 @@
         const result = await Swal.fire({
             title: 'Delete this item?', text: "You won't be able to revert this!",
             icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#ff7a1a', cancelButtonColor: '#121212',
+            confirmButtonColor: '#ff4444', cancelButtonColor: '#1a1a2e',
             confirmButtonText: 'Yes, delete it', allowOutsideClick: false, target: document.body
         });
         if (!result.isConfirmed) return;
@@ -847,12 +774,12 @@
             const checklistHtml = siblings.map(b =>
                 `<div class="branch-check-item">
                     <input type="checkbox" id="bch-del-${b.id}" value="${b.id}" checked />
-                    <label for="bch-del-${b.id}" style="cursor:pointer; font-weight:600; color:#f7efe8;">${escHtml(b.branchName)}</label>
+                    <label for="bch-del-${b.id}" style="cursor:pointer; font-weight:600; color:#1a1a2e;">${escHtml(b.branchName)}</label>
                 </div>`).join('');
 
             Swal.fire({
                 title: 'Also delete from other branches?',
-                html: `<p style="color:#b8a79d; margin-bottom:1rem;">Select which branches to also remove <strong>${escHtml(itemName)}</strong> from:</p>
+                html: `<p style="color:#666; margin-bottom:1rem;">Select which branches to also remove <strong>${escHtml(itemName)}</strong> from:</p>
                        <div id="deleteBranchChecklist">${checklistHtml}</div>`,
                 showCancelButton: true,
                 confirmButtonColor: '#ff4444',
@@ -913,8 +840,8 @@
             label.htmlFor = checkbox.id;
             label.style.cssText = 'cursor:pointer; flex:1; display:flex; flex-direction:column; gap:0.5rem;';
 
-            const nameSpan  = document.createElement('span'); nameSpan.style.cssText  = 'font-weight:700; color:#f7efe8;'; nameSpan.textContent  = name;
-            const descSpan  = document.createElement('span'); descSpan.style.cssText  = 'font-size:0.9rem; color:#b8a79d;'; descSpan.textContent  = (desc.length > 80 ? desc.substring(0, 80) + '...' : desc) || 'No description';
+            const nameSpan  = document.createElement('span'); nameSpan.style.cssText  = 'font-weight:700; color:#1a1a2e;'; nameSpan.textContent  = name;
+            const descSpan  = document.createElement('span'); descSpan.style.cssText  = 'font-size:0.9rem; color:#666;'; descSpan.textContent  = (desc.length > 80 ? desc.substring(0, 80) + '...' : desc) || 'No description';
             const priceSpan = document.createElement('span'); priceSpan.style.cssText = 'font-size:0.95rem; color:#FF8C42; font-weight:700;'; priceSpan.textContent = `$${price}`;
 
             label.appendChild(nameSpan); label.appendChild(descSpan); label.appendChild(priceSpan);
@@ -962,9 +889,7 @@
 
         results.forEach(result => {
             const div = document.createElement('div');
-            div.id = `categorise-result-${result.itemId}`;
-            // Dark background for better contrast in the app's dark theme
-            div.style.cssText = 'padding:1.25rem; border-radius:10px; margin-bottom:1rem; background: var(--panel-2); border: 1px solid rgba(255,255,255,0.04); color: var(--text);';
+            div.style.cssText = 'padding:1.25rem; border:2px solid rgba(255,140,66,0.2); border-radius:10px; margin-bottom:1rem; background:white;';
 
             const statusColor = result.success ? '#4CAF50' : '#ff6b35';
             const statusIcon  = result.success ? '✓' : '→';
@@ -975,20 +900,20 @@
             badge.style.cssText = `display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:${statusColor}; color:white; font-weight:bold; font-size:0.9rem;`;
             badge.textContent = statusIcon;
             const itemNameSpan = document.createElement('span');
-            itemNameSpan.style.cssText = 'font-weight:600; color:#f7efe8; flex:1;';
+            itemNameSpan.style.cssText = 'font-weight:600; color:#1a1a2e; flex:1;';
             itemNameSpan.textContent = result.itemName;
             headerRow.appendChild(badge); headerRow.appendChild(itemNameSpan);
             div.appendChild(headerRow);
 
             if (result.success) {
                 const info = document.createElement('div'); info.style.cssText = 'margin-left:2rem; margin-bottom:0.5rem;';
-                const catLine = document.createElement('div'); catLine.style.cssText = 'font-size:0.9rem; color:var(--muted); margin-bottom:0.25rem;';
+                const catLine = document.createElement('div'); catLine.style.cssText = 'font-size:0.9rem; color:#666; margin-bottom:0.25rem;';
                 catLine.innerHTML = '<strong>Suggested Category:</strong> ';
-                const catVal = document.createElement('span'); catVal.style.cssText = 'background: rgba(255,255,255,0.04); color: var(--text); padding:0.18rem 0.6rem; border-radius:8px; margin-left:0.5rem; font-weight:600; display:inline-block;'; catVal.textContent = result.category;
+                const catVal = document.createElement('span'); catVal.style.cssText = 'color:#4CAF50; font-weight:600;'; catVal.textContent = result.category;
                 catLine.appendChild(catVal);
-                const confLine = document.createElement('div'); confLine.style.cssText = 'font-size:0.9rem; color:#b8a79d; margin-bottom:0.25rem;';
+                const confLine = document.createElement('div'); confLine.style.cssText = 'font-size:0.9rem; color:#666; margin-bottom:0.25rem;';
                 confLine.innerHTML = `<strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%`;
-                const reasonLine = document.createElement('div'); reasonLine.style.cssText = 'font-size:0.9rem; color:#b8a79d;';
+                const reasonLine = document.createElement('div'); reasonLine.style.cssText = 'font-size:0.9rem; color:#666;';
                 reasonLine.innerHTML = '<strong>Reasoning:</strong> ';
                 reasonLine.appendChild(document.createTextNode(result.reasoning || 'N/A'));
                 info.appendChild(catLine); info.appendChild(confLine); info.appendChild(reasonLine);
@@ -1021,24 +946,8 @@
             const response = await fetch(`${API}/${itemId}`, { method: 'POST', body: formData });
             const data = await response.json();
             if (response.ok && (data.success === undefined || data.success)) {
-                // Remove the result div from the category suggestion list
-                const resultDiv = document.getElementById(`categorise-result-${itemId}`);
-                if (resultDiv) {
-                    resultDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    resultDiv.style.opacity = '0';
-                    resultDiv.style.transform = 'translateX(10px)';
-                    setTimeout(() => {
-                        resultDiv.remove();
-                        // Check if there are any results left
-                        const container = document.getElementById('resultsContainer');
-                        if (!container.children.length) {
-                            document.getElementById('categoriseResults').style.display = 'none';
-                            document.getElementById('categoriseContent').style.display = 'block';
-                            renderCategoriseItemsList();
-                        }
-                    }, 300);
-                }
-                Swal.fire({ title:'Saved!', text:'Category updated and removed from list.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
+                Swal.fire({ title:'Saved!', text:'Category updated.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
+                fetchItems();
             } else { Swal.fire({ title:'Error!', text: data.error || 'Failed to save', icon:'error', target: document.body }); }
         } catch (err) { Swal.fire({ title:'Error!', text:'Network error', icon:'error', target: document.body }); }
     }
@@ -1057,217 +966,65 @@
     })();
 
     function openAiIdeasModal() {
-        resetAiIdeasUi();
-        document.getElementById('aiIdeasModal').style.display = 'flex';
+        document.getElementById('aiIdeasResults').style.display  = 'none';
+        document.getElementById('aiIdeasLoading').style.display  = 'none';
+        document.getElementById('aiIdeasError').style.display    = 'none';
+        document.getElementById('aiIdeasList').innerHTML         = '';
+        document.getElementById('generateIdeasBtn').disabled     = false;
+        document.getElementById('generateIdeasBtn').textContent  = 'Generate Ideas';
+        document.getElementById('aiIdeasModal').style.display    = 'flex';
     }
 
     function closeAiIdeasModal() { document.getElementById('aiIdeasModal').style.display = 'none'; }
 
-    function resetAiIdeasUi() {
-        document.getElementById('aiIdeasResults').style.display = 'none';
-        document.getElementById('aiIdeasLoading').style.display = 'none';
-        document.getElementById('aiIdeasError').style.display   = 'none';
-        document.getElementById('aiIdeasError').textContent     = '';
-        document.getElementById('aiIdeasList').innerHTML        = '';
-        const genBtn = document.getElementById('generateIdeasBtn');
-        genBtn.disabled = false;
-        genBtn.textContent = 'Generate Ideas';
-    }
-
-    function showAiIdeasValidation(message) {
-        resetAiIdeasUi();
-        const errorBox = document.getElementById('aiIdeasError');
-        errorBox.textContent = message;
-        errorBox.style.display = 'block';
-
-        Swal.fire({
-            title: 'Check your input',
-            text: message,
-            icon: 'warning',
-            target: document.body
-        });
-    }
-
-    function showAiIdeasServerError(message) {
-        resetAiIdeasUi();
-        const errorBox = document.getElementById('aiIdeasError');
-        errorBox.textContent = message;
-        errorBox.style.display = 'block';
-    }
-
-    function isValidIdeaText(value) {
-        const cleaned = (value || '').trim();
-
-        if (cleaned.length < 2 || cleaned.length > 60) return false;
-        if (!/[\p{L}]/u.test(cleaned)) return false;
-        if (/\d/.test(cleaned)) return false;
-        if (!/^[\p{L}][\p{L}\s'&-]*[\p{L}]$/u.test(cleaned)) return false;
-
-        return true;
-    }
-
     async function generateAiIdeas() {
         const cuisineType    = document.getElementById('aiCuisineType').value.trim();
         const restaurantType = document.getElementById('aiRestaurantType').value.trim();
-        const countRaw       = document.getElementById('aiIdeasCount').value.trim();
-
-        resetAiIdeasUi();
-
-        if (!cuisineType) {
-            showAiIdeasValidation('Cuisine type is required.');
-            return;
-        }
-
-        if (!restaurantType) {
-            showAiIdeasValidation('Restaurant style is required.');
-            return;
-        }
-
-        if (!isValidIdeaText(cuisineType)) {
-            showAiIdeasValidation('Please enter a valid cuisine type.');
-            return;
-        }
-
-        if (!isValidIdeaText(restaurantType)) {
-            showAiIdeasValidation('Please enter a valid restaurant style.');
-            return;
-        }
-
-        if (countRaw === '') {
-            showAiIdeasValidation('Number of ideas is required.');
-            return;
-        }
-
-        if (!/^-?\d+$/.test(countRaw)) {
-            showAiIdeasValidation('Number of ideas must be a whole number.');
-            return;
-        }
-
-        const count = Number(countRaw);
-
-        if (count < 0) {
-            showAiIdeasValidation('Number of ideas cannot be negative.');
-            return;
-        }
-
-        if (count > 10) {
-            showAiIdeasValidation('Maximum number of ideas is 10.');
-            return;
-        }
-
-        if (count === 0) {
-            Swal.fire({
-                title: 'No ideas generated',
-                text: 'You requested 0 ideas, so nothing was generated.',
-                icon: 'info',
-                target: document.body
-            });
-            return;
-        }
-
+        const count          = parseInt(document.getElementById('aiIdeasCount').value) || 5;
+        document.getElementById('aiIdeasResults').style.display = 'none';
+        document.getElementById('aiIdeasError').style.display   = 'none';
         document.getElementById('aiIdeasLoading').style.display = 'block';
-
         const genBtn = document.getElementById('generateIdeasBtn');
-        genBtn.disabled = true;
-        genBtn.textContent = 'Generating...';
-
+        genBtn.disabled = true; genBtn.textContent = 'Generating...';
         try {
             const response = await fetch('/api/menu-ideas/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cuisineType, restaurantType, count })
             });
-
-            if (response.status === 401 || response.redirected) {
-                window.location.href = '/login';
-                return;
-            }
-
+            if (response.status === 401 || response.redirected) { window.location.href = '/login'; return; }
             const data = await response.json();
-
-            if (!response.ok || data.error) {
-                const message = data.error || 'Failed to generate ideas.';
-                if (response.status >= 400 && response.status < 500) {
-                    showAiIdeasValidation(message);
-                } else {
-                    showAiIdeasServerError(message);
-                }
-                return;
-            }
-
+            document.getElementById('aiIdeasLoading').style.display = 'none';
+            genBtn.disabled = false; genBtn.textContent = 'Generate Ideas';
+            if (!response.ok || data.error) { const e = document.getElementById('aiIdeasError'); e.textContent = data.error || 'Failed.'; e.style.display = 'block'; return; }
             const ideas = data.ideas || [];
-
-            if (!ideas.length) {
-                showAiIdeasServerError('No ideas returned.');
-                return;
-            }
-
-            resetAiIdeasUi();
+            if (!ideas.length) { const e = document.getElementById('aiIdeasError'); e.textContent = 'No ideas returned.'; e.style.display = 'block'; return; }
             renderAiIdeas(ideas);
         } catch (err) {
-            showAiIdeasServerError('Network error.');
+            document.getElementById('aiIdeasLoading').style.display = 'none';
+            genBtn.disabled = false; genBtn.textContent = 'Generate Ideas';
+            const e = document.getElementById('aiIdeasError'); e.textContent = 'Network error.'; e.style.display = 'block';
         }
     }
 
     function renderAiIdeas(ideas) {
         const list = document.getElementById('aiIdeasList');
         list.innerHTML = '';
-
         ideas.forEach((idea, idx) => {
-            const cleaned = idea.replace(/\*\*/g, '').trim();
-
-            const colon = cleaned.indexOf(':');
-            let name = '';
-            let desc = '';
-
-            if (colon > 0) {
-                name = cleaned.substring(0, colon).trim();
-                desc = cleaned.substring(colon + 1).trim();
-            } else {
-                name = cleaned;
-            }
-
-            const item = document.createElement('div');
-            item.style.cssText = `
-                display:flex;
-                align-items:flex-start;
-                gap:0.75rem;
-                padding:0.85rem 1rem;
-                border:1px solid rgba(255,255,255,0.04);
-                border-radius:12px;
-                cursor:pointer;
-                background: var(--panel-2);
-                transition: all 0.2s ease;
-            `;
-
-            item.addEventListener('mouseenter', () => {
-                item.style.background = 'var(--panel-3)';
-                item.style.borderColor = 'rgba(255,122,26,0.2)';
-            });
-
-            item.addEventListener('mouseleave', () => {
-                item.style.background = 'var(--panel-2)';
-                item.style.borderColor = 'rgba(255,255,255,0.04)';
-            });
-
+            const colon = idea.indexOf(':');
+            let name = idea, desc = '';
+            if (colon > 0) { name = idea.substring(0, colon).trim(); desc = idea.substring(colon + 1).trim(); }
+            const item    = document.createElement('div');
+            item.style.cssText = 'display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; border:1px solid #e8e8e8; border-radius:10px; cursor:pointer; background:#fafafa;';
             const checkId = 'ai-idea-' + idx;
-
             item.innerHTML =
-                `<input type="checkbox" id="${checkId}" data-name="${escHtml(name)}" data-desc="${escHtml(desc)}" style="margin-top:3px; accent-color:var(--orange); width:16px; height:16px; flex-shrink:0;" />` +
+                `<input type="checkbox" id="${checkId}" data-name="${escHtml(name)}" data-desc="${escHtml(desc)}" style="margin-top:3px; accent-color:#ff6b35; width:16px; height:16px; flex-shrink:0;" />` +
                 `<label for="${checkId}" style="cursor:pointer; flex:1;">` +
-                `<div style="font-weight:600; color:var(--text);">${escHtml(name)}</div>` +
-                (desc ? `<div style="color:var(--muted); font-size:0.87rem;">${escHtml(desc)}</div>` : '') +
+                `<div style="font-weight:600; color:#1a1a2e;">${escHtml(name)}</div>` +
+                (desc ? `<div style="color:#666; font-size:0.87rem;">${escHtml(desc)}</div>` : '') +
                 `</label>`;
-
-            item.addEventListener('click', e => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
-                const cb = item.querySelector('input');
-                if (cb) cb.checked = !cb.checked;
-            });
-
+            item.addEventListener('click', e => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return; const cb = item.querySelector('input'); if (cb) cb.checked = !cb.checked; });
             list.appendChild(item);
         });
-
         document.getElementById('aiIdeasResults').style.display = 'block';
     }
 
@@ -1317,12 +1074,12 @@
             const checklistHtml = siblings.map(b =>
                 `<div class="branch-check-item">
                     <input type="checkbox" id="bch-copy-${b.id}" value="${b.id}" checked />
-                    <label for="bch-copy-${b.id}" style="cursor:pointer; font-weight:600; color:#f7efe8;">${escHtml(b.branchName)}</label>
+                    <label for="bch-copy-${b.id}" style="cursor:pointer; font-weight:600; color:#1a1a2e;">${escHtml(b.branchName)}</label>
                 </div>`).join('');
 
             Swal.fire({
                 title: 'Copy to other branches?',
-                html: `<p style="color:#b8a79d; margin-bottom:1rem;">Select which branches should also receive this item:</p>
+                html: `<p style="color:#666; margin-bottom:1rem;">Select which branches should also receive this item:</p>
                        <div id="copyBranchChecklist">${checklistHtml}</div>`,
                 showCancelButton: true,
                 confirmButtonColor: '#ff6b35',
@@ -1353,3 +1110,6 @@
 
 </body>
 </html>
+
+
+

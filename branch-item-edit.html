@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Branch Item – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-card {
+            background: #fff;
+            border-radius: 22px;
+            padding: 3rem 2.75rem;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f59e0b, #ff8c42);
+        }
+
+        .breadcrumb {
+            font-size: 0.78rem;
+            color: #aaa;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a { color: #ff6b35; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.4px;
+        }
+
+        .override-notice {
+            font-size: 0.82rem;
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 0.65rem 0.9rem;
+            color: #92400e;
+            margin-bottom: 1.75rem;
+            line-height: 1.5;
+        }
+
+        .field { margin-bottom: 1.4rem; }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #f0ebe6;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            background: #fffcfa;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245,158,11,0.12);
+            background: #fff;
+        }
+
+        input::placeholder, textarea::placeholder { color: #ccc; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f59e0b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .row { display: flex; gap: 1rem; }
+        .row .field { flex: 1; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(245,158,11,0.45);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.85rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: #ff6b35; }
+
+        @media (max-width: 480px) {
+            .form-card { padding: 2rem 1.5rem; }
+            .row { flex-direction: column; gap: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/theme-overrides.css">
+</head>
+<body>
+
+<div class="form-card">
+    <div class="breadcrumb">
+        <a th:href="@{/branch/{id}/dashboard(id=${branch.id})}"
+           th:text="${branch.branchName}">Branch</a> ›
+        <a th:href="@{/branch/{id}/menu(id=${branch.id})}">Menu</a> › Edit Item
+    </div>
+
+    <h1>Override Item</h1>
+
+    <div class="override-notice">
+        ⚠️ Changes here only affect <strong th:text="${branch.branchName}">this branch</strong>.
+        The restaurant's original item remains unchanged for other branches.
+    </div>
+
+    <form method="post"
+          th:action="@{/branch/{id}/menu/edit-inherited(id=${branch.id})}">
+
+        <input type="hidden" name="parentItemId" th:value="${parentItemId}">
+
+        <div class="field">
+            <label>Item Name</label>
+            <input type="text" name="name" th:value="${item.name}"
+                   placeholder="Item name" required maxlength="100">
+        </div>
+
+        <div class="field">
+            <label>Description</label>
+            <textarea name="description"
+                      placeholder="Description (optional)"
+                      maxlength="300"
+                      th:text="${item.description}"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label>Price ($)</label>
+                <input type="number" name="price" th:value="${item.price}"
+                       step="0.01" min="0" max="9999" required>
+            </div>
+
+            <div class="field">
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="">Select…</option>
+                    <option value="Starters"  th:selected="${item.category == 'Starters'}">Starters</option>
+                    <option value="Mains"     th:selected="${item.category == 'Mains'}">Mains</option>
+                    <option value="Sides"     th:selected="${item.category == 'Sides'}">Sides</option>
+                    <option value="Desserts"  th:selected="${item.category == 'Desserts'}">Desserts</option>
+                    <option value="Drinks"    th:selected="${item.category == 'Drinks'}">Drinks</option>
+                    <option value="Specials"  th:selected="${item.category == 'Specials'}">Specials</option>
+                    <option value="Other"     th:selected="${item.category == 'Other'}">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Save Branch Override</button>
+    </form>
+
+    <a th:href="@{/branch/{id}/menu(id=${branch.id})}" class="back-link">← Back to menu</a>
+</div>
+
+</body>
+</html>
+
+
+
