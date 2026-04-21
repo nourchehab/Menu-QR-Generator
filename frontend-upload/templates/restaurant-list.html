@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Restaurants – FlavorFrame</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .restaurant-list-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .page-header-left {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .page-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .page-header-subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-primary {
+            padding: 0.85rem 1.75rem;
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .logout-btn {
+            background: #f0f0f0;
+            color: #666;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-btn:hover {
+            background: #e0e0e0;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .restaurants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .restaurant-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .restaurant-logo-wrapper {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #e8e8e8, #d5d5d5);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .restaurant-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.3s ease;
+        }
+
+        .restaurant-card:hover .restaurant-logo {
+            transform: scale(1.05);
+        }
+
+        .restaurant-logo-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 140px;
+            height: 140px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            color: #999;
+            font-size: 3.5rem;
+        }
+
+        .restaurant-info {
+            padding: 1.75rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .restaurant-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1.3;
+            word-break: break-word;
+            margin-bottom: 0.25rem;
+        }
+
+        .restaurant-type {
+            font-size: 0.9rem;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .restaurant-divider {
+            height: 1px;
+            background: #f0f0f0;
+            margin: 1rem 0;
+        }
+
+        .restaurant-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-go-to {
+            flex: 1;
+            padding: 0.75rem 1.2rem;
+            background: linear-gradient(135deg, #ff8c42, #ff6b35);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.25);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-go-to:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(255, 107, 53, 0.35);
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 18px;
+            padding: 3.5rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .empty-state h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .error-message {
+            background: rgba(220, 80, 80, 0.95);
+            border-radius: 12px;
+            padding: 1.25rem;
+            color: white;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 8px 20px rgba(220, 80, 80, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1.5rem 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .page-header-left {
+                width: 100%;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .restaurants-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .restaurant-logo-wrapper {
+                height: 180px;
+            }
+
+            .restaurant-info {
+                padding: 1.5rem;
+            }
+
+            .empty-state {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .empty-state h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .page-header-subtitle {
+                font-size: 0.85rem;
+            }
+
+            .btn-primary {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.85rem;
+            }
+
+            .restaurants-grid {
+                gap: 1rem;
+            }
+
+            .restaurant-card {
+                border-radius: 14px;
+            }
+
+            .restaurant-info {
+                padding: 1.25rem;
+            }
+
+            .restaurant-name {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="restaurant-list-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>My Restaurants</h1>
+                <p class="page-header-subtitle">Manage your restaurants and their branches</p>
+            </div>
+            <div class="header-actions">
+                <a href="/restaurant/setup" class="btn-primary">+ Add Restaurant</a>
+                <a href="/logout" class="btn-primary logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <!-- Error Message (if any) -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- Restaurants Grid -->
+        <div th:if="${hasRestaurants}" class="restaurants-grid">
+            <div th:each="restaurant : ${restaurants}" class="restaurant-card">
+                <!-- Restaurant Logo -->
+                <div class="restaurant-logo-wrapper">
+                    <img th:if="${logoUrls[restaurant.id]}" th:src="${logoUrls[restaurant.id]}" 
+                         alt="Restaurant Logo" class="restaurant-logo"
+                         onerror="this.style.display='none'; this.parentElement.querySelector('.restaurant-logo-placeholder').style.display='flex';">
+                    <div th:if="${logoUrls[restaurant.id]}" class="restaurant-logo-placeholder" style="display: none;">
+                        🍽️
+                    </div>
+                    <div th:unless="${logoUrls[restaurant.id]}" class="restaurant-logo-placeholder">
+                        🍽️
+                    </div>
+                </div>
+
+                <!-- Restaurant Info -->
+                <div class="restaurant-info">
+                    <h2 class="restaurant-name" th:text="${restaurant.restaurantName}">Restaurant Name</h2>
+                    <p class="restaurant-type" th:text="${restaurant.restaurantType}">Cafe</p>
+
+                    <div class="restaurant-divider"></div>
+
+                    <!-- Go To Button -->
+                    <div class="restaurant-actions">
+                        <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-go-to">Go To Branches</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:unless="${hasRestaurants}" class="empty-state">
+            <span class="empty-state-icon">🍽️</span>
+            <h2>No Restaurants Yet</h2>
+            <p>You haven't created any restaurants yet. Get started by creating your first restaurant!</p>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

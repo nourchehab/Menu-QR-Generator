@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Menu Theme — FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin:0; font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#f7f7fb; color:#151525; padding:32px 18px; }
+        .wrap { max-width:920px; margin:0 auto; }
+        .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:18px; }
+        .title h1 { margin:0; font-size:1.6rem; }
+        .title p { margin:6px 0 0; color:#5b5b73; }
+        .branch-sub { font-size:.82rem; color:#c8622a; font-weight:600; margin-top:4px; }
+        .btn { border:0; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; }
+        .btn.primary { background:#ff6b35; color:#fff; }
+        .btn.ghost { background:transparent; border:1px solid #d8d8e8; color:#151525; text-decoration:none; }
+        .grid { display:grid; grid-template-columns:360px 1fr; gap:16px; }
+        @media(max-width:860px){ .grid{grid-template-columns:1fr;} }
+        .card { background:#fff; border:1px solid #ececf6; border-radius:18px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,0.06); }
+        label { display:block; font-size:.88rem; font-weight:600; margin-top:10px; margin-bottom:6px; }
+        .row { display:flex; gap:10px; align-items:center; }
+        input[type="color"] { width:54px; height:44px; border:0; padding:0; background:transparent; cursor:pointer; }
+        input[type="text"] { flex:1; height:44px; border-radius:12px; border:1px solid #d8d8e8; padding:0 12px; font-size:.95rem; }
+        .help { color:#5b5b73; font-size:.85rem; margin-top:8px; line-height:1.4; }
+        .status { margin-top:12px; padding:10px 12px; border-radius:12px; background:#f6f6ff; border:1px solid #ececf6; }
+        .status b { font-weight:700; }
+        .preview { border-radius:18px; overflow:hidden; border:1px solid #ececf6; }
+        .preview-header { padding:18px; display:flex; align-items:center; justify-content:space-between; }
+        .preview-title { font-size:1.1rem; font-weight:700; }
+        .pill { font-size:.72rem; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.25); }
+        .preview-body { padding:18px; background:rgba(255,255,255,0.85); }
+        .preview-item { background:#fff; border:1px solid #ececf6; border-radius:14px; padding:14px; margin-bottom:10px; }
+        .preview-item:last-child { margin-bottom:0; }
+        .preview-item .name { font-weight:700; margin-bottom:6px; }
+        .preview-item .desc { color:#5b5b73; font-size:.9rem; margin-bottom:10px; }
+        .preview-item .price { font-weight:700; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <div class="title">
+            <h1>Menu background color</h1>
+            <p>Pick a color that matches your restaurant — we'll automatically pick a readable text color.</p>
+            <div class="branch-sub" id="branchSub" style="display:none;"></div>
+        </div>
+        <div class="row">
+            <a class="btn ghost" id="backBtn" href="/restaurants">← Back</a>
+            <a class="btn ghost" id="previewBtn" href="#" target="_blank">Open Preview</a>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <label for="colorPicker">Choose a background color</label>
+            <div class="row">
+                <input id="colorPicker" type="color" value="#F9F5EF" />
+                <input id="hexInput" type="text" value="#F9F5EF" placeholder="#RRGGBB" />
+            </div>
+            <div class="help">Tip: Paste a hex color from your logo/brand guide (e.g. <b>#FF6B35</b>).</div>
+
+            <div class="status" id="statusBox">
+                <div>Suggested text color: <b id="suggestedText">—</b></div>
+                <div>Contrast ratio: <b id="contrastRatio">—</b> (WCAG AA target ≥ 4.5)</div>
+            </div>
+
+            <div class="row" style="margin-top:14px;">
+                <button class="btn primary" id="saveBtn">Save</button>
+                <span id="saveMsg" class="help" style="margin:0;"></span>
+            </div>
+        </div>
+
+        <div class="card" style="padding:0;">
+            <div class="preview" id="miniPreview" style="background:#F9F5EF; color:#1a1208;">
+                <div class="preview-header">
+                    <div>
+                        <div class="preview-title" id="previewName">Your Restaurant</div>
+                        <div class="help" style="margin-top:4px; color:inherit; opacity:0.85;">This is roughly how the menu will feel.</div>
+                    </div>
+                    <span class="pill" id="previewType">Menu</span>
+                </div>
+                <div class="preview-body">
+                    <div class="preview-item">
+                        <div class="name">Sample Item</div>
+                        <div class="desc">A short description goes here.</div>
+                        <div class="price">$12.50</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="name">Another Item</div>
+                        <div class="desc">Readable text matters on all screens.</div>
+                        <div class="price">$8.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Read branchId from URL ────────────────────────────────────────────────
+    const params   = new URLSearchParams(window.location.search);
+    const branchId = params.get('branchId');
+
+    // Set navigation links
+    const dashUrl    = branchId ? `/branch/${branchId}/dashboard` : '/restaurants';
+    const previewUrl = branchId ? `/menu/preview?branchId=${branchId}` : '/menu/preview';
+
+    document.getElementById('backBtn').href    = dashUrl;
+    document.getElementById('previewBtn').href = previewUrl;
+
+    // API endpoints — branch-scoped when branchId present
+    const infoUrl  = branchId ? `/api/restaurant/branch/${branchId}` : '/api/restaurant/me';
+    const themeUrl = branchId ? `/api/restaurant/branch/${branchId}/theme` : '/api/restaurant/me/theme';
+
+    // ── Color helpers ─────────────────────────────────────────────────────────
+    function normalizeHex(s) {
+        if (!s) return null;
+        s = String(s).trim();
+        if (s.startsWith('#')) s = s.slice(1);
+        if (s.length === 3) s = s.split('').map(ch => ch+ch).join('');
+        if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+        return '#' + s.toUpperCase();
+    }
+
+    function luminance(hex) {
+        const r = parseInt(hex.slice(1,3),16)/255;
+        const g = parseInt(hex.slice(3,5),16)/255;
+        const b = parseInt(hex.slice(5,7),16)/255;
+        const f = c => c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+        return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b);
+    }
+
+    function contrast(bg, fg) {
+        const L1 = luminance(bg), L2 = luminance(fg);
+        return (Math.max(L1,L2)+0.05) / (Math.min(L1,L2)+0.05);
+    }
+
+    function bestTextColor(bg) {
+        return contrast(bg,'#000000') >= contrast(bg,'#FFFFFF') ? '#000000' : '#FFFFFF';
+    }
+
+    // ── Preview ───────────────────────────────────────────────────────────────
+    const colorPicker    = document.getElementById('colorPicker');
+    const hexInput       = document.getElementById('hexInput');
+    const miniPreview    = document.getElementById('miniPreview');
+    const suggestedText  = document.getElementById('suggestedText');
+    const contrastRatioEl = document.getElementById('contrastRatio');
+    const saveBtn        = document.getElementById('saveBtn');
+    const saveMsg        = document.getElementById('saveMsg');
+
+    function applyToPreview(hex) {
+        const text = bestTextColor(hex);
+        const cr   = contrast(hex, text);
+        miniPreview.style.background = hex;
+        miniPreview.style.color      = text;
+        suggestedText.textContent    = text;
+        contrastRatioEl.textContent  = cr.toFixed(2);
+    }
+
+    function syncFromColorPicker() {
+        const hex = normalizeHex(colorPicker.value);
+        if (!hex) return;
+        hexInput.value = hex;
+        applyToPreview(hex);
+    }
+
+    function syncFromHexInput() {
+        const hex = normalizeHex(hexInput.value);
+        if (!hex) return;
+        colorPicker.value = hex;
+        applyToPreview(hex);
+    }
+
+    colorPicker.addEventListener('input', () => { saveMsg.textContent = ''; syncFromColorPicker(); });
+    hexInput.addEventListener('input',    () => { saveMsg.textContent = ''; syncFromHexInput(); });
+
+    // ── Load current restaurant / branch info ─────────────────────────────────
+    async function loadCurrent() {
+        try {
+            const res = await fetch(infoUrl);
+            if (!res.ok) return;
+            const r = await res.json();
+
+            if (r.restaurantName) document.getElementById('previewName').textContent = r.restaurantName;
+            if (r.restaurantType) document.getElementById('previewType').textContent = r.restaurantType;
+
+            // Show branch label if scoped to a branch
+            if (r.branchName) {
+                const sub = document.getElementById('branchSub');
+                sub.textContent = `📍 Branch: ${r.branchName}`;
+                sub.style.display = 'block';
+            }
+
+            if (r.menuBackgroundColor) {
+                const hex = normalizeHex(r.menuBackgroundColor);
+                if (hex) { colorPicker.value = hex; hexInput.value = hex; applyToPreview(hex); }
+            } else {
+                syncFromColorPicker();
+            }
+        } catch (e) {
+            syncFromColorPicker();
+        }
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+    saveBtn.addEventListener('click', async () => {
+        const hex = normalizeHex(hexInput.value);
+        if (!hex) { saveMsg.textContent = 'Please enter a valid color like #RRGGBB.'; return; }
+
+        saveBtn.disabled = true;
+        saveMsg.textContent = 'Saving…';
+
+        try {
+            const res = await fetch(themeUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ menuBackgroundColor: hex })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to save');
+
+            saveMsg.textContent = 'Saved ✅';
+            if (data.menuBackgroundColor) {
+                colorPicker.value = data.menuBackgroundColor;
+                hexInput.value    = data.menuBackgroundColor;
+                applyToPreview(data.menuBackgroundColor);
+            }
+        } catch (e) {
+            saveMsg.textContent = e.message;
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    loadCurrent();
+</script>
+</body>
+</html>
+
+
+

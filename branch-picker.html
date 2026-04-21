@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="ngrok-skip-browser-warning" content="true"/>
+    <title th:text="${restaurant.restaurantName} + ' — Choose Branch'">Choose Branch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cream: #f9f5ef;
+            --warm:  #f2ebe0;
+            --ink:   #1a1208;
+            --muted: #7a6e60;
+            --accent: #c8622a;
+            --divider: #e8e2d8;
+        }
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        /* ── Google Translate ── */
+        #google_translate_element {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: #f0f0f0;
+            padding: 10px 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        #google_translate_element select {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            color: #333;
+            cursor: pointer;
+        }
+
+        /* ── Restaurant header ── */
+        .restaurant-header {
+            background: #fff;
+            border-bottom: 1px solid var(--divider);
+            padding: 36px 20px 28px;
+            text-align: center;
+        }
+
+        .logo-wrap {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--warm);
+            border: 2px solid var(--divider);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-placeholder { font-size: 2rem; color: var(--muted); }
+
+        .restaurant-name {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 8px;
+        }
+
+        .choose-label {
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        /* ── Branch list ── */
+        .branch-list {
+            max-width: 520px;
+            margin: 32px auto 80px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .branch-card {
+            background: #fff;
+            border: 1px solid var(--divider);
+            border-radius: 16px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 12px rgba(26,18,8,0.05);
+        }
+
+        .branch-card:hover, .branch-card:focus {
+            border-color: var(--accent);
+            box-shadow: 0 6px 24px rgba(200,98,42,0.15);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .branch-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fff5f0, #ffe8da);
+            border: 1px solid #ffd4c2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .branch-info { flex: 1; min-width: 0; }
+
+        .branch-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .main-tag {
+            display: inline-block;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 20px;
+            padding: 1px 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #f57f17;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .branch-arrow {
+            font-size: 1.2rem;
+            color: var(--accent);
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .branch-card:hover .branch-arrow { transform: translateX(4px); }
+
+        /* ── Footer ── */
+        .menu-footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid var(--divider);
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.05em;
+            background: #fff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .menu-footer span { color: var(--accent); }
+
+        @media (max-width: 480px) {
+            .restaurant-header { padding: 28px 16px 20px; }
+            .branch-card { padding: 18px; }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/theme-overrides.css">
+</head>
+<body>
+
+<!-- Google Translate -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'ar',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<!-- Restaurant header -->
+<header class="restaurant-header">
+    <div class="logo-wrap" id="logoWrap">
+        <div class="logo-placeholder">🍽</div>
+    </div>
+    <h1 class="restaurant-name notranslate" th:text="${restaurant.restaurantName}">Restaurant</h1>
+    <p class="choose-label">Choose a branch</p>
+</header>
+
+<!-- Branch cards -->
+<div class="branch-list">
+    <a th:each="branch : ${branches}"
+       th:href="@{/b/{id}(id=${branch.id})}"
+       class="branch-card">
+        <div class="branch-icon">📍</div>
+        <div class="branch-info">
+            <div class="branch-name">
+                <span th:text="${branch.branchName}">Branch</span>
+                <span th:if="${branch.mainBranch}" class="main-tag">Main</span>
+            </div>
+        </div>
+        <div class="branch-arrow">→</div>
+    </a>
+</div>
+
+<footer class="menu-footer notranslate">Powered by <span>FlavorFrame</span></footer>
+
+<script>
+    // Load restaurant logo via API (since Thymeleaf only has raw logoPath)
+    async function loadLogo() {
+        try {
+            const restaurantId = /*[[${restaurant.id}]]*/ null;
+            if (!restaurantId) return;
+            const res = await fetch(`/api/public/restaurants/${restaurantId}`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.logoPath) {
+                document.getElementById('logoWrap').innerHTML =
+                    `<img src="${data.logoPath}" alt="Logo" onerror="this.parentElement.innerHTML='🍽'"/>`;
+            }
+        } catch (e) { /* leave placeholder */ }
+    }
+    loadLogo();
+</script>
+</body>
+</html>
+
+
+

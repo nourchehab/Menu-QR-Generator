@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="ngrok-skip-browser-warning" content="true"/>
+    <title>Your Menu QR Code — FlavorFrame</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { background:radial-gradient(circle at top left, rgba(249,115,22,.06), transparent 28%), #f8f5f1; font-family:'DM Sans',sans-serif; font-weight:400; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; color:#1c1612; }
+        .card { background:#fff; border:1px solid rgba(28,22,18,.08); border-radius:28px; padding:48px 40px; text-align:center; max-width:460px; width:100%; box-shadow:0 18px 44px rgba(16,12,9,.09); }
+        h1 { font-family:'Fraunces',serif; font-size:2rem; font-weight:500; letter-spacing:-.03em; margin-bottom:10px; }
+        .subtitle { color:#7a6b60; font-size:.92rem; margin-bottom:24px; line-height:1.7; }
+        .qr-loading { color:#7a6b60; font-size:.88rem; padding:20px; }
+        .qr-wrap { background:#fff; border:1.5px solid rgba(28,22,18,.08); border-radius:18px; padding:16px; display:inline-block; margin-bottom:20px; box-shadow:0 8px 22px rgba(16,12,9,.05); }
+        #qrImage { display:block; width:280px; height:280px; }
+        .menu-link { display:block; font-size:.8rem; color:#7a6b60; margin-bottom:24px; word-break:break-all; background:#faf7f3; padding:10px 12px; border-radius:12px; border:1px solid rgba(28,22,18,.08); text-decoration:none; }
+        .menu-link:hover { color:#f97316; }
+        .fallback-note { font-size:.8rem; color:#7a6b60; margin-bottom:24px; }
+        .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:20px; }
+        .btn { padding:12px 22px; border-radius:999px; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:700; cursor:pointer; border:none; text-decoration:none; transition:all .25s ease; display:inline-flex; align-items:center; gap:6px; }
+        .btn-primary { background:#f97316; color:#fff; box-shadow:0 8px 20px rgba(249,115,22,.22); }
+        .btn-primary:hover { background:#e8640a; transform:translateY(-1px); }
+        .btn-outline { background:transparent; border:1.5px solid rgba(28,22,18,.12); color:#1c1612; }
+        .btn-outline:hover { border-color:#1c1612; }
+        .back-link { font-size:.84rem; color:#7a6b60; text-decoration:none; }
+        .back-link:hover { color:#f97316; }
+        .error-msg { color:#c0392b; font-size:.85rem; margin-top:16px; display:none; }
+        @media(max-width:480px) { .card{padding:32px 20px;} #qrImage{width:240px;height:240px;} }
+    </style>
+    <link rel="stylesheet" href="/css/theme-overrides.css">
+</head>
+<body>
+<div class="card">
+    <h1>Menu QR Code</h1>
+    <p class="subtitle" id="subtitle">Customers scan this to instantly view your digital menu — no app needed.</p>
+
+    <div class="qr-wrap">
+        <img id="qrImage" src="" alt="Menu QR Code" style="display:none;" onerror="handleQrError()"/>
+        <div class="qr-loading" id="qrLoading">Generating QR code…</div>
+    </div>
+    <br/>
+
+    <p class="fallback-note">
+        Can't scan? Share this link:<br/>
+        <a id="menuLink" class="menu-link" href="#" target="_blank">Loading…</a>
+    </p>
+
+    <div class="actions">
+        <button class="btn btn-primary" onclick="downloadQr()">⬇ Download QR</button>
+        <a id="previewBtn" class="btn btn-outline" href="#" target="_blank">👁 Preview Menu</a>
+    </div>
+
+    <a id="backBtn" class="back-link" href="/restaurants">← Back to Dashboard</a>
+
+    <p class="error-msg" id="errorMsg">
+        ⚠ Could not load QR code. Please <a id="errorBack" href="/restaurants">return to dashboard</a> and try again.
+    </p>
+</div>
+
+<script>
+    const params   = new URLSearchParams(window.location.search);
+    const branchId = params.get('branchId');
+
+    let qrApiUrl    = '';
+    let menuUrl     = '';
+    let restaurantId = null;
+
+    const fetchOpts = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+
+    async function init() {
+        try {
+            if (branchId) {
+                const res = await fetch(`/api/restaurant/branch/${branchId}`, fetchOpts);
+                if (!res.ok) throw new Error('Branch not found');
+                const data = await res.json();
+                restaurantId = data.id;
+
+                document.getElementById('backBtn').href   = `/branch/${branchId}/dashboard`;
+                document.getElementById('errorBack').href = `/branch/${branchId}/dashboard`;
+                document.getElementById('previewBtn').href = `/menu/preview?branchId=${branchId}`;
+
+                if (data.restaurantName) {
+                    document.getElementById('subtitle').textContent =
+                        `Customers scan this to view ${data.restaurantName}'s menu.`;
+                }
+            } else {
+                const res = await fetch('/api/restaurant/me', fetchOpts);
+                if (!res.ok) throw new Error('Restaurant not found');
+                const data = await res.json();
+                restaurantId = data.id;
+
+                document.getElementById('previewBtn').href = '/menu/preview';
+                document.getElementById('backBtn').href    = '/restaurants';
+            }
+
+            if (!restaurantId) throw new Error('Could not determine restaurant');
+
+            qrApiUrl = `/api/qr/restaurant/${restaurantId}`;
+            menuUrl  = `${location.origin}/r/${restaurantId}`;
+
+            const qrImg = document.getElementById('qrImage');
+            qrImg.onload = () => {
+                document.getElementById('qrLoading').style.display = 'none';
+                qrImg.style.display = 'block';
+            };
+            qrImg.src = qrApiUrl;
+
+            const linkEl = document.getElementById('menuLink');
+            linkEl.href        = menuUrl;
+            linkEl.textContent = menuUrl;
+
+        } catch (e) {
+            document.getElementById('qrLoading').textContent = 'Could not load QR code.';
+            document.getElementById('menuLink').textContent  = 'Could not load link';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    }
+
+    async function downloadQr() {
+        if (!qrApiUrl) { alert('QR not loaded yet.'); return; }
+        try {
+            const res = await fetch(qrApiUrl, fetchOpts);
+            if (!res.ok) throw new Error('Failed');
+            const blob = await res.blob();
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = restaurantId ? `menu-qr-${restaurantId}.png` : 'menu-qr.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch { alert('Download failed. Please try again.'); }
+    }
+
+    function handleQrError() {
+        document.getElementById('qrLoading').style.display  = 'none';
+        document.getElementById('qrImage').style.display    = 'none';
+        document.getElementById('errorMsg').style.display   = 'block';
+    }
+
+    init();
+</script>
+</body>
+</html>
+
+
+

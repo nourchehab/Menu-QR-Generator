@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Menu – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --brand: #ff6b35;
+            --brand-light: #ff8c42;
+            --surface: #fffcfa;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --muted: #888;
+            --border: #f0ebe6;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .page { max-width: 860px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 2.25rem 2.5rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .breadcrumb { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-bottom: 0.4rem; }
+        .breadcrumb a { color: var(--brand); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.4px;
+        }
+
+        .header-sub { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+
+        .btn {
+            padding: 0.7rem 1.4rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand));
+            color: white;
+            box-shadow: 0 5px 16px rgba(255,107,53,0.3);
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,107,53,0.4); }
+        .btn-ghost { background: var(--border); color: var(--muted); }
+        .btn-ghost:hover { background: #e5e0db; color: var(--text); }
+
+        /* Flash */
+        .flash {
+            padding: 0.9rem 1.2rem;
+            border-radius: 11px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+        }
+
+        .flash-success { background: #f0fdf4; color: #16a34a; }
+        .flash-error   { background: #fef2f2; color: #dc2626; }
+
+        /* Legend */
+        .legend {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-inherited  { background: #94a3b8; }
+        .dot-overridden { background: #f59e0b; }
+        .dot-branch     { background: #22c55e; }
+
+        /* Item cards */
+        .items-list { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 2rem; }
+
+        .item-card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 1.1rem 1.5rem;
+            box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .item-card:hover { box-shadow: 0 10px 32px rgba(0,0,0,0.13); }
+
+        .item-indicator {
+            width: 4px;
+            height: 42px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .ind-inherited  { background: #94a3b8; }
+        .ind-overridden { background: #f59e0b; }
+        .ind-branch     { background: #22c55e; }
+
+        .item-info { flex: 1; min-width: 0; }
+
+        .item-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .item-meta {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .item-price { font-weight: 600; color: var(--brand); font-size: 0.88rem; }
+
+        .item-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+
+        .tag-inherited  { background: #f1f5f9; color: #64748b; }
+        .tag-overridden { background: #fefce8; color: #a16207; }
+        .tag-branch     { background: #f0fdf4; color: #15803d; }
+
+        .item-actions {
+            display: flex;
+            gap: 0.45rem;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .ia-btn {
+            padding: 0.45rem 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .ia-edit   { background: #eff6ff; color: #2563eb; }
+        .ia-edit:hover { background: #dbeafe; }
+
+        .ia-hide   { background: #fff7ed; color: #c2410c; }
+        .ia-hide:hover { background: #ffedd5; }
+
+        .ia-delete { background: #fef2f2; color: #dc2626; }
+        .ia-delete:hover { background: #fee2e2; }
+
+        .ia-revert { background: #f0fdf4; color: #15803d; }
+        .ia-revert:hover { background: #dcfce7; }
+
+        /* Empty state */
+        .empty {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .empty-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+        .empty h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+
+        .empty p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; max-width: 360px; margin: 0 auto 1.5rem; }
+
+        @media (max-width: 640px) {
+            body { padding: 1.5rem 1rem; }
+            .header { padding: 1.75rem 1.5rem; }
+            .header h1 { font-size: 1.6rem; }
+            .item-card { flex-wrap: wrap; }
+            .item-actions { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <div class="breadcrumb">
+                <a href="/restaurants">Restaurants</a> ›
+                <a th:href="@{/dashboard(restaurantId=${restaurant.id})}"
+                   th:text="${restaurant.restaurantName}">Restaurant</a> ›
+                <a th:href="@{/branch/{id}/dashboard(id=${branch.id})}"
+                   th:text="${branch.branchName}">Branch</a> ›
+                Menu
+            </div>
+            <h1>Branch Menu</h1>
+            <p class="header-sub">Items shown here are what customers at this branch will see.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center">
+            <a th:href="@{/branch/{id}/menu/add(id=${branch.id})}"
+               class="btn btn-primary">+ Add Item</a>
+            <a th:href="@{/branch/{id}/dashboard(id=${branch.id})}"
+               class="btn btn-ghost">← Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="flash flash-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="flash flash-error"   th:text="${error}"></div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <div class="legend-item"><div class="dot dot-inherited"></div> Inherited from restaurant</div>
+        <div class="legend-item"><div class="dot dot-overridden"></div> Overridden for this branch</div>
+        <div class="legend-item"><div class="dot dot-branch"></div> Branch-only item</div>
+    </div>
+
+    <!-- Items list -->
+    <div th:if="${hasItems}" class="items-list">
+        <div th:each="item : ${effectiveMenu}" class="item-card">
+
+            <!-- Colour indicator -->
+            <div class="item-indicator"
+                 th:classappend="${item.branchOnly} ? 'ind-branch' : (${item.overridden} ? 'ind-overridden' : 'ind-inherited')">
+            </div>
+
+            <!-- Info -->
+            <div class="item-info">
+                <div class="item-name" th:text="${item.name}">Item Name</div>
+                <div class="item-meta">
+                    <span th:text="${item.category}">Category</span>
+                    <span class="item-price" th:text="'$' + ${item.price}">$0.00</span>
+                </div>
+                <span th:if="${item.branchOnly}"  class="item-tag tag-branch">Branch only</span>
+                <span th:if="${item.overridden}"  class="item-tag tag-overridden">Overridden</span>
+                <span th:unless="${item.branchOnly or item.overridden}" class="item-tag tag-inherited">Inherited</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="item-actions">
+
+                <!-- Edit: inherited → go to override form; branch-only → TBD (use same endpoint pattern) -->
+                <a th:if="${!item.branchOnly}"
+                   th:href="@{/branch/{id}/menu/edit-inherited(id=${branch.id}, parentItemId=${item.restaurantItemId})}"
+                   class="ia-btn ia-edit">✏️ Edit</a>
+
+                <!-- If branch-only, also offer edit via a separate route (reuse same add form pre-filled) -->
+                <!-- For now, branch-only items can be deleted and re-added -->
+
+                <!-- Hide (inherited or overridden) -->
+                <form th:if="${!item.branchOnly}"
+                      method="post"
+                      th:action="@{/branch/{id}/menu/hide(id=${branch.id})}"
+                      style="display:inline"
+                      onsubmit="return confirm('Hide this item from this branch?')">
+                    <input type="hidden" name="parentItemId" th:value="${item.restaurantItemId}">
+                    <button type="submit" class="ia-btn ia-hide">🚫 Hide</button>
+                </form>
+
+                <!-- Revert override (only if overridden) -->
+                <form th:if="${item.overridden}"
+                      method="post"
+                      th:action="@{/branch/{id}/menu/delete(id=${branch.id})}"
+                      style="display:inline"
+                      onsubmit="return confirm('Revert to restaurant default?')">
+                    <input type="hidden" name="branchMenuItemId" th:value="${item.branchItemId}">
+                    <button type="submit" class="ia-btn ia-revert">↩ Revert</button>
+                </form>
+
+                <!-- Delete branch-only item -->
+                <form th:if="${item.branchOnly}"
+                      method="post"
+                      th:action="@{/branch/{id}/menu/delete(id=${branch.id})}"
+                      style="display:inline"
+                      onsubmit="return confirm('Delete this branch-only item?')">
+                    <input type="hidden" name="branchMenuItemId" th:value="${item.branchItemId}">
+                    <button type="submit" class="ia-btn ia-delete">🗑 Delete</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:unless="${hasItems}" class="empty">
+        <span class="empty-icon">🍽️</span>
+        <h2>No items yet</h2>
+        <p>Add items to this branch's menu or inherit them from the restaurant menu.</p>
+        <a th:href="@{/branch/{id}/menu/add(id=${branch.id})}"
+           class="btn btn-primary">+ Add First Item</a>
+    </div>
+
+</div>
+</body>
+</html>
+
+
+

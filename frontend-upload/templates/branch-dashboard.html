@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Dashboard – FlavorFrame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem; position: relative; overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute; top: -50%; right: -50%;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: drift 60s linear infinite; pointer-events: none;
+        }
+
+        @keyframes drift { 0% { transform: translate(0,0); } 100% { transform: translate(50px,50px); } }
+
+        .dashboard {
+            background: rgba(255,255,255,0.98); border-radius: 24px; padding: 3.5rem;
+            max-width: 860px; width: 100%;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            position: relative; animation: fadeSlideIn 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        @keyframes fadeSlideIn { 0% { opacity:0; transform:translateY(30px); } 100% { opacity:1; transform:translateY(0); } }
+
+        .badges { margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+        .branch-badge {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: linear-gradient(135deg, #fff5f0, #ffe8da);
+            border: 1.5px solid #ffd4c2; border-radius: 20px;
+            padding: 0.3rem 0.85rem; font-size: 0.8rem; font-weight: 600; color: #d84315;
+        }
+
+        .main-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            background: #fff8e1; border: 1.5px solid #ffe082;
+            border-radius: 20px; padding: 0.3rem 0.75rem;
+            font-size: 0.75rem; font-weight: 600; color: #f57f17;
+        }
+
+        .welcome-text {
+            font-family: 'Fraunces', serif; font-size: 2.3rem; font-weight: 300;
+            color: #1a1a2e; margin-bottom: 0.4rem; letter-spacing: -0.03em; line-height: 1.2;
+        }
+
+        .branch-sub { font-size: 0.9rem; color: #888; margin-bottom: 2.75rem; }
+        .branch-sub span { color: #ff6b35; font-weight: 600; }
+
+        .action-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.1rem; margin-bottom: 2.75rem; }
+
+        .action-btn {
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            border: none; border-radius: 15px; padding: 1.85rem 1.5rem;
+            color: white; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.35);
+            text-decoration: none; display: block; text-align: center;
+        }
+
+        .action-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before { left: 100%; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,107,53,0.5); }
+
+        .action-btn.deep {
+            background: linear-gradient(135deg, #ff6b35 0%, #d84315 100%);
+            box-shadow: 0 4px 15px rgba(216,67,21,0.35);
+        }
+        .action-btn.deep:hover { box-shadow: 0 8px 25px rgba(216,67,21,0.5); }
+
+        .bottom-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 0.75rem;
+        }
+
+        .secondary-btn {
+            background: transparent; border: 2px solid #1a1a2e; border-radius: 11px;
+            padding: 0.8rem 1.6rem; color: #1a1a2e;
+            font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; text-decoration: none;
+            display: inline-flex; align-items: center;
+        }
+
+        .secondary-btn:hover { background: #1a1a2e; color: white; transform: translateY(-2px); }
+        .secondary-btn.orange { border-color: #ff6b35; color: #ff6b35; }
+        .secondary-btn.orange:hover { background: #ff6b35; color: white; }
+
+        @media (max-width: 640px) {
+            .dashboard { padding: 2rem; }
+            .welcome-text { font-size: 1.8rem; }
+            .action-grid { grid-template-columns: 1fr; }
+            .bottom-actions { flex-direction: column; align-items: stretch; }
+            .secondary-btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+
+    <div class="badges">
+        <span class="branch-badge">
+            📍 <span th:text="${branch.branchName}">Branch Name</span>
+        </span>
+        <span th:if="${branch.mainBranch}" class="main-badge">⭐ Main Branch</span>
+    </div>
+
+    <h1 class="welcome-text">What would you like to do?</h1>
+
+    <p class="branch-sub">
+        <span th:text="${restaurant.restaurantName}">Restaurant</span>
+        · <span th:text="${branch.branchName}">Branch</span>
+    </p>
+
+    <div class="action-grid">
+        <a th:href="@{/enteritems(branchId=${branch.id},branchName=${branch.branchName})}"
+           class="action-btn deep">+ Add Items</a>
+
+        <a th:href="@{/manageitems(branchId=${branch.id},branchName=${branch.branchName})}"
+           class="action-btn">Edit / Delete Items</a>
+
+        <a th:href="@{/menu/preview(branchId=${branch.id})}"
+           target="_blank" class="action-btn">Preview Menu</a>
+
+        <a th:href="@{/menu/theme(branchId=${branch.id})}"
+           class="action-btn">Menu Theme</a>
+
+        <a th:href="@{/qr-page(branchId=${branch.id})}"
+           target="_blank" class="action-btn">View QR</a>
+    </div>
+
+    <div class="bottom-actions">
+        <form action="/logout" method="post" style="margin:0">
+            <button type="submit" class="secondary-btn">Logout</button>
+        </form>
+        <a th:href="@{/branches(restaurantId=${restaurant.id})}"
+           class="secondary-btn orange">← All Branches</a>
+    </div>
+
+</div>
+
+</body>
+</html>
+
+
+

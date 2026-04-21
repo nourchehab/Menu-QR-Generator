@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/effects.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – FlavorFrame</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/effects.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(249,115,22,0.06), transparent 26%),
+                #f8f5f1;
+            color: #1c1612;
+        }
+
+        .dashboard-shell {
+            min-height: 100vh;
+            padding: 32px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 980px;
+            background: rgba(255,255,255,0.98);
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 22px 56px rgba(16,12,9,0.10);
+            animation: fadeSlideIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeSlideIn {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .hero-copy {
+            max-width: 620px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .welcome-text {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2.1rem, 4vw, 2.9rem);
+            font-weight: 500;
+            color: #1c1612;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-subtext {
+            color: #7a6b60;
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid rgba(28,22,18,0.08);
+            border-radius: 22px;
+            padding: 18px 18px 16px;
+            box-shadow: 0 8px 24px rgba(16,12,9,0.05);
+        }
+
+        .stat-card small {
+            display: block;
+            color: #7a6b60;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-card strong {
+            display: block;
+            color: #1c1612;
+            font-size: 1.35rem;
+            letter-spacing: -0.03em;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .action-card {
+            background: #fff;
+            border: 1.5px solid rgba(28,22,18,0.10);
+            border-radius: 24px;
+            padding: 22px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 10px 28px rgba(16,12,9,0.05);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 34px rgba(16,12,9,0.08);
+            border-color: rgba(249,115,22,0.22);
+        }
+
+        .action-card.primary {
+            background: linear-gradient(180deg, #fff7f1 0%, #ffffff 100%);
+            border-color: rgba(249,115,22,0.18);
+        }
+
+        .action-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(249,115,22,0.10);
+            color: #f97316;
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+        }
+
+        .action-card h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.24rem;
+            font-weight: 500;
+            color: #1c1612;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        .action-card p {
+            color: #7a6b60;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-top: 18px;
+            border-top: 1px solid rgba(28,22,18,0.06);
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        @media (max-width: 860px) {
+            .stats-row,
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-shell {
+                padding: 16px;
+            }
+
+            .dashboard-container {
+                padding: 24px 18px;
+                border-radius: 24px;
+            }
+
+            .bottom-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quick-actions {
+                width: 100%;
+            }
+
+            .quick-actions .btn,
+            .bottom-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-shell">
+    <div class="dashboard-container">
+        <div class="hero-row">
+            <div class="hero-copy">
+                <div class="eyebrow">● FlavorFrame workspace</div>
+                <h1 class="welcome-text">Welcome back</h1>
+                <p class="dashboard-subtext">
+                    Keep your restaurant setup clean, current, and ready for customers. Choose where you want to go next.
+                </p>
+            </div>
+
+            <div class="quick-actions">
+                <a href="/restaurants" class="btn btn-primary">My Restaurants</a>
+                <a href="/settings" class="btn btn-secondary">Settings</a>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <small>Workspace</small>
+                <strong>Restaurant Admin</strong>
+            </div>
+            <div class="stat-card">
+                <small>Focus</small>
+                <strong>Menus & Branches</strong>
+            </div>
+            <div class="stat-card">
+                <small>Status</small>
+                <strong>Ready to Manage</strong>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <a href="/restaurants" class="action-card primary">
+                <div class="action-icon">🏪</div>
+                <h3>My restaurants</h3>
+                <p>Open your restaurants, manage branches, and continue working inside the correct workspace.</p>
+            </a>
+
+            <a href="/restaurant/setup" class="action-card">
+                <div class="action-icon">＋</div>
+                <h3>Add restaurant</h3>
+                <p>Create a new restaurant profile with logo, type, and the right setup flow.</p>
+            </a>
+
+            <a href="/menus" class="action-card">
+                <div class="action-icon">🍽</div>
+                <h3>Menus</h3>
+                <p>Review menu-related pages and keep item structure aligned with the product design.</p>
+            </a>
+
+            <a href="/settings" class="action-card">
+                <div class="action-icon">⚙</div>
+                <h3>Settings</h3>
+                <p>Update account and restaurant information in a cleaner admin-style layout.</p>
+            </a>
+        </div>
+
+        <div class="bottom-actions">
+            <a href="/choose-option" class="btn btn-secondary">Choose Option</a>
+            <form class="logout-form" action="/logout" method="post">
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+
