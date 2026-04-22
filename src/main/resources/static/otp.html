@@ -1,64 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>OTP Verification</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/effects.css">
+  <title>Forgot Password – FlavorFrame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/auth.css">
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f4f6f8;
-    }
+    .auth-card.slim {
+    max-width: 460px;
+  }
 
-    .container {
-      background: white;
-      padding: 32px;
-      width: 360px;
-      text-align: center;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
+  .auth-card h2 {
+    margin-bottom: 10px;
+  }
 
-    h2 { margin-bottom: 24px; }
+  .auth-subtext {
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.6;
+    text-align: center;
+  }
 
-    input {
-      width: 90%;
-      padding: 8px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 13px;
-    }
+  .step-indicator {
+    margin-bottom: 22px;
+  }
 
-    input:focus { outline: none; border-color: #ff9900; }
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #ff9900;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
+  .auth-form input {
+    border-radius: 18px;
+  }
+
+  .status-note {
+    display: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .otp-section {
+    display: none;
+  }
+
+  .otp-section.active {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-link-btn {
+    background: none;
+    border: none;
+    color: #ff9a4d;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.92rem;
+    text-decoration: none;
+  }
+
+  .page-link-btn:hover {
+    color: #fff;
+  }
+
+  .otp-section.active {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Forgot Password</h2>
+<div class="auth-container">
+  <div class="auth-card slim">
+    <div class="auth-brand">
+      <img src="/images/FlavorFrame_LOGO.webp" alt="FlavorFrame logo" decoding="async">
+    </div>
 
-  <input type="email" id="email" placeholder="Enter your email" required>
+    <h2>Forgot Password</h2>
+    <p class="auth-subtext">Enter your email and we'll send you a 6-digit code.</p>
+    <div class="step-indicator">Step 1 of 2</div>
 
-  <button id="sendCodeBtn" onclick="sendCode()">Send Code</button>
-  <p id="statusMsg" style="display:none; color: #555; font-size: 13px; margin-top: 10px;">If email exists, code was sent</p>
-  <div id="otpSection" style="display:none;">
-    <input type="text" id="otp" placeholder="Enter 6-digit code">
-    <button onclick="verifyOtp()">Submit</button>
+    <div class="auth-form">
+      <input type="email" id="email" placeholder="Enter your email" required>
+
+      <button class="btn btn-primary" id="sendCodeBtn" onclick="sendCode()">Send Code</button>
+
+      <p id="statusMsg" class="status-note">If the email exists, a code was sent.</p>
+
+      <div id="otpSection" class="otp-section">
+        <input type="text" id="otp" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric">
+        <button class="btn btn-primary" onclick="verifyOtp()">Submit</button>
+      </div>
+
+      <div style="text-align:center; margin-top:18px;">
+        <a href="/login" class="page-link-btn"> ← Back to Login </a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -74,7 +127,7 @@ function sendCode() {
     })
     .then(() => {
       document.getElementById("sendCodeBtn").style.display = "none";
-      document.getElementById("otpSection").style.display = "block";
+      document.getElementById("otpSection").classList.add("active");
       document.getElementById("statusMsg").style.display = "block";
     })
     .catch(err => { alert(err.message); });
@@ -100,6 +153,3 @@ function verifyOtp() {
 
 </body>
 </html>
-
-
-
