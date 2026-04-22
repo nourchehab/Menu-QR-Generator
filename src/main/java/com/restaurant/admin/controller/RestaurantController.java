@@ -90,8 +90,8 @@ public class RestaurantController {
     public ResponseEntity<?> handleSetup(
             @RequestParam("restaurantName") String restaurantName,
             @RequestParam("restaurantType") String restaurantType,
-            @RequestParam(value = "logo",       required = false) MultipartFile logo,
-            @RequestParam(value = "logoUpload", required = false) MultipartFile logoUpload,
+            @RequestParam(value = "logo",       required = true) MultipartFile logo,
+            @RequestParam(value = "logoUpload", required = true) MultipartFile logoUpload,
             Principal principal) {
 
         if (principal == null)
