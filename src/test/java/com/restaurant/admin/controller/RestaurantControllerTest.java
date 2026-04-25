@@ -109,14 +109,14 @@ class RestaurantControllerTest {
     }
 
     @Test
-    @DisplayName("❌ TC-02 | Valid name + type, no logoUpload → 200 OK with error message")
+    @DisplayName("❌ TC-02 | Valid name + type, no logoUpload → 400 BAD_REQUEST")
     void testSetupWithoutLogoUpload() throws Exception {
         ResponseEntity<?> response = restaurantController.handleSetup(
                 "Burger Palace", "Casual Dining", null, null, mockPrincipal);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
-        assertEquals("Please upload a logo for your restaurant", body.get("error"));
+        assertEquals("Logo is required", body.get("error"));
     }
 
     @Test

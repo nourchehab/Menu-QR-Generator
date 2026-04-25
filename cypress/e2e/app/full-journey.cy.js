@@ -97,17 +97,34 @@ function ensureRestaurantSetup() {
       return
     }
 
-    return cy.request({
-      method: 'POST',
-      url: '/signup/restaurant/setup',
-      form: true,
-      failOnStatusCode: false,
-      body: {
-        restaurantName: `E2E Resto ${Date.now()}`,
-        restaurantType: 'Cafe',
-      },
-    }).then((setupResp) => {
-      expect([200, 201]).to.include(setupResp.status)
+    // For multipart file uploads, we need to use a raw file and FormData
+    // Load the test logo fixture as binary and send it properly
+    return cy.fixture('test-logo.png', 'binary').then((logoData) => {
+      const formData = new FormData()
+      const blob = Cypress.Blob.binaryStringToBlob(logoData, 'image/png')
+      
+      formData.append('restaurantName', `E2E Resto ${Date.now()}`)
+      formData.append('restaurantType', 'Cafe')
+      formData.append('logoUpload', blob, 'test-logo.png')
+
+      // Use the Fetch API directly from the Cypress context instead of cy.request()
+      // This allows proper FormData handling with file uploads
+      return cy.window().then((win) => {
+        return win.fetch('/signup/restaurant/setup', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(json => {
+          // Check if the response indicates success
+          if (json.error) {
+            throw new Error(`Failed to create restaurant: ${json.error}`)
+          }
+          if (!json.success && !json.restaurantId) {
+            throw new Error(`Unexpected response: ${JSON.stringify(json)}`)
+          }
+        })
+      })
     })
   })
 }

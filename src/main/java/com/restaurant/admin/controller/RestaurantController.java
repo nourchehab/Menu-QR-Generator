@@ -111,7 +111,7 @@ public class RestaurantController {
 
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
             if (effectiveLogo == null || effectiveLogo.isEmpty())
-                return ResponseEntity.ok(Map.of("error", "Please upload a logo for your restaurant"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Logo is required"));
 
             Restaurant restaurant = restaurantService.setupRestaurant(
                 user.getId(), restaurantName.trim(), restaurantType.trim(), effectiveLogo);
