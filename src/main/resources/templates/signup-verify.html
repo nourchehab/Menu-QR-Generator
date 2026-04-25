@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/effects.css">
     <title>Verify Email – FlavorFrame</title>
     <link rel="stylesheet" href="/css/base.css">
@@ -14,16 +13,6 @@
         .verification-icon {
             font-size: 48px;
             margin-bottom: 16px;
-        }
-
-        .email-display {
-            background: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: inline-block;
-            margin: 12px 0;
-            font-family: monospace;
-            font-size: 14px;
         }
 
         .code-inputs {
@@ -62,9 +51,13 @@
         }
 
         .resend-section {
-            margin-top: 24px;
+            margin-top: 28px;
             padding-top: 24px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px; /* 👈 THIS creates spacing */
         }
 
         .resend-text {
@@ -104,7 +97,7 @@
             <div class="verification-icon">📧</div>
             <h2>Verify Your Email</h2>
             <p>We've sent a verification code to</p>
-            <div class="email-display" th:text="${userEmail}"></div>
+            <strong th:text="${userEmail}"></strong>
 
             <div class="success-message" th:if="${resent}">
                 A new verification code has been sent to your email.

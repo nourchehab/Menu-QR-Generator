@@ -124,6 +124,36 @@
             color: var(--orange);
             font-weight: 700;
         }
+
+        .password-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-field input {
+            width: 100%;
+            padding-right: 42px;
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-52%);
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .toggle-eye:hover {
+            opacity: 1;
+        }
+
+        .toggle-eye img {
+            width: 20px;
+            height: 20px;
+            filter: invert(1); /* makes icon visible on dark UI */
+        }
     </style>
 </head>
 <body>
@@ -148,7 +178,12 @@
 
             <form id="loginForm" class="auth-form">
                 <input type="email" id="email" name="username" placeholder="Email" required>
-                <input type="password" id="password" name="password" placeholder="Password" required>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                    <span class="toggle-eye" onclick="togglePassword('password', this)">
+                        <img src="/images/show-pw.png" alt="Toggle password">
+                    </span>
+                </div>
 
                 <div class="remember-row">
                     <label class="remember-me__label">
@@ -520,6 +555,19 @@
     backBtn.addEventListener('click', () => {
         showLoginStep();
     });
+
+    function togglePassword(id, el) {
+    const input = document.getElementById(id);
+    const icon = el.querySelector("img");
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.src = "/images/hide-pw.png";
+    } else {
+        input.type = "password";
+        icon.src = "/images/show-pw.png";
+    }
+}
 </script>
 
 </body>

@@ -100,24 +100,24 @@
             min-height: 18px;
         }
 
-        /* ── Google button — matches login.html style ── */
         .google-btn {
             width: 100%;
-            padding: 12px 16px;
+            box-sizing: border-box;
+            padding: 14px 20px;
             margin-bottom: 12px;
-            border: 1.5px solid rgba(0, 0, 0, 0.10);
-            background: #fff;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.02);
             cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            border-radius: 999px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: all 0.2s ease;
+            transition: 0.2s ease;
             text-decoration: none;
-            color: #1c1612;
+            color: #f7efe8;
             font-family: inherit;
         }
 
@@ -127,10 +127,9 @@
         }
 
         .google-btn:hover {
-            background: #f8f5f1;
-            border-color: rgba(0, 0, 0, 0.18);
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.18);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
         /* auth-footer link → orange */
@@ -140,6 +139,38 @@
 
         .auth-footer a:hover {
             color: #e67e22;
+        }
+
+        .password-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-field input {
+            width: 100%;
+            padding-right: 42px; /* space for eye */
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .toggle-eye:hover {
+            opacity: 1;
+        }
+
+        .toggle-eye img {
+            width: 20px;
+            height: 20px;
+            display: block;
+            filter: invert(1);
         }
     </style>
 </head>
@@ -163,8 +194,19 @@
 
         <form id="signupForm" method="post" action="/signup" class="auth-form">
             <input type="email" id="email" name="email" placeholder="Email" required>
-            <input type="password" id="password" name="password" placeholder="Password" required>
-            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+            <div class="password-field">
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <span class="toggle-eye" onclick="togglePassword('password', this)">
+                    <img src="/images/show-pw.png" alt="Show password">
+                </span>
+            </div>
+
+            <div class="password-field">
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                <span class="toggle-eye" onclick="togglePassword('confirmPassword', this)">
+                    <img src="/images/show-pw.png" alt="Show password">
+                </span>
+            </div>
 
             <div class="password-rules">
                 <ul>
@@ -299,6 +341,19 @@ confirmPassword.addEventListener("input", () => {
 signupForm.addEventListener("submit", function(e) {
     sessionStorage.setItem("signupPassword", password.value);
 });
+
+function togglePassword(id, el) {
+    const input = document.getElementById(id);
+    const icon = el.querySelector("img");
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.src = "/images/hide-pw.png";
+    } else {
+        input.type = "password";
+        icon.src = "/images/show-pw.png";
+    }
+}
 </script>
 </body>
 </html>
