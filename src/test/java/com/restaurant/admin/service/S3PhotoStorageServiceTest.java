@@ -41,6 +41,7 @@ public class S3PhotoStorageServiceTest {
         ReflectionTestUtils.setField(s3PhotoStorageService, "bucketName", "test-bucket");
         ReflectionTestUtils.setField(s3PhotoStorageService, "photosFolder", "test-photos");
         ReflectionTestUtils.setField(s3PhotoStorageService, "localPhotoDir", "test-uploads");
+        ReflectionTestUtils.setField(s3PhotoStorageService, "localLogoDir", "test-uploads-logos");
     }
 
     @Test
@@ -76,6 +77,22 @@ public class S3PhotoStorageServiceTest {
         // Assert: service should fall back to local storage and return a local uploads path
         assertNotNull(result);
         assertTrue(result.startsWith("/uploads/photos/"));
+        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void testUploadNewLogoFallsBackToLocalStorageWhenS3Fails() throws Exception {
+        // Arrange
+        MultipartFile file = new MockMultipartFile("file", "logo.png", "image/png", "logo data".getBytes());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(S3Exception.builder().message("Access Denied").build());
+
+        // Act
+        String result = s3PhotoStorageService.uploadNewLogo(file);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.startsWith("/uploads/logos/"));
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 }

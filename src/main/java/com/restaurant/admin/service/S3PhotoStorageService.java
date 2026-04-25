@@ -233,16 +233,24 @@ public class S3PhotoStorageService {
             throw new IllegalArgumentException("Logo file cannot be empty");
         }
 
-        if (!StringUtils.hasText(bucketName)) {
-            throw new IllegalStateException("AWS S3 bucket name is not configured. Cannot upload logo to S3.");
-        }
-
         String contentType = file.getContentType();
         if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
             throw new IllegalArgumentException("Invalid image file type: " + contentType);
         }
 
         String extension = getExtension(file.getOriginalFilename(), contentType);
+        String filename = UUID.randomUUID() + extension;
+
+        if (!StringUtils.hasText(bucketName)) {
+            log.warn("AWS S3 bucket not configured, falling back to local storage for logo");
+            Files.createDirectories(Path.of(localLogoDir));
+            Path target = Path.of(localLogoDir).resolve(filename);
+            try (var in = file.getInputStream()) {
+                Files.copy(in, target);
+            }
+            return "/uploads/logos/" + filename;
+        }
+
         String key = buildKey(logosFolder, extension);
 
         PutObjectRequest request = PutObjectRequest.builder()
@@ -259,9 +267,13 @@ public class S3PhotoStorageService {
             log.info("Successfully uploaded logo to S3: {}", key);
             return s3Url;
         } catch (Exception e) {
-            String errorMsg = String.format("Failed to upload logo to S3 bucket '%s': %s", bucketName, e.getMessage());
-            log.error(errorMsg, e);
-            throw new RuntimeException(errorMsg, e);
+            log.warn("S3 upload failed for logo, falling back to local storage: {}", e.toString());
+            Files.createDirectories(Path.of(localLogoDir));
+            Path target = Path.of(localLogoDir).resolve(filename);
+            try (var in2 = file.getInputStream()) {
+                Files.copy(in2, target);
+            }
+            return "/uploads/logos/" + filename;
         }
     }
 
