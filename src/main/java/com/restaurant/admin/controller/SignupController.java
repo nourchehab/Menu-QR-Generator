@@ -238,6 +238,14 @@ public class SignupController {
         }
 
         try {
+            // Validate inputs
+            if (restaurantName == null || restaurantName.trim().isEmpty())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Restaurant name is required"));
+            if (restaurantType == null || restaurantType.trim().isEmpty())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Restaurant type is required"));
+            if (logoFile == null || logoFile.isEmpty())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Logo is required"));
+
             // Removed "already exists" guard — multiple restaurants per user are supported.
 
             String correlationId = java.util.UUID.randomUUID().toString();
