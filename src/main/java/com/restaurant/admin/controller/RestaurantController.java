@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +103,6 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
-            // Removed "already exists" guard — multiple restaurants per user are supported.
-
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
             Restaurant restaurant = restaurantService.setupRestaurant(
                 user.getId(), restaurantName, restaurantType, effectiveLogo);
@@ -125,6 +124,26 @@ public class RestaurantController {
                     "errorId", errorId
             ));
         }
+    }
+
+    // ── Delete Restaurant ─────────────────────────────────────────────────────
+
+    @PostMapping("/restaurant/{restaurantId}/delete")
+    public String deleteRestaurant(@PathVariable Long restaurantId,
+                                   Principal principal,
+                                   RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
+
+        SimpleUser user = getCurrentUser(principal);
+        if (user == null) return "redirect:/login";
+
+        try {
+            restaurantService.deleteRestaurant(user, restaurantId);
+            redirectAttributes.addFlashAttribute("success", "Restaurant deleted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Could not delete restaurant: " + e.getMessage());
+        }
+        return "redirect:/restaurants";
     }
 
     @GetMapping("/api/restaurant/me")

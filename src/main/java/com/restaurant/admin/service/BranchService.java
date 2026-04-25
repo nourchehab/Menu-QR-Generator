@@ -118,6 +118,24 @@ public class BranchService {
         branchRepository.delete(branch);
     }
 
+    /**
+     * Deletes all BranchMenuItems for a branch and then the branch itself.
+     * Called by RestaurantService when deleting a restaurant.
+     * Safe to call on main branch (bypasses the isMainBranch guard).
+     */
+    @Transactional
+    public void deleteAllItemsForBranch(Branch branch) {
+        List<BranchMenuItem> items = branchMenuItemRepository.findByBranch(branch);
+        for (BranchMenuItem bmi : items) {
+            String photoPath = bmi.getPhotoPath();
+            branchMenuItemRepository.delete(bmi);
+            if (photoPath != null) {
+                deletePhotoIfUnshared(photoPath, null);
+            }
+        }
+        branchRepository.delete(branch);
+    }
+
     public boolean isMultiBranch(SimpleUser user) {
         Restaurant restaurant = restaurantRepository.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new SecurityException("User has no restaurant"));

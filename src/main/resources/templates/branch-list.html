@@ -446,6 +446,8 @@
             border-radius: 22px;
             overflow: hidden;
             transition: 0.22s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .branch-card:hover {
@@ -531,21 +533,26 @@
         }
 
         .branch-body {
-            padding: 18px;
-        }
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
 
         .branch-copy {
-            color: var(--muted);
-            font-size: 0.9rem;
-            line-height: 1.7;
-            margin-bottom: 16px;
-        }
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    flex: 1;
+}
 
         .branch-actions {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
+            margin-top: auto;
         }
 
         .btn-go {

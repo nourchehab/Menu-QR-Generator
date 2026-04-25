@@ -226,7 +226,8 @@
 
         .btn,
         .btn-outline,
-        .icon-toggle {
+        .icon-toggle,
+        .icon-btn {
             border: none;
             border-radius: 999px;
             padding: 0.86rem 1.4rem;
@@ -255,14 +256,16 @@
         }
 
         .btn-outline,
-        .icon-toggle {
+        .icon-toggle,
+        .icon-btn {
             background: rgba(255,255,255,0.02);
             color: var(--muted);
             border: 1px solid var(--line-strong);
         }
 
         .btn-outline:hover,
-        .icon-toggle:hover {
+        .icon-toggle:hover,
+        .icon-btn:hover {
             color: var(--text);
             border-color: rgba(255,255,255,0.18);
             background: rgba(255,255,255,0.04);
@@ -275,6 +278,19 @@
             box-shadow: 0 0 18px rgba(255,122,26,0.12);
         }
 
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 14px;
+        }
+
+        .icon-btn.danger:hover {
+            color: #ff8c7e;
+            border-color: rgba(255, 107, 87, 0.20);
+            background: rgba(255, 107, 87, 0.06);
+        }
+
         .message {
             padding: 0.95rem 1.1rem;
             border-radius: 16px;
@@ -283,6 +299,12 @@
             margin-bottom: 16px;
             background: var(--panel);
             border: 1px solid var(--line);
+        }
+
+        .success-message {
+            color: #9fe6b8;
+            border-color: rgba(53, 196, 106, 0.20);
+            background: rgba(53, 196, 106, 0.06);
         }
 
         .error-message {
@@ -725,6 +747,7 @@
             </div>
         </div>
 
+        <div th:if="${success}" class="message success-message" th:text="${success}"></div>
         <div th:if="${error}" class="message error-message" th:text="${error}"></div>
 
         <div class="summary-row">
@@ -796,6 +819,14 @@
 
                                 <div class="restaurant-actions">
                                     <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-go">Go To Branches</a>
+
+                                    <form method="post"
+                                          th:action="@{/restaurant/{id}/delete(id=${restaurant.id})}"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Delete this restaurant and all its branches? This cannot be undone.')">
+                                        <button type="submit" class="icon-btn danger" title="Delete Restaurant">🗑</button>
+                                    </form>
+
                                     <div class="mini-stat">
                                         <small>Type</small>
                                         <strong th:text="${restaurant.restaurantType}">Cafe</strong>
@@ -958,6 +989,3 @@
 </script>
 </body>
 </html>
-
-
-

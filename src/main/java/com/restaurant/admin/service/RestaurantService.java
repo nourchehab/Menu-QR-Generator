@@ -82,6 +82,32 @@ public class RestaurantService {
         }
     }
 
+    /**
+     * Delete a restaurant and all its branches (including menu items).
+     * Only the owning user may delete their restaurant.
+     */
+    @Transactional
+    public void deleteRestaurant(SimpleUser user, Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        if (!restaurant.getUser().getId().equals(user.getId()))
+            throw new SecurityException("Restaurant not owned by user");
+
+        // Delete all branches (and their menu items) via BranchService so S3 photo logic runs
+        List<com.restaurant.admin.model.Branch> branches =
+                branchService.getBranchesForRestaurant(user, restaurantId);
+        for (com.restaurant.admin.model.Branch branch : branches) {
+            branchService.deleteAllItemsForBranch(branch);
+        }
+
+        // Delete logo from S3 if present
+        if (restaurant.getLogoPath() != null && !restaurant.getLogoPath().isBlank()) {
+            s3PhotoStorageService.deleteIfS3Url(restaurant.getLogoPath());
+        }
+
+        restaurantRepository.delete(restaurant);
+    }
+
     public Optional<Restaurant> getRestaurantByUser(SimpleUser user) {
         return restaurantRepository.findFirstByUserOrderByIdDesc(user);
     }
