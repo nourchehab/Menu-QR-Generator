@@ -90,15 +90,15 @@ class RestaurantControllerTest {
     @Test
     @DisplayName("✅ TC-01 | Valid name + type + logo → 200 OK with redirectUrl")
     void testSuccessfulSetupWithLogo() throws Exception {
-        MultipartFile logo = new MockMultipartFile(
-                "logo", "logo.png", "image/png", new byte[]{1, 2, 3});
+        MultipartFile logoUpload = new MockMultipartFile(
+                "logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
 
         when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
-        when(restaurantService.setupRestaurant(1L, "Test Restaurant", "Fast Food", logo))
+        when(restaurantService.setupRestaurant(1L, "Test Restaurant", "Fast Food", logoUpload))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test Restaurant", "Fast Food", logo, null, mockPrincipal);
+                "Test Restaurant", "Fast Food", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
@@ -109,24 +109,19 @@ class RestaurantControllerTest {
     }
 
     @Test
-    @DisplayName("✅ TC-02 | Valid name + type, no logo → 200 OK (logo is optional)")
-    void testSuccessfulSetupWithoutLogo() throws Exception {
-        when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
-        when(restaurantService.setupRestaurant(eq(1L), eq("Burger Palace"), eq("Casual Dining"), isNull()))
-                .thenReturn(mockRestaurant);
-
+    @DisplayName("❌ TC-02 | Valid name + type, no logoUpload → 200 OK with error message")
+    void testSetupWithoutLogoUpload() throws Exception {
         ResponseEntity<?> response = restaurantController.handleSetup(
                 "Burger Palace", "Casual Dining", null, null, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
-        assertEquals(true, body.get("success"));
+        assertEquals("Please upload a logo for your restaurant", body.get("error"));
     }
 
     @Test
-    @DisplayName("✅ TC-03 | logoUpload used when logo field is empty → 200 OK")
-    void testSetupWithLogoUploadFallback() throws Exception {
-        MultipartFile emptyLogo  = new MockMultipartFile("logo", new byte[0]);
+    @DisplayName("✅ TC-03 | logoUpload provided → 200 OK")
+    void testSetupWithLogoUpload() throws Exception {
         MultipartFile logoUpload = new MockMultipartFile(
                 "logoUpload", "upload.png", "image/png", new byte[]{5, 6, 7});
 
@@ -135,7 +130,7 @@ class RestaurantControllerTest {
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Sushi Place", "Japanese", emptyLogo, logoUpload, mockPrincipal);
+                "Sushi Place", "Japanese", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(restaurantService).setupRestaurant(1L, "Sushi Place", "Japanese", logoUpload);
@@ -159,10 +154,12 @@ class RestaurantControllerTest {
     @Test
     @DisplayName("🔐 TC-05 | Principal exists but user not in DB → 401 UNAUTHORIZED")
     void testSetupWhenUserNotFound() {
+        MultipartFile logoUpload = new MockMultipartFile(
+                "logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
         when(userService.findByEmail("test@example.com")).thenReturn(null);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test Restaurant", "Fast Food", null, null, mockPrincipal);
+                "Test Restaurant", "Fast Food", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
@@ -175,11 +172,12 @@ class RestaurantControllerTest {
     @DisplayName("♻️ TC-06 | User already has a restaurant → still creates new one → 200 OK")
     void testSetupWhenRestaurantAlreadyExists() throws Exception {
         mockUser.setRestaurantSetupComplete(true);
-        when(restaurantService.setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull()))
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
+        when(restaurantService.setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), any()))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test Restaurant", "Fast Food", null, null, mockPrincipal);
+                "Test Restaurant", "Fast Food", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
@@ -189,7 +187,7 @@ class RestaurantControllerTest {
         assertEquals("/restaurants", body.get("redirectUrl"));
 
         // Ensure a new restaurant was created
-        verify(restaurantService).setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), isNull());
+        verify(restaurantService).setupRestaurant(eq(1L), eq("Test Restaurant"), eq("Fast Food"), eq(logoUpload));
     }
 
     // =========================================================================
@@ -199,12 +197,13 @@ class RestaurantControllerTest {
     @Test
     @DisplayName("❌ TC-07 | Service throws exception → 500 INTERNAL SERVER ERROR")
     void testSetupWhenServiceThrowsException() throws Exception {
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
         when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
         when(restaurantService.setupRestaurant(any(), any(), any(), any()))
                 .thenThrow(new RuntimeException("S3 upload failed"));
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test Restaurant", "Fast Food", null, null, mockPrincipal);
+                "Test Restaurant", "Fast Food", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
@@ -212,28 +211,38 @@ class RestaurantControllerTest {
     }
 
     @Test
-    @DisplayName("❌ TC-08 | Empty restaurant name → forwarded to service (frontend validates)")
+    @DisplayName("❌ TC-08 | Empty restaurant name → 400 BAD REQUEST")
     void testSetupWithEmptyRestaurantName() throws Exception {
-        when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
-        when(restaurantService.setupRestaurant(eq(1L), eq(""), eq("Fast Food"), any()))
-                .thenReturn(mockRestaurant);
-
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "", "Fast Food", null, null, mockPrincipal);
+                "", "Fast Food", null, logoUpload, mockPrincipal);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertEquals("Restaurant name is required", body.get("error"));
     }
+    @Test
+    @DisplayName("❌ TC-08b | Empty restaurant type → 400 BAD REQUEST")
+    void testSetupWithEmptyRestaurantType() throws Exception {
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
+        ResponseEntity<?> response = restaurantController.handleSetup(
+                "Test Restaurant", "", null, logoUpload, mockPrincipal);
 
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertEquals("Restaurant type is required", body.get("error"));
+    }
     @Test
     @DisplayName("❌ TC-09 | Very long restaurant name (300 chars) → service still called")
     void testSetupWithVeryLongRestaurantName() throws Exception {
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
         String longName = "A".repeat(300);
         when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
         when(restaurantService.setupRestaurant(eq(1L), eq(longName), eq("Fast Food"), any()))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                longName, "Fast Food", null, null, mockPrincipal);
+                longName, "Fast Food", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -241,13 +250,14 @@ class RestaurantControllerTest {
     @Test
     @DisplayName("❌ TC-10 | Restaurant name with special characters → 200 OK")
     void testSetupWithSpecialCharactersInName() throws Exception {
+        MultipartFile logoUpload = new MockMultipartFile("logoUpload", "logo.png", "image/png", new byte[]{1, 2, 3});
         String specialName = "Café & Bistro <Le Bon>";
         when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
         when(restaurantService.setupRestaurant(eq(1L), eq(specialName), eq("Café"), any()))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                specialName, "Café", null, null, mockPrincipal);
+                specialName, "Café", null, logoUpload, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -257,17 +267,17 @@ class RestaurantControllerTest {
     // =========================================================================
 
     @Test
-    @DisplayName("🖼️ TC-11 | Wrong file type (PDF) as logo → forwarded to service")
+    @DisplayName("🖼️ TC-11 | Wrong file type (PDF) as logoUpload → forwarded to service")
     void testSetupWithPdfAsLogo() throws Exception {
         MultipartFile pdfFile = new MockMultipartFile(
-                "logo", "document.pdf", "application/pdf", new byte[]{1, 2, 3});
+                "logoUpload", "document.pdf", "application/pdf", new byte[]{1, 2, 3});
 
         when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
         when(restaurantService.setupRestaurant(1L, "Test", "Fast Food", pdfFile))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test", "Fast Food", pdfFile, null, mockPrincipal);
+                "Test", "Fast Food", null, pdfFile, mockPrincipal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -298,12 +308,12 @@ class RestaurantControllerTest {
     @Test
     @DisplayName("📦 TC-13 | Success response contains all expected fields")
     void testSuccessResponseStructure() throws Exception {
-        when(restaurantService.userHasRestaurant(mockUser)).thenReturn(false);
+        MultipartFile logo = new MockMultipartFile("logo", "logo.png", "image/png", new byte[]{1, 2, 3});
         when(restaurantService.setupRestaurant(any(), any(), any(), any()))
                 .thenReturn(mockRestaurant);
 
         ResponseEntity<?> response = restaurantController.handleSetup(
-                "Test Restaurant", "Fast Food", null, null, mockPrincipal);
+                "Test Restaurant", "Fast Food", logo, null, mockPrincipal);
 
         Map<?, ?> body = (Map<?, ?>) response.getBody();
         assertNotNull(body);

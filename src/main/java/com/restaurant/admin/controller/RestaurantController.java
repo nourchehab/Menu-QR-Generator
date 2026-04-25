@@ -91,7 +91,7 @@ public class RestaurantController {
     public ResponseEntity<?> handleSetup(
             @RequestParam("restaurantName") String restaurantName,
             @RequestParam("restaurantType") String restaurantType,
-            @RequestParam(value = "logo",       required = true) MultipartFile logo,
+            @RequestParam(value = "logo",       required = false) MultipartFile logo,
             @RequestParam(value = "logoUpload", required = true) MultipartFile logoUpload,
             Principal principal) {
 
@@ -103,9 +103,18 @@ public class RestaurantController {
             if (user == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
 
+            // Validate inputs
+            if (restaurantName == null || restaurantName.trim().isEmpty())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Restaurant name is required"));
+            if (restaurantType == null || restaurantType.trim().isEmpty())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Restaurant type is required"));
+
             MultipartFile effectiveLogo = (logo != null && !logo.isEmpty()) ? logo : logoUpload;
+            if (effectiveLogo == null || effectiveLogo.isEmpty())
+                return ResponseEntity.ok(Map.of("error", "Please upload a logo for your restaurant"));
+
             Restaurant restaurant = restaurantService.setupRestaurant(
-                user.getId(), restaurantName, restaurantType, effectiveLogo);
+                user.getId(), restaurantName.trim(), restaurantType.trim(), effectiveLogo);
 
             return ResponseEntity.ok(Map.of(
                     "success",      true,
