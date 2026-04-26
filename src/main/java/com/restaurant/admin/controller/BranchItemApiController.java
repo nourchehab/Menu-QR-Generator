@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.security.Principal;
 import java.util.HashMap;
@@ -63,6 +65,7 @@ public class BranchItemApiController {
     // ── PUBLIC ────────────────────────────────────────────────────────────────
 
     @GetMapping("/api/public/branch/{branchId}/items")
+    @Cacheable(value = "branchItems", key = "#branchId")
     public ResponseEntity<?> getPublicBranchItems(@PathVariable Long branchId) {
         try {
             Branch branch = branchRepository.findById(branchId)

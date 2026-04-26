@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
@@ -259,6 +260,7 @@ public class RestaurantController {
 
     @PostMapping("/api/restaurants/{restaurantId}/batch-categorize")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> batchCategorizeMenuItems(
             @PathVariable Long restaurantId,
             @RequestParam(value = "branchId", defaultValue = "default") String branchId,

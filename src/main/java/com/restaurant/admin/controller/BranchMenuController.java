@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.security.Principal;
 import java.util.List;
@@ -96,6 +97,7 @@ public class BranchMenuController {
     }
 
     @PostMapping("/add")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public String addItem(@PathVariable Long branchId,
                           @RequestParam("name")        String name,
                           @RequestParam("description") String description,
@@ -144,6 +146,7 @@ public class BranchMenuController {
     }
 
     @PostMapping("/edit")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public String saveEdit(@PathVariable Long branchId,
                            @RequestParam("itemId")      Long   itemId,
                            @RequestParam("name")        String name,

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -176,6 +178,7 @@ public class MenuItemController {
      */
     @PostMapping("/api/items")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> addMenuItem(
             @RequestParam("itemName") String itemName,
             @RequestParam("itemPrice") BigDecimal itemPrice,
@@ -273,6 +276,7 @@ public class MenuItemController {
      */
     @GetMapping("/api/public/restaurants/{restaurantId}/items")
     @ResponseBody
+    @Cacheable(value = "restaurantItems", key = "#restaurantId")
     public ResponseEntity<?> getMenuItemsPublic(@PathVariable Long restaurantId) {
         try {
             List<MenuItem> menuItems = menuItemService.getMenuItemsByRestaurant(restaurantId);
@@ -306,6 +310,7 @@ public class MenuItemController {
      */
     @DeleteMapping("/api/items/{id}")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> deleteMenuItem(@PathVariable Long id, Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -336,6 +341,7 @@ public class MenuItemController {
      */
     @PostMapping("/api/items/{id}")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> updateMenuItem(
             @PathVariable Long id,
             @RequestParam("itemName") String itemName,
