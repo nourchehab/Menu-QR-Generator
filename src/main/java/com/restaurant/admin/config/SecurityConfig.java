@@ -16,7 +16,6 @@ import com.restaurant.admin.security.oauth.CookieOAuth2AuthorizationRequestRepos
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,22 +27,22 @@ public class SecurityConfig {
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final CustomLoginSuccessHandler formLoginSuccessHandler;
     private final UserDetailsService userDetailsService;
-    
-    private final String activeProfile;
-        private final boolean oauth2Enabled;
 
-        public SecurityConfig(
-                CustomOAuth2UserService customOAuth2UserService,
-                CustomOidcUserService customOidcUserService,
-                OAuth2LoginSuccessHandler successHandler,
-                OAuth2LoginFailureHandler failureHandler,
-                CustomAuthenticationProvider customAuthenticationProvider,
-                CustomLoginSuccessHandler formLoginSuccessHandler,
-                UserDetailsService userDetailsService,
-                @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
-                @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled,
-                @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId
-        ) {
+    private final String activeProfile;
+    private final boolean oauth2Enabled;
+
+    public SecurityConfig(
+            CustomOAuth2UserService customOAuth2UserService,
+            CustomOidcUserService customOidcUserService,
+            OAuth2LoginSuccessHandler successHandler,
+            OAuth2LoginFailureHandler failureHandler,
+            CustomAuthenticationProvider customAuthenticationProvider,
+            CustomLoginSuccessHandler formLoginSuccessHandler,
+            UserDetailsService userDetailsService,
+            @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:}") String activeProfile,
+            @org.springframework.beans.factory.annotation.Value("${app.security.oauth2.enabled:false}") boolean oauth2Enabled,
+            @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id:}") String googleClientId
+    ) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.successHandler = successHandler;
@@ -52,13 +51,13 @@ public class SecurityConfig {
         this.customAuthenticationProvider = customAuthenticationProvider;
         this.formLoginSuccessHandler = formLoginSuccessHandler;
         this.activeProfile = activeProfile == null ? "" : activeProfile;
-                this.oauth2Enabled = oauth2Enabled || (googleClientId != null && !googleClientId.isBlank());
+        this.oauth2Enabled = oauth2Enabled || (googleClientId != null && !googleClientId.isBlank());
     }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManagerBuilder authenticationManagerBuilder
+                = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
         return authenticationManagerBuilder.build();
     }
@@ -68,7 +67,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
+                .frameOptions(frame -> frame.disable())
                 )
                 .authorizeHttpRequests(auth -> {
                     // Allow unauthenticated access to signup endpoints
@@ -94,22 +93,22 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .successHandler(formLoginSuccessHandler)
-                        .permitAll()
+                .loginPage("/login")
+                .successHandler(formLoginSuccessHandler)
+                .permitAll()
                 )
                 .rememberMe(remember -> remember
-                        .rememberMeParameter("remember-me")
-                        .key("flavorframe-remember-me-key-2026")
-                        .tokenValiditySeconds(60 * 60 * 24 * 30)
-                        .userDetailsService(userDetailsService)
+                .rememberMeParameter("remember-me")
+                .key("flavorframe-remember-me-key-2026")
+                .tokenValiditySeconds(60 * 60 * 24 * 30)
+                .userDetailsService(userDetailsService)
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .deleteCookies("JSESSIONID", "remember-me")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
                 );
 
         if (oauth2Enabled) {
@@ -117,8 +116,8 @@ public class SecurityConfig {
                     .authorizationEndpoint(authz -> authz.authorizationRequestRepository(new CookieOAuth2AuthorizationRequestRepository()))
                     .loginPage("/login")
                     .userInfoEndpoint(userInfo -> userInfo
-                            .userService(customOAuth2UserService)
-                            .oidcUserService(customOidcUserService)
+                    .userService(customOAuth2UserService)
+                    .oidcUserService(customOidcUserService)
                     )
                     .successHandler(successHandler)
                     .failureHandler(failureHandler)
