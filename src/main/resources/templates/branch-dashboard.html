@@ -449,8 +449,11 @@
 <div class="layout">
     <aside class="sidebar">
         <div class="brand">
-    <img src="/images/FlavorFrame_LOGO.webp" alt="FlavorFrame logo" class="sidebar-logo" decoding="async">
-</div>
+            <div>
+                <strong>FlavorFrame</strong>
+                <span th:text="${restaurant.restaurantName}">Restaurant workspace</span>
+            </div>
+        </div>
         <div class="sidebar-group">
             <div class="sidebar-label">Overview</div>
             <a href="#" class="nav-link active">Branch Dashboard</a>
