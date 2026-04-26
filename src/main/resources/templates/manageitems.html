@@ -371,6 +371,8 @@
             .header { flex-direction: column; align-items: flex-start; }
             .page-title { font-size: 1.6rem; }
         }
+
+
 </style>
 </head>
 
@@ -451,10 +453,8 @@
 
                     <div class="form-group" style="margin-bottom:1rem;">
                         <label style="display:block; font-weight:600; margin-bottom:.4rem;">Description</label>
-                        <!-- ✅ CHANGED: maxlength 500 → 100 -->
                         <textarea id="editItemDescription" class="form-textarea" required maxlength="100"
                             style="min-height:110px;"></textarea>
-                        <!-- ✅ ADDED: character counter -->
                         <div id="editDescCounter" style="text-align:right; font-size:0.78rem; margin-top:0.35rem; color:#8f7d73; transition:color .2s ease;">0 / 100</div>
                     </div>
 
@@ -800,10 +800,15 @@
 
             if (response.ok && (data.success === undefined || data.success === true)) {
                 closeEditModal();
-                Swal.fire({ title:'Saved!', text:'Your item has been updated.', icon:'success', timer:1500, showConfirmButton:false, target: document.body });
+                Swal.fire({ title:'Saved!', text:'Your item has been updated.', icon:'success', target: document.body });
                 fetchItems();
             } else {
-                Swal.fire({ title:'Error!', text: data.error || rawText || `Failed (HTTP ${response.status})`, icon:'error', target: document.body });
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error || rawText || `Failed (HTTP ${response.status})`,
+                    icon: 'error',
+                    target: document.body
+                });
             }
         } catch (error) {
             Swal.fire({ title:'Error!', text:'A network error occurred', icon:'error', target: document.body });
@@ -880,7 +885,10 @@
     categoriseModal.addEventListener('click', e => { if (e.target === categoriseModal) closeCategoriseModal(); });
 
     function openCategoriseModal(itemId) {
-        if (!cachedItems.length) { Swal.fire({ title:'No items', text:'There are no items to categorise yet.', icon:'info', target: document.body }); return; }
+        if (!cachedItems.length) {
+            Swal.fire({ title:'No items', text:'There are no items to categorise yet.', icon:'info', target: document.body });
+            return;
+        }
         document.getElementById('categoriseContent').style.display = 'block';
         document.getElementById('categoriseResults').style.display = 'none';
         renderCategoriseItemsList(itemId);
@@ -930,7 +938,10 @@
     async function submitCategoriseRequest() {
         const selected = Array.from(document.querySelectorAll('#categoriseItemsList input[type="checkbox"]:checked'))
             .map(cb => parseInt(cb.getAttribute('data-item-id')));
-        if (!selected.length) { Swal.fire({ title:'Warning!', text:'Please select at least one item', icon:'warning', target: document.body }); return; }
+        if (!selected.length) {
+            Swal.fire({ title:'Warning!', text:'Please select at least one item', icon:'warning', target: document.body });
+            return;
+        }
 
         const submitBtn = document.getElementById('categoriseSubmitBtn');
         submitBtn.disabled = true; submitBtn.textContent = 'Generating Categories...';
@@ -939,18 +950,37 @@
             const resInfo = await fetch(`/api/restaurant/branch/${branchId}`);
             const branchData = resInfo.ok ? await resInfo.json() : {};
             const restId = branchData.id;
-            if (!restId) { Swal.fire({ title:'Error!', text:'Could not determine restaurant', icon:'error', target: document.body }); return; }
+            if (!restId) {
+                Swal.fire({ title:'Error!', text:'Could not determine restaurant', icon:'error', target: document.body });
+                submitBtn.disabled = false; submitBtn.textContent = 'Generate Categories';
+                return;
+            }
 
             const response = await fetch(`/api/restaurants/${restId}/batch-categorize?branchId=${branchId}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ itemIds: selected })
             });
             const data = await response.json();
-            if (response.ok && data.success) { displayCategoriseResults(data.results || []); }
-            else { Swal.fire({ title:'Error!', text: data.error || 'Categorisation failed', icon:'error', target: document.body }); }
+            if (response.ok && data.success) {
+                displayCategoriseResults(data.results || []);
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error || 'Categorisation failed',
+                    icon: 'error',
+                    target: document.body
+                });
+            }
         } catch (err) {
-            Swal.fire({ title:'Error!', text:'Network error: ' + err.message, icon:'error', target: document.body });
-        } finally { submitBtn.disabled = false; submitBtn.textContent = 'Generate Categories'; }
+            Swal.fire({
+                title: 'Error!',
+                text: 'Network error: ' + err.message,
+                icon: 'error',
+                target: document.body
+            });
+        } finally {
+            submitBtn.disabled = false; submitBtn.textContent = 'Generate Categories';
+        }
     }
 
     function displayCategoriseResults(results) {
@@ -1012,7 +1042,10 @@
     async function acceptCategoriseSuggestion(itemId, category) {
         try {
             const current = cachedItems.find(i => (i.restaurantItemId === itemId || i.branchItemId === itemId));
-            if (!current) { Swal.fire({ title:'Error!', text:'Item not found', icon:'error', target: document.body }); return; }
+            if (!current) {
+                Swal.fire({ title:'Error!', text:'Item not found', icon:'error', target: document.body });
+                return;
+            }
             const formData = new FormData();
             formData.append('itemName',        current.name        ?? current.itemName        ?? '');
             formData.append('itemPrice',       current.price       ?? current.itemPrice       ?? 0);
@@ -1038,9 +1071,18 @@
                         }
                     }, 300);
                 }
-                Swal.fire({ title:'Saved!', text:'Category updated and removed from list.', icon:'success', timer:1200, showConfirmButton:false, target: document.body });
-            } else { Swal.fire({ title:'Error!', text: data.error || 'Failed to save', icon:'error', target: document.body }); }
-        } catch (err) { Swal.fire({ title:'Error!', text:'Network error', icon:'error', target: document.body }); }
+                Swal.fire({ title:'Saved!', text:'Category updated and removed from list.', icon:'success', target: document.body });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error || 'Failed to save',
+                    icon: 'error',
+                    target: document.body
+                });
+            }
+        } catch (err) {
+            Swal.fire({ title:'Error!', text:'Network error', icon:'error', target: document.body });
+        }
     }
 
     function categoriseAgain() {
@@ -1156,12 +1198,7 @@
         }
 
         if (count === 0) {
-            Swal.fire({
-                title: 'No ideas generated',
-                text: 'You requested 0 ideas, so nothing was generated.',
-                icon: 'info',
-                target: document.body
-            });
+            Swal.fire({ title:'No ideas generated', text:'You requested 0 ideas, so nothing was generated.', icon:'info', target: document.body });
             return;
         }
 
@@ -1273,7 +1310,10 @@
 
     async function addSelectedAiIdeas() {
         const checkboxes = document.querySelectorAll('#aiIdeasList input[type="checkbox"]:checked');
-        if (!checkboxes.length) { Swal.fire({ title:'Nothing selected', text:'Please check at least one idea to add.', icon:'info', target: document.body }); return; }
+        if (!checkboxes.length) {
+            Swal.fire({ title:'Nothing selected', text:'Please check at least one idea to add.', icon:'info', target: document.body });
+            return;
+        }
 
         let successCount = 0, failCount = 0, lastBranchItemId = null;
 
@@ -1306,10 +1346,13 @@
             Swal.fire({
                 title: 'Added!',
                 text: `${successCount} item${successCount > 1 ? 's' : ''} added to your menu. ${failCount > 0 ? failCount + ' failed. ' : ''}Remember to set prices before publishing.`,
-                icon: 'success', timer: 3500, showConfirmButton: false, target: document.body
+                icon: 'success',
+                didClose: () => { fetchItems(); },
+                target: document.body
             });
-            fetchItems();
-        } else { Swal.fire({ title:'Error', text:'Failed to add items. Please try again.', icon:'error', target: document.body }); }
+        } else {
+            Swal.fire({ title:'Error', text:'Failed to add items. Please try again.', icon:'error', target: document.body });
+        }
     }
 
     async function offerCopyToBranches(menuItemId, siblings) {
