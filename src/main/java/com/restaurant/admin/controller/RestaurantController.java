@@ -150,7 +150,11 @@ public class RestaurantController {
             restaurantService.deleteRestaurant(user, restaurantId);
             redirectAttributes.addFlashAttribute("success", "Restaurant deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Could not delete restaurant: " + e.getMessage());
+            String errorMessage = "Operation failed. Please try again.";
+            if (e.getMessage() != null && e.getMessage().contains("foreign key constraint")) {
+                errorMessage = "Cannot delete your only restaurant.";
+            }
+            redirectAttributes.addFlashAttribute("error", errorMessage);
         }
         return "redirect:/restaurants";
     }

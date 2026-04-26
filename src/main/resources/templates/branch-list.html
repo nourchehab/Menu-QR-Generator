@@ -777,6 +777,8 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
 <div class="app-shell">
@@ -918,12 +920,12 @@
                                             title="Rename Branch"
                                             th:onclick="'toggleRename(' + ${branch.id} + ')'">✎</button>
 
-                                    <form method="post"
+                                    <form id="deleteBranchForm"
+                                          method="post"
                                           th:action="@{/branch/{branchId}/delete(branchId=${branch.id})}"
-                                          style="display:inline"
-                                          onsubmit="return confirm('Delete this branch? This cannot be undone.')">
+                                          style="display:inline">
                                         <input type="hidden" name="restaurantId" th:value="${restaurantId}">
-                                        <button type="submit" class="icon-btn danger" title="Delete Branch">🗑</button>
+                                        <button type="button" class="icon-btn danger" title="Delete Branch" th:onclick="'showDeleteBranchModal(this.form)'">🗑</button>
                                     </form>
 
                                     <div class="branch-mini">
@@ -1039,6 +1041,30 @@
 
         setView('grid');
     })();
+
+    // Delete Branch Modal
+    let pendingDeleteBranchForm = null;
+
+    window.showDeleteBranchModal = function(form) {
+        pendingDeleteBranchForm = form;
+        Swal.fire({
+            title: 'Delete this branch?',
+            text: 'This cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff7a1a',
+            cancelButtonColor: '#121212',
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false,
+            target: document.body
+        }).then(result => {
+            if (result.isConfirmed && pendingDeleteBranchForm) {
+                pendingDeleteBranchForm.submit();
+            }
+            pendingDeleteBranchForm = null;
+        });
+    };
 </script>
 </body>
 </html>

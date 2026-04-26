@@ -701,7 +701,11 @@
                 width: 100%;
             }
         }
+
+        /* Swal.fire is used for delete restaurant modal */
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
 <div class="app-shell">
@@ -820,11 +824,11 @@
                                 <div class="restaurant-actions">
                                     <a th:href="@{/branches(restaurantId=${restaurant.id})}" class="btn-go">Go To Branches</a>
 
-                                    <form method="post"
+                                    <form id="deleteRestaurantForm"
+                                          method="post"
                                           th:action="@{/restaurant/{id}/delete(id=${restaurant.id})}"
-                                          style="display:inline"
-                                          onsubmit="return confirm('Delete this restaurant and all its branches? This cannot be undone.')">
-                                        <button type="submit" class="icon-btn danger" title="Delete Restaurant">🗑</button>
+                                          style="display:inline">
+                                        <button type="button" class="icon-btn danger" title="Delete Restaurant" onclick="showDeleteModal(this.form)">🗑</button>
                                     </form>
 
                                     <div class="mini-stat">
@@ -986,6 +990,45 @@
         filterCards();
         setView('grid');
     })();
+</script>
+
+
+
+<script>
+    let pendingDeleteForm = null;
+
+    window.showDeleteModal = function(form) {
+        pendingDeleteForm = form;
+        Swal.fire({
+            title: 'Delete this restaurant?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff7a1a',
+            cancelButtonColor: '#121212',
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false,
+            target: document.body
+        }).then(result => {
+            if (result.isConfirmed && pendingDeleteForm) {
+                pendingDeleteForm.submit();
+            }
+            pendingDeleteForm = null;
+        });
+    };
+
+    window.closeDeleteModal = function() {
+        // No longer needed - Swal.fire handles this
+        pendingDeleteForm = null;
+    };
+
+    window.confirmDeleteRestaurant = function() {
+        // No longer needed - Swal.fire handles confirmation
+        if (pendingDeleteForm) {
+            pendingDeleteForm.submit();
+        }
+    };
 </script>
 </body>
 </html>
