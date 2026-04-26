@@ -961,12 +961,12 @@
                 body: JSON.stringify({ itemIds: selected })
             });
             const data = await response.json();
-            if (response.ok && data.success) {
+            if (response.ok && (data.success || (data.results && data.results.length > 0))) {
                 displayCategoriseResults(data.results || []);
             } else {
                 Swal.fire({
                     title: 'Error!',
-                    text: data.error || 'Categorisation failed',
+                    text: data.error || 'Categorization failed because price of item needs to be edited',
                     icon: 'error',
                     target: document.body
                 });

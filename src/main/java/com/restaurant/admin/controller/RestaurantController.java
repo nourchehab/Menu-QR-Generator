@@ -358,6 +358,18 @@ public class RestaurantController {
                 logger.info("Found branch item: {} (id: {}), name: {}", itemId, branchItem.getId(), itemName);
 
                 try {
+                    // Check if price is 0 or less - AI service cannot categorize items without valid pricing
+                    if (price <= 0) {
+                        logger.warn("Item {} has invalid price: {}", itemName, price);
+                        results.add(Map.of(
+                                "itemId", itemId,
+                                "itemName", itemName,
+                                "success", false,
+                                "error", "AI service returned empty response because price of item needs to be edited"
+                        ));
+                        continue;
+                    }
+
                     logger.info("Calling AI service for item: {} with branchId: {}", itemName, branchId);
                     AiServiceClient.CategorizeResponse aiResponse = aiServiceClient.categorizeMenuItem(
                             itemName,
@@ -392,7 +404,7 @@ public class RestaurantController {
                                 "itemId", itemId,
                                 "itemName", itemName,
                                 "success", false,
-                                "error", "AI service returned empty response"
+                                "error", "AI service returned empty response because price of item needs to be edited"
                         ));
                     }
                 } catch (Exception e) {
