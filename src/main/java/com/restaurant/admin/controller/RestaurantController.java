@@ -205,6 +205,7 @@ public class RestaurantController {
 
     @PutMapping("/api/restaurant/me/theme")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> updateMyTheme(@RequestBody Map<String, String> body, Authentication auth) {
         String email = resolveEmail(auth);
         if (email == null)
@@ -228,6 +229,7 @@ public class RestaurantController {
 
     @PutMapping("/api/restaurant/branch/{branchId}/theme")
     @ResponseBody
+    @CacheEvict(value = {"restaurantItems", "branchItems"}, allEntries = true)
     public ResponseEntity<?> updateBranchTheme(
             @PathVariable Long branchId,
             @RequestBody Map<String, String> body,
@@ -248,7 +250,10 @@ public class RestaurantController {
             Restaurant restaurant = branch.getRestaurant();
             String safe = (hex == null || hex.isBlank()) ? "" : ColorContrastUtil.normalizeHex(hex);
             restaurant.setMenuBackgroundColor(safe);
-            Restaurant updated = restaurantService.updateMenuBackgroundColor(user, hex);
+            
+            // Explicitly use the restaurant from the branch to avoid updating the user's "most recent" restaurant 
+            // if it happens to be different from the one this branch belongs to.
+            Restaurant updated = restaurantService.saveRestaurant(restaurant);
 
             return ResponseEntity.ok(buildThemeResponse(updated));
         } catch (SecurityException e) {

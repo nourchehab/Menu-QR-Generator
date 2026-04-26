@@ -133,6 +133,11 @@ public class RestaurantService {
         return restaurantRepository.save(restaurant);
     }
 
+    @Transactional
+    public Restaurant saveRestaurant(Restaurant restaurant) {
+        return restaurantRepository.save(restaurant);
+    }
+
     public boolean userHasRestaurant(SimpleUser user) {
         return restaurantRepository.existsByUser(user);
     }

@@ -322,11 +322,13 @@ function googleTranslateElementInit() {
                 }
             });
             
-            // Check for already pending changes on load
-            const pendingBg = localStorage.getItem('pendingThemeColor');
-            const pendingText = localStorage.getItem('pendingTextColor');
-            if (pendingBg) document.documentElement.style.setProperty('--menu-bg', pendingBg);
-            if (pendingText) document.documentElement.style.setProperty('--menu-text', pendingText);
+            // Check for already pending changes on load (Admin preview only)
+            if (!isPublic) {
+                const pendingBg = localStorage.getItem('pendingThemeColor');
+                const pendingText = localStorage.getItem('pendingTextColor');
+                if (pendingBg) document.documentElement.style.setProperty('--menu-bg', pendingBg);
+                if (pendingText) document.documentElement.style.setProperty('--menu-text', pendingText);
+            }
 
             document.getElementById('restaurantName').textContent = restaurant.restaurantName || 'My Restaurant';
             const type = (restaurant.restaurantType || 'default').toLowerCase();

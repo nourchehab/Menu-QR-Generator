@@ -233,6 +233,9 @@
                 hexInput.value    = data.menuBackgroundColor;
                 applyToPreview(data.menuBackgroundColor);
             }
+            // Force persistence by ensuring localStorage is also updated on save
+            localStorage.setItem('pendingThemeColor', hex);
+            localStorage.setItem('pendingTextColor', bestTextColor(hex));
         } catch (e) {
             saveMsg.textContent = e.message;
         } finally {
