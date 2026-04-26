@@ -60,7 +60,7 @@
         </div>
 
         <div class="card" style="padding:0;">
-            <div class="preview" id="miniPreview" style="background:#0d0d0d; color:#f7efe8;">
+            <div class="preview" id="miniPreview">
                 <div class="preview-header">
                     <div>
                         <div class="preview-title" id="previewName">Your Restaurant</div>
@@ -140,10 +140,22 @@
     function applyToPreview(hex) {
         const text = bestTextColor(hex);
         const cr   = contrast(hex, text);
-        miniPreview.style.background = hex;
-        miniPreview.style.color      = text;
-        suggestedText.textContent    = text;
-        contrastRatioEl.textContent  = cr.toFixed(2);
+        miniPreview.style.backgroundColor = hex;
+        miniPreview.style.color           = text;
+        
+        // Also update sub-components background to match the chosen theme
+        // and ensure color inheritance for all text elements
+        miniPreview.querySelectorAll('.preview-item, .preview-header, .preview-body, .preview-title, .name, .desc').forEach(el => {
+            el.style.backgroundColor = 'transparent';
+            el.style.color           = 'inherit';
+        });
+        
+        suggestedText.textContent         = text;
+        contrastRatioEl.textContent       = cr.toFixed(2);
+        
+        // Update full preview page if opened (via localStorage per user request for "reflect change")
+        localStorage.setItem('pendingThemeColor', hex);
+        localStorage.setItem('pendingTextColor', text);
     }
 
     function syncFromColorPicker() {
@@ -160,8 +172,15 @@
         applyToPreview(hex);
     }
 
-    colorPicker.addEventListener('input', () => { saveMsg.textContent = ''; syncFromColorPicker(); });
-    hexInput.addEventListener('input',    () => { saveMsg.textContent = ''; syncFromHexInput(); });
+    colorPicker.addEventListener('input', () => { 
+        saveMsg.textContent = ''; 
+        syncFromColorPicker(); 
+    });
+    
+    hexInput.addEventListener('input', () => { 
+        saveMsg.textContent = ''; 
+        syncFromHexInput(); 
+    });
 
     // ── Load current restaurant / branch info ─────────────────────────────────
     async function loadCurrent() {

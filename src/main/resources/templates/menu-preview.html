@@ -10,9 +10,12 @@
     <style>
 
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        :root { --cream:#0d0d0d; --warm:#121212; --ink:#f7efe8; --muted:#b8a79d; --accent:#ff7a1a; --accent2:#ff9a4d; --divider:rgba(255,255,255,0.08); --card-bg:#0d0d0d; --popular:#ff9a4d; }
+        :root { --cream:#0d0d0d; --warm:#121212; --ink:#f7efe8; --muted:#b8a79d; --accent:#ff7a1a; --accent2:#ff9a4d; --divider:rgba(255,255,255,0.08); --card-bg:var(--menu-bg, #0d0d0d); --popular:#ff9a4d; }
         html { scroll-behavior:smooth; }
         body { background:radial-gradient(circle at top right, rgba(255,122,26,.10), transparent 20%), radial-gradient(circle at bottom left, rgba(255,122,26,.06), transparent 18%), var(--menu-bg,#050505); color:var(--menu-text,var(--ink)); font-family:'Inter',sans-serif; min-height:100vh; }
+        .row-name, .category-title, .restaurant-name { color: var(--menu-text, var(--ink)) !important; }
+        .row-desc, .item-count-bar, .menu-footer { color: var(--menu-text, var(--muted)) !important; opacity: 0.8; }
+        .category-header { background: var(--card-bg) !important; border-bottom: 1px solid var(--divider) !important; }
         #google_translate_element { position:fixed; bottom:20px; right:16px; background:var(--card-bg); padding:10px 14px; border-radius:14px; z-index:1000; box-shadow:0 12px 28px rgba(0,0,0,.26); border:1px solid var(--divider); }
         #google_translate_element select { background:var(--warm); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; font-size:1rem; font-family:'Inter',sans-serif; color:var(--ink); cursor:pointer; }
         .preview-banner { background:#040404; color:var(--ink); text-align:center; padding:10px 20px; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:12px; position:sticky; top:0; z-index:100; border-bottom:1px solid var(--divider); } .preview-banner .dot { width:8px; height:8px; background:var(--accent2); border-radius:50%; animation:pulse 2s ease-in-out infinite; } @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.7);} } .banner-actions { position:absolute; right:20px; display:flex; gap:10px; } .btn-banner { background:linear-gradient(135deg, var(--accent2), var(--accent)); color:#fff; border:none; padding:7px 16px; border-radius:999px; font-family:'Inter',sans-serif; font-size:.75rem; font-weight:700; cursor:pointer; text-decoration:none; transition:.2s; box-shadow:0 0 0 1px rgba(255,122,26,.18),0 0 24px rgba(255,122,26,.22),0 10px 24px rgba(255,122,26,.18); } .btn-banner.outline { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.14); color:var(--ink); box-shadow:none; }
@@ -110,9 +113,9 @@ function googleTranslateElementInit() {
 </header>
 
 <div id="categoryFilters" style="display:none; max-width:680px; margin:18px auto 20px; padding:0 20px;">
-    <div style="background:#0d0d0d; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.22);">
+    <div style="background:var(--card-bg); border:1px solid var(--divider); border-radius:14px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.22);">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
-            <div style="font-weight:600; color:var(--ink);">Filter by category</div>
+            <div style="font-weight:600; color:var(--menu-text, var(--ink));">Filter by category</div>
             <button id="clearFiltersBtn" type="button" style="border:none; background:transparent; color:var(--accent); font-weight:600; cursor:pointer;">Clear Filters</button>
         </div>
         <div id="filterButtons" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
@@ -304,6 +307,22 @@ function googleTranslateElementInit() {
                 document.documentElement.style.setProperty('--menu-bg', restaurant.menuBackgroundColor);
             if (restaurant.menuTextColor)
                 document.documentElement.style.setProperty('--menu-text', restaurant.menuTextColor);
+
+            // Listen for live theme updates from the editor
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'pendingThemeColor' && e.newValue) {
+                    document.documentElement.style.setProperty('--menu-bg', e.newValue);
+                }
+                if (e.key === 'pendingTextColor' && e.newValue) {
+                    document.documentElement.style.setProperty('--menu-text', e.newValue);
+                }
+            });
+            
+            // Check for already pending changes on load
+            const pendingBg = localStorage.getItem('pendingThemeColor');
+            const pendingText = localStorage.getItem('pendingTextColor');
+            if (pendingBg) document.documentElement.style.setProperty('--menu-bg', pendingBg);
+            if (pendingText) document.documentElement.style.setProperty('--menu-text', pendingText);
 
             document.getElementById('restaurantName').textContent = restaurant.restaurantName || 'My Restaurant';
             const type = (restaurant.restaurantType || 'default').toLowerCase();
