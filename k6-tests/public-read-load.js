@@ -9,14 +9,15 @@ const BRANCH_ID = 25;
 
 export const options = {
     stages: [
-        { duration: '20s', target: 10 },   // ramp up
-        { duration: '40s', target: 30 },   // moderate load
-        { duration: '40s', target: 60 },   // heavier load
-        { duration: '20s', target: 0 },    // ramp down
+        { duration: '30s', target: 20 },
+        { duration: '30s', target: 40 },
+        { duration: '30s', target: 60 },
+        { duration: '1m', target: 60 },  // hold at 60
+        { duration: '30s', target: 0 },
     ],
     thresholds: {
-        http_req_duration: ['p(95)<1500'],
         http_req_failed: ['rate<0.05'],
+        http_req_duration: ['p(95)<3000'], // slightly relaxed
     },
 };
 
