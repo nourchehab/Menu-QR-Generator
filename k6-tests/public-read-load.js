@@ -31,6 +31,4 @@ export default function () {
     check(res2, {
         'branch items 200': (r) => r.status === 200,
     });
-
-    sleep(0.5);
 }
