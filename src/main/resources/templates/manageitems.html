@@ -1072,6 +1072,7 @@
                     }, 300);
                 }
                 Swal.fire({ title:'Saved!', text:'Category updated and removed from list.', icon:'success', target: document.body });
+                fetchItems();
             } else {
                 Swal.fire({
                     title: 'Error!',
