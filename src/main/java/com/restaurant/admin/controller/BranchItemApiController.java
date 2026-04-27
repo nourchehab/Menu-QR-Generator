@@ -132,6 +132,7 @@ public class BranchItemApiController {
      * Returns branchItemId so the frontend can offer copy-to-branches.
      */
     @PostMapping("/api/branch/{branchId}/items")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public ResponseEntity<?> addItem(
             @PathVariable Long branchId,
             @RequestParam("itemName")        String name,
@@ -175,6 +176,7 @@ public class BranchItemApiController {
      * Copies a BranchMenuItem to other branches by reference (no S3 re-upload).
      */
     @PostMapping("/api/branch/{branchId}/items/{branchItemId}/copy-to-branches")
+    @CacheEvict(value = "branchItems", allEntries = true)
     public ResponseEntity<?> copyItemToBranches(
             @PathVariable Long branchId,
             @PathVariable Long branchItemId,
@@ -209,6 +211,7 @@ public class BranchItemApiController {
      * ✅ Does NOT delete S3 photos.
      */
     @PostMapping("/api/branch/{branchId}/items/delete-from-branches")
+    @CacheEvict(value = "branchItems", allEntries = true)
     public ResponseEntity<?> deleteItemFromBranches(
             @PathVariable Long branchId,
             @RequestBody Map<String, Object> body,
@@ -240,6 +243,7 @@ public class BranchItemApiController {
     // ── EDIT item ─────────────────────────────────────────────────────────────
 
     @PostMapping("/api/branch/{branchId}/items/{itemId}")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public ResponseEntity<?> editItem(
             @PathVariable Long branchId,
             @PathVariable Long itemId,
@@ -272,6 +276,7 @@ public class BranchItemApiController {
     // ── DELETE item ───────────────────────────────────────────────────────────
 
     @DeleteMapping("/api/branch/{branchId}/items/{itemId}")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public ResponseEntity<?> deleteItem(
             @PathVariable Long branchId,
             @PathVariable Long itemId,
@@ -319,6 +324,7 @@ public class BranchItemApiController {
      * ✅ Only deletes from S3 if no other branch references the same photo path.
      */
     @DeleteMapping("/api/branch/{branchId}/items/{itemId}/image")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public ResponseEntity<?> deleteItemImage(
             @PathVariable Long branchId,
             @PathVariable Long itemId,

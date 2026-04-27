@@ -170,6 +170,7 @@ public class BranchMenuController {
     // ── Delete item ───────────────────────────────────────────────────────────
 
     @PostMapping("/delete")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public String deleteItem(@PathVariable Long branchId,
                              @RequestParam("itemId") Long itemId,
                              Principal principal,
@@ -193,6 +194,7 @@ public class BranchMenuController {
      * Accepts both "itemId" and the old "parentItemId" param name for template compat.
      */
     @PostMapping("/hide")
+    @CacheEvict(value = "branchItems", key = "#branchId")
     public String hideItem(@PathVariable Long branchId,
                            @RequestParam(value = "itemId",       required = false) Long itemId,
                            @RequestParam(value = "parentItemId", required = false) Long parentItemId,
